@@ -20,4 +20,8 @@
     <ProjectReference Include="..\..\src\PaymentMatching.Web\PaymentMatching.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Shared\TelemetryCapture.cs" Link="Shared\TelemetryCapture.cs" />
+  </ItemGroup>
+
 </Project>

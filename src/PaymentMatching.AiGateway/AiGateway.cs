@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace PaymentMatching.AiGateway;
 
 /// <summary>A model and how to call it.</summary>
@@ -83,6 +85,30 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         CancellationToken cancellationToken = default)
         where T : class
     {
+        using var activity = Telemetry.Source.StartActivity("ai.complete");
+        var result = await RouteAsync(systemPrompt, userContent, schemaJson, parse, isConfident, cancellationToken);
+        if (result.BudgetExhausted)
+        {
+            Telemetry.AiBudgetExhausted.Add(1);
+        }
+
+        activity?.SetTag(Telemetry.Tags.AiModel, result.Model)
+            .SetTag(Telemetry.Tags.AiCalls, result.Calls.Count)
+            .SetTag(Telemetry.Tags.AiEscalated, result.Escalated)
+            .SetTag(Telemetry.Tags.AiBudgetExhausted, result.BudgetExhausted)
+            .SetTag(Telemetry.Tags.AiCostUsd, (double)result.CostUsd);
+        return result;
+    }
+
+    private async Task<GatewayResult<T>> RouteAsync<T>(
+        string systemPrompt,
+        string userContent,
+        string schemaJson,
+        Func<string, T?> parse,
+        Func<T, bool> isConfident,
+        CancellationToken cancellationToken)
+        where T : class
+    {
         var calls = new List<UsageRecord>();
         T? fallback = null;
         string? fallbackModel = null;
@@ -126,6 +152,61 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         provider is IAnswerCache cache && await cache.ContainsAsync(request, cancellationToken);
 
     private async Task<(T? Value, UsageRecord Record)> CallAsync<T>(
+        LlmRequest request, string tier, Func<string, T?> parse, Func<T, bool> isConfident, CancellationToken cancellationToken)
+        where T : class
+    {
+        using var activity = Telemetry.Source.StartActivity($"chat {request.Model}", ActivityKind.Client);
+        var (value, record) = await CallProviderAsync(request, tier, parse, isConfident, cancellationToken);
+        Record(activity, record);
+        return (value, record);
+    }
+
+    /// <summary>Only names, codes and numbers: never the prompt, the answer or an error message (ADR 0015).</summary>
+    private static void Record(Activity? activity, UsageRecord record)
+    {
+        var errorType = record.Error is null ? null
+            : record.Error.StartsWith(TransportError + "timeout", StringComparison.Ordinal) ? "timeout"
+            : record.Error.StartsWith(TransportError, StringComparison.Ordinal) ? "transport"
+            : "answer";
+        var provider = record.Model.StartsWith("claude", StringComparison.Ordinal) ? "anthropic" : null;
+        var cached = record.Cached;
+
+        if (activity is not null)
+        {
+            activity.SetTag(Telemetry.Tags.GenAiOperation, "chat")
+                .SetTag(Telemetry.Tags.GenAiProvider, provider)
+                .SetTag(Telemetry.Tags.GenAiRequestModel, record.Model)
+                .SetTag(Telemetry.Tags.GenAiInputTokens, record.Usage.InputTokens)
+                .SetTag(Telemetry.Tags.GenAiOutputTokens, record.Usage.OutputTokens)
+                .SetTag(Telemetry.Tags.AiCacheReadTokens, record.Usage.CacheReadTokens)
+                .SetTag(Telemetry.Tags.AiCacheWriteTokens, record.Usage.CacheWriteTokens)
+                .SetTag(Telemetry.Tags.AiTier, record.Tier)
+                .SetTag(Telemetry.Tags.AiOutcome, record.Outcome.ToString())
+                .SetTag(Telemetry.Tags.AiCostUsd, (double)record.CostUsd)
+                .SetTag(Telemetry.Tags.AiCached, cached)
+                .SetTag(Telemetry.Tags.AiLatencyMs, record.Latency.TotalMilliseconds)
+                .SetTag(Telemetry.Tags.ErrorType, errorType);
+            if (errorType is not null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, errorType);
+            }
+        }
+
+        var model = new KeyValuePair<string, object?>(Telemetry.Tags.GenAiRequestModel, record.Model);
+        var tierTag = new KeyValuePair<string, object?>(Telemetry.Tags.AiTier, record.Tier);
+        Telemetry.AiCalls.Add(1, model, tierTag, new(Telemetry.Tags.AiOutcome, record.Outcome.ToString()), new(Telemetry.Tags.AiCached, cached));
+        if (cached || record.Outcome == CallOutcome.Failed)
+        {
+            return;
+        }
+
+        Telemetry.AiTokens.Add(record.Usage.InputTokens, model, new(Telemetry.Tags.GenAiTokenType, "input"));
+        Telemetry.AiTokens.Add(record.Usage.OutputTokens, model, new(Telemetry.Tags.GenAiTokenType, "output"));
+        Telemetry.AiCost.Add((double)record.CostUsd, model);
+        Telemetry.AiCallDuration.Record(record.Latency.TotalSeconds, model, tierTag);
+    }
+
+    private async Task<(T? Value, UsageRecord Record)> CallProviderAsync<T>(
         LlmRequest request, string tier, Func<string, T?> parse, Func<T, bool> isConfident, CancellationToken cancellationToken)
         where T : class
     {
