@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using PaymentMatching.AiGateway;
 using PaymentMatching.Data;
@@ -52,6 +53,45 @@ public sealed class DailyJob(
 
     public async Task<JobReport> RunAsync(CancellationToken cancellationToken = default)
     {
+        using var activity = Telemetry.Source.StartActivity("job.run");
+        var report = await RunAllAsync(cancellationToken);
+        activity?.SetTag(Tags.Day, report.Day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))
+            .SetTag(Tags.Mode, settings.Source)
+            .SetTag(Tags.Deleted, report.Deleted)
+            .SetTag(Tags.DemoCreated, report.DemoCreated)
+            .SetTag(Tags.Sandboxes, report.Sandboxes.Count)
+            .SetTag(Tags.Refilled, report.Sandboxes.Count(s => s.Refilled))
+            .SetTag(Telemetry.Tags.AiCalls, report.ModelCalls)
+            .SetTag(Tags.CacheHits, report.CacheHits)
+            .SetTag(Telemetry.Tags.AiCostUsd, (double)report.CostUsd)
+            .SetTag(Tags.Failed, report.Failed);
+        if (report.Failed > 0)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "sandbox failed");
+        }
+
+        return report;
+    }
+
+    /// <summary>Tag names of the job spans: day, counts, codes and a tenant pseudonym (ADR 0015).</summary>
+    public static class Tags
+    {
+        public const string Day = "payments.job.day";
+        public const string Mode = "payments.job.mode";
+        public const string Deleted = "payments.job.deleted";
+        public const string DemoCreated = "payments.job.demo_created";
+        public const string Sandboxes = "payments.job.sandboxes";
+        public const string Refilled = "payments.job.refilled";
+        public const string CacheHits = "payments.job.cache_hits";
+        public const string Failed = "payments.job.failed";
+        public const string Tenant = "payments.tenant.hash";
+        public const string Decided = "payments.job.decided";
+        public const string Waiting = "payments.job.waiting_for_ai";
+        public const string Limit = "payments.job.limited_by";
+    }
+
+    private async Task<JobReport> RunAllAsync(CancellationToken cancellationToken)
+    {
         var now = time.GetUtcNow();
         var today = DateOnly.FromDateTime(now.UtcDateTime);
 
@@ -70,16 +110,26 @@ public sealed class DailyJob(
         var failed = 0;
         foreach (var tenantId in await _admin.ActiveTenantIdsAsync(now, cancellationToken))
         {
+            using var span = Telemetry.Source.StartActivity("job.sandbox");
+            span?.SetTag(Tags.Tenant, Telemetry.TenantHash(tenantId));
             try
             {
                 var run = await RunSandboxAsync(tenantId, batch, cache, now, cancellationToken);
                 runs.Add(run);
+                span?.SetTag(Tags.Refilled, run.Refilled)
+                    .SetTag(Tags.Decided, run.Decided)
+                    .SetTag(Telemetry.Tags.AiCalls, run.ModelCalls)
+                    .SetTag(Tags.CacheHits, run.CacheHits)
+                    .SetTag(Telemetry.Tags.AiCostUsd, (double)run.CostUsd)
+                    .SetTag(Tags.Waiting, run.WaitingForAi)
+                    .SetTag(Tags.Limit, run.LimitedBy.ToString());
                 _log.WriteLine(FormattableString.Invariant($"{tenantId}: refilled={run.Refilled} decided={run.Decided} calls={run.ModelCalls} cached={run.CacheHits} cost=${run.CostUsd:0.0000} waiting={run.WaitingForAi} limit={run.LimitedBy}"));
             }
             catch (Exception ex) when (ex is DbUpdateException or TenantIsolationException or InvalidOperationException)
             {
                 // One sandbox must not stop the others (e.g. a person matched the same invoice at the same moment).
                 failed++;
+                span?.SetTag(Telemetry.Tags.ErrorType, ex.GetType().Name).SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
                 _log.WriteLine($"{tenantId}: failed: {ex.GetType().Name}: {ex.Message}");
             }
         }
