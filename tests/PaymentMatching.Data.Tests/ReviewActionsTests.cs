@@ -225,6 +225,41 @@ public class ReviewActionsTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task A_later_pipeline_run_does_not_match_an_invoice_a_person_already_matched()
+    {
+        var tenants = await TwoTenants.CreateAsync(postgres);
+        await using var db = tenants.For(tenants.A);
+        var state = await StateAsync(db);
+        var selector = new CandidateSelector(tenants.Data, MatchingOptions.Default);
+        var unavailable = state.MatchedInvoices.Keys.ToHashSet(StringComparer.Ordinal);
+
+        // A payment that waits for the AI run, and the invoice the code would offer it first.
+        var (waiting, invoice) = tenants.Data.Payments
+            .Where(p => state.StateOf(p.Id) == PaymentState.WaitingForAi)
+            .Select(p => (Payment: p, Candidates: selector.Select(p, unavailable)))
+            .Where(x => !x.Candidates.IsEmpty)
+            .Select(x => (x.Payment, x.Candidates.Invoices[0].Invoice.Number))
+            .First();
+
+        // Meanwhile a person matches that invoice to another payment.
+        var other = tenants.Data.Payments.First(p => p.Id != tenants.RejectedPaymentId && state.IsActionable(p.Id));
+        var preview = await Actions(db).PreviewAsync(other.Id, [invoice], Ct);
+        Assert.Equal(ReviewOutcome.Done, (await Actions(db).MatchManuallyAsync(other.Id, [invoice], preview.Failures, Ct)).Outcome);
+
+        var store = await DbDecisionStore.LoadAsync(db, Ct);
+        var gateway = new PaymentMatching.AiGateway.AiGateway(new NaiveModelStub(), ModelSettings.Default, PaymentMatching.AiGateway.PriceTable.Claude);
+        var report = await new MatchingPipeline(tenants.Data, gateway, store, MatchingOptions.Default, new FixedTime(TwoTenants.Now)).RunAsync(Ct);
+        await db.SaveChangesAsync(Ct);
+
+        var decision = report.Records.Single(r => r.PaymentId == waiting.Id);
+        Assert.False(decision.Decision.Outcome == Outcome.AutoMatched && decision.Decision.InvoiceNumbers.Contains(invoice));
+        var after = await StateAsync(db);
+        Assert.DoesNotContain(tenants.Data.Payments, p => after.StateOf(p.Id) == PaymentState.WaitingForAi);
+        Assert.Equal(other.Id, after.MatchedInvoices[invoice]);
+        Assert.Equal(PaymentState.Matched, after.StateOf(other.Id));
+    }
+
+    [Fact]
     public async Task Invoices_a_person_matched_are_taken_for_the_pipeline_too()
     {
         var tenants = await TwoTenants.CreateAsync(postgres);

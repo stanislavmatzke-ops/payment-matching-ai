@@ -16,6 +16,15 @@ using PaymentMatching.Matching;
 //        rules  – layer 1 only, AI switched off
 // The audit log (<out>/audit.jsonl) is kept between runs: a payment that is already decided is
 // not processed again (idempotency). Delete the file to start over.
+//
+//   match --tenant <id> [--mode stub]
+//
+// runs the pipeline with the stub model over one sandbox of the app database (see TenantRun).
+if (args.Length > 0 && args[0] == "--tenant")
+{
+    return await TenantRun.RunAsync(args);
+}
+
 var options = CliOptions.Parse(args);
 if (options is null)
 {
