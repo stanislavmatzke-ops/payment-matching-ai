@@ -9,6 +9,11 @@ port the module to .NET with **byte-identical output**.
 The Delphi module is the reference behaviour (`legacy/README.md`). Where the PL/SQL package
 differs, the difference is listed in [section 3](#3-delphi-vs-plsql).
 
+> **.NET port status (phase 3):** all rules are implemented in `src/PaymentMatching.Rules`
+> (`PaymentMatcher` references the BR numbers). Deliberately changed: **BR-12** removed (F1),
+> **BR-04/BR-16** zero, negative or unreadable amounts are rejected (F2), amounts use `decimal` (F3).
+> Everything else behaves as described here. See [modernization.md](modernization.md#3-port-to-net-phase-3-done).
+
 Business context: incoming payments from a bank statement are matched to issued invoices.
 **A wrong match is worse than no match.**
 

@@ -26,7 +26,10 @@ docker compose up -d   # PostgreSQL
 | `tools/DataGen.Cli` | CLI for the generator |
 | `data/sample` | 300 generated payments (seed 42) – see [docs/data-format.md](docs/data-format.md) |
 | `legacy/` | fictional legacy system (Delphi + PL/SQL), runnable via Free Pascal, plus its golden master output – see [legacy/README.md](legacy/README.md) |
-| `docs/modernization.md` | how the legacy module is moved to .NET, with the legacy baseline numbers |
+| `docs/business-rules.md` | rules extracted from the legacy code by an AI agent (and verified) |
+| `src/PaymentMatching.Rules` | .NET port of the rules – byte-identical with legacy first, then deliberate fixes |
+| `tools/Rules.Cli` | runs the .NET rules like the legacy CLI |
+| `docs/modernization.md` | how the legacy module is moved to .NET, with before/after numbers |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.
