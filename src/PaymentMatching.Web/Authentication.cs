@@ -87,6 +87,10 @@ public static class Authentication
         var result = await provisioner.EnsureAsync(identity, http.RequestAborted);
         if (result.TenantId is not { } tenantId)
         {
+            // Counted for the admin overview (the waiting list); nothing about the person is kept.
+            var now = http.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow();
+            await http.RequestServices.GetRequiredService<UsageLedger>()
+                .AddAsync(DateOnly.FromDateTime(now.UtcDateTime), new UsageDelta(SignInsTurnedAway: 1), http.RequestAborted);
             return null;
         }
 

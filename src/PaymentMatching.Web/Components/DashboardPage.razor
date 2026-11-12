@@ -11,6 +11,21 @@
         <div class="tile"><span class="big">@(Board.AiCostPer1000Payments is { } per ? Format.Usd(per) : "–")</span>AI cost per 1 000 payments</div>
     </section>
 
+    <h2>AI budget</h2>
+    <table class="narrow">
+        <tr><th scope="row">Model calls in your sandbox today</th><td class="num">@Budget.SandboxCallsToday / @Budget.SandboxCallsPerDay</td></tr>
+        <tr><th scope="row">Answers reused from the cache (no call, no cost)</th><td class="num">@Board.CachedAnswers</td></tr>
+        <tr><th scope="row">App-wide AI budget</th><td>@Format.Budget(Budget.App)</td></tr>
+        @if (Board.AiBudgetUsedUp > 0)
+        {
+            <tr><th scope="row"><span class="flag warn">AI budget used up</span></th><td class="num">@Board.AiBudgetUsedUp waiting for you</td></tr>
+        }
+    </table>
+    <p class="muted">
+        The daily run asks a model at most @Budget.SandboxCallsPerDay times per sandbox@(Budget.SmallModelOnly ? ", small model only" : ""); more AI payments wait for the next run.
+        The same case in another sandbox reuses the stored answer, still checked by code here.
+    </p>
+
     <h2>Payments</h2>
     <table class="narrow">
         <tr><th scope="row">All payments</th><td class="num">@Board.Payments</td></tr>
@@ -78,6 +93,9 @@
 
     [Parameter, EditorRequired]
     public DashboardView Board { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public AiBudgetView Budget { get; set; } = default!;
 
     private int Count(string state) => state == PaymentState.Matched
         ? Board.Payments - Board.NeedsReview - Board.NotMatched - Board.Rejected - Board.WaitingForAi

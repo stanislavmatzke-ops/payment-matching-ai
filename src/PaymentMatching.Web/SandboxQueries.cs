@@ -87,6 +87,12 @@ public sealed record DashboardView(
     IReadOnlyList<DailyCost> CostByDay,
     IReadOnlyList<LivePrecision> LivePrecision)
 {
+    /// <summary>Answers reused from the response cache: no model call, no cost (ADR 0013).</summary>
+    public int CachedAnswers { get; init; }
+
+    /// <summary>Payments waiting for a person because the app-wide AI budget was used up.</summary>
+    public int AiBudgetUsedUp { get; init; }
+
     public double? AutomationRate => Processed == 0 ? null : (double)AutoMatched / Processed;
 
     public decimal? AiCostPer1000Payments => Processed == 0 ? null : AiCostUsd / Processed * 1000;
@@ -175,7 +181,7 @@ public static class SandboxQueries
         var states = state.Data.Payments.Select(p => state.StateOf(p.Id)).ToList();
         int Count(string s) => states.Count(x => x == s);
         var decisions = state.Decisions.ToList();
-        var calls = decisions.SelectMany(d => d.Calls.Select(c => (Day: DateOnly.FromDateTime(d.At.UtcDateTime), c.CostUsd))).ToList();
+        var calls = decisions.SelectMany(d => d.Calls.Where(c => !c.Cached).Select(c => (Day: DateOnly.FromDateTime(d.At.UtcDateTime), c.CostUsd))).ToList();
         var costByDay = calls.GroupBy(c => c.Day).OrderBy(g => g.Key).Select(g => new DailyCost(g.Key, g.Count(), g.Sum(c => c.CostUsd))).ToList();
         return new DashboardView(
             state.Data.Payments.Count,
@@ -190,7 +196,11 @@ public static class SandboxQueries
             calls.Count,
             calls.Sum(c => c.CostUsd),
             costByDay,
-            LivePrecisionOf(state.Reviews));
+            LivePrecisionOf(state.Reviews))
+        {
+            CachedAnswers = decisions.Sum(d => d.Calls.Count(c => c.Cached)),
+            AiBudgetUsedUp = decisions.Count(d => d.Decision.Flags.Contains(Flags.AiBudgetUsedUp) && state.StateOf(d.PaymentId) == PaymentState.NeedsReview),
+        };
     }
 
     /// <summary>
@@ -223,6 +233,12 @@ public static class SandboxQueries
         {
             foreach (var call in record.Calls)
             {
+                if (call.Cached)
+                {
+                    events.Add(new TimelineEvent(record.At, TimelineKind.ModelCall, "ai:" + call.Model, $"Answer reused from the response cache ({call.Tier}): {call.Outcome}. The same request was answered before; no model was called and it cost nothing.", [], []));
+                    continue;
+                }
+
                 events.Add(new TimelineEvent(
                     record.At,
                     TimelineKind.ModelCall,
@@ -264,7 +280,7 @@ public static class SandboxQueries
 
             if (record.Decision.Flags.Count > 0)
             {
-                details.Add($"Flags: {string.Join(", ", record.Decision.Flags)}");
+                details.Add($"Flags: {string.Join(", ", record.Decision.Flags.Select(Format.Flag))}");
             }
 
             details.Add($"Reason: {record.Decision.Reason}");

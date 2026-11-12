@@ -22,6 +22,11 @@ var devLogin = Authentication.DevLoginEnabled(config, builder.Environment);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(PaymentsDb.Options(connectionString));
+builder.Services.AddSingleton(OperationsDb.Options(connectionString));
+builder.Services.AddSingleton<UsageLedger>();
+builder.Services.AddSingleton<TenantAdmin>();
+builder.Services.AddSingleton(AiBudgetOptions.Read(key => config[key]));
+builder.Services.AddSingleton(AdminAccounts.From(config));
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
 builder.Services.AddScoped<PaymentsDbContext>();
@@ -48,6 +53,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("sign-in", http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+
+    // The public read-only demo: anonymous, so limited per address.
+    options.AddPolicy("demo", http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
 
     // A person's decisions: generous for a human, a wall for a script.
     options.AddPolicy("actions", http => RateLimitPartition.GetFixedWindowLimiter(
@@ -117,6 +127,7 @@ if (devLogin)
 }
 
 app.MapUi(providers, devLogin);
+app.MapOperations();
 
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/me", (PaymentsDbContext db, HttpContext http) => SandboxQueries.MeAsync(db, http.RequestAborted));

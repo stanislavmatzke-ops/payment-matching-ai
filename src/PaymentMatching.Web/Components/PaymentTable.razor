@@ -13,7 +13,7 @@ else
         <tbody>
             @foreach (var item in Items)
             {
-                <PaymentRow Item="item" />
+                <PaymentRow Item="item" LinkBase="@LinkBase" />
             }
         </tbody>
     </table>
@@ -25,4 +25,7 @@ else
 
     [Parameter]
     public string Empty { get; set; } = "No payments.";
+
+    [Parameter]
+    public string LinkBase { get; set; } = "/payments";
 }

@@ -43,6 +43,7 @@ main { overflow-x: auto; }
 .state-rejected, .state-not_matched { color: var(--muted); }
 .flag { display: inline-block; margin: 0 .2rem .2rem 0; padding: 0 .3rem; font-size: .75rem; border: 1px solid var(--line); border-radius: .3rem; }
 .flag.danger { color: var(--danger); border-color: var(--danger); }
+.flag.warn { color: var(--warn, #8a5a00); border-color: var(--warn, #8a5a00); }
 
 .notice { padding: .5rem .8rem; border-left: 4px solid var(--warn); background: var(--soft); }
 .notice.danger { border-color: var(--danger); }

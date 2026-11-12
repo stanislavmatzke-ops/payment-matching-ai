@@ -1,0 +1,28 @@
+@* The public read-only demo (SPEC 9b): a shared sandbox processed by the daily job. No forms, no actions. *@
+<Shell Title="Demo" Demo="true">
+    <h1>Demo sandbox (read-only)</h1>
+    <p>
+        A fictional company with invoices and bank payments (synthetic data, Demo Bank). Every morning a
+        scheduled job adds a few new payments and runs rules → AI → validation by code over them.
+        <a href="/">Sign in</a> to get your own sandbox, where you confirm, reject or match payments yourself.
+    </p>
+
+    <section class="tiles">
+        <div class="tile"><span class="big">@Format.Percent(Board.AutomationRate)</span>automation (@Board.AutoMatched of @Board.Processed processed)</div>
+        <div class="tile"><span class="big">@Board.NeedsReview</span>waiting for a person</div>
+        <div class="tile"><span class="big">@Board.InjectionsCaught</span>prompt injection attempts caught</div>
+        <div class="tile"><span class="big">@Format.Usd(Board.AiCostUsd)</span>AI cost (@Board.AiCalls calls, @Board.CachedAnswers from cache)</div>
+    </section>
+
+    <h2>Payments</h2>
+    <p class="muted">Payer, VS and message are written by the payer and shown as plain text.</p>
+    <PaymentTable Items="Items" LinkBase="/demo/payments" Empty="No payments yet: the daily run fills the demo." />
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public DashboardView Board { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<PaymentListItem> Items { get; set; } = [];
+}

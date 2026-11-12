@@ -4,6 +4,10 @@
         Sign in to get your own sandbox: a fictional company with invoices and bank payments
         (synthetic data, Demo Bank). Nobody else sees your sandbox.
     </p>
+    @if (DemoAvailable)
+    {
+        <p>Or <a href="/demo">look at the demo sandbox</a> first: read-only, no sign-in.</p>
+    }
     @if (SandboxesFull)
     {
         <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
@@ -38,4 +42,7 @@
 
     [Parameter]
     public bool SandboxesFull { get; set; }
+
+    [Parameter]
+    public bool DemoAvailable { get; set; }
 }

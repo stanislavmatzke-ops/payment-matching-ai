@@ -62,6 +62,17 @@ public static class Format
         _ => "not processed",
     };
 
+    /// <summary>A flag as a label; the budget flag is set by code, never by a model.</summary>
+    public static string Flag(string flag) => flag == Flags.AiBudgetUsedUp ? "AI budget used up" : flag;
+
+    public static string Budget(BudgetLimit limit) => limit switch
+    {
+        BudgetLimit.None => "available",
+        BudgetLimit.Day => "used up for today (new AI payments go to a person)",
+        BudgetLimit.Month => "used up for this month (new AI payments go to a person)",
+        _ => "limited for this sandbox today",
+    };
+
     public static string Check(string code) => code switch
     {
         Rejections.NoInvoices => "no invoice chosen.",

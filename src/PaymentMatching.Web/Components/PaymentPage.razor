@@ -1,5 +1,12 @@
-<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page">
-    <p><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
+<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page" Demo="Demo">
+    @if (Demo)
+    {
+        <p><a href="/demo">← Demo sandbox</a> · <span class="muted">read-only: sign in to decide payments in your own sandbox</span></p>
+    }
+    else
+    {
+        <p><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
+    }
     <h1>Payment @Detail.Payment.Id</h1>
     <ResultNotice Result="Result" />
     <PaymentFacts Item="Detail.Payment" />
@@ -85,7 +92,7 @@
                 @if (!blocked)
                 {
                     <form method="post" action="/payments/@Detail.Payment.Id/confirm">
-                        <AntiforgeryField Field="Page.Form" />
+                        <AntiforgeryField Field="Page!.Form" />
                         <input type="hidden" name="proposal" value="@proposal.Id">
                         <AcknowledgeFields Warnings="warnings" />
                         <button>Confirm</button>
@@ -96,7 +103,7 @@
         <div class="actions">
             <a class="button" href="/payments/@Detail.Payment.Id/match">Match manually…</a>
             <form method="post" action="/payments/@Detail.Payment.Id/reject" class="inline">
-                <AntiforgeryField Field="Page.Form" />
+                <AntiforgeryField Field="Page!.Form" />
                 <button class="secondary">Reject (do not match)</button>
             </form>
         </div>
@@ -128,8 +135,12 @@
 </Shell>
 
 @code {
-    [Parameter, EditorRequired]
-    public PageContext Page { get; set; } = default!;
+    /// <summary>The signed-in person; null in the read-only demo.</summary>
+    [Parameter]
+    public PageContext? Page { get; set; }
+
+    [Parameter]
+    public bool Demo { get; set; }
 
     [Parameter, EditorRequired]
     public PaymentDetailView Detail { get; set; } = default!;

@@ -1,6 +1,6 @@
 @* One payment in a table. Payer, VS and message come from the bank statement: untrusted, shown as text only. *@
 <tr>
-    <td><a href="/payments/@Item.Id">@Item.Id</a></td>
+    <td><a href="@LinkBase/@Item.Id">@Item.Id</a></td>
     <td>@Format.Date(Item.BookingDate)</td>
     <td class="num">@Format.Amount(Item.Amount, Item.Currency)</td>
     <td class="untrusted">@Item.CounterpartyName</td>
@@ -15,7 +15,7 @@
         }
         @foreach (var flag in Item.Flags.Where(f => f != Flags.PromptInjection))
         {
-            <span class="flag">@flag</span>
+            <span class="flag@(flag == Flags.AiBudgetUsedUp ? " warn" : "")">@Format.Flag(flag)</span>
         }
     </td>
 </tr>
@@ -23,4 +23,8 @@
 @code {
     [Parameter, EditorRequired]
     public PaymentListItem Item { get; set; } = default!;
+
+    /// <summary>Where payment links point: /payments for the signed-in person, /demo/payments in the demo.</summary>
+    [Parameter]
+    public string LinkBase { get; set; } = "/payments";
 }

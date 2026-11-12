@@ -10,7 +10,14 @@
 <body>
     <header>
         <a class="brand" href="/">Payment matching</a>
-        @if (Page is not null)
+        @if (Demo)
+        {
+            <nav>
+                <a href="/demo">Demo (read-only)</a>
+                <a href="/">Sign in for your own sandbox</a>
+            </nav>
+        }
+        else if (Page is not null)
         {
             <nav>
                 <a href="/">Dashboard</a>
@@ -40,6 +47,10 @@
     /// <summary>The signed-in person; null on public pages.</summary>
     [Parameter]
     public PageContext? Page { get; set; }
+
+    /// <summary>The public read-only demo: its own navigation, no forms.</summary>
+    [Parameter]
+    public bool Demo { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

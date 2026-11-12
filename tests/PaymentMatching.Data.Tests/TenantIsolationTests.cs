@@ -156,6 +156,38 @@ public class TenantIsolationTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public void TenantAdmin_returns_only_ids_and_counts_never_rows()
+    {
+        // The daily job and /admin see across tenants only through these methods (ADR 0013).
+        Type[] allowed = [typeof(Task<Guid?>), typeof(Task<int>), typeof(Task<IReadOnlyList<Guid>>), typeof(Task<SandboxSummary>)];
+        var methods = typeof(TenantAdmin).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
+
+        Assert.All(methods, m => Assert.Contains(m.ReturnType, allowed));
+        Assert.All(typeof(SandboxSummary).GetProperties(), p => Assert.True(p.PropertyType == typeof(int) || p.PropertyType == typeof(bool), p.Name));
+    }
+
+    [Fact]
+    public async Task Admin_sees_counts_and_active_ids_but_the_demo_is_never_deleted()
+    {
+        var tenants = await TwoTenants.CreateAsync(postgres);
+        var admin = new TenantAdmin(tenants.Options);
+        var demo = Guid.NewGuid();
+        await new SandboxProvisioner(tenants.Options, new SandboxOptions(), new FixedTime(TwoTenants.Now)).EnsureDemoAsync(demo, Ct);
+        await using (var db = tenants.For(tenants.B))
+        {
+            var b = await db.Tenants.SingleAsync(Ct);
+            b.LastActiveAt = TwoTenants.Now.AddDays(-8);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        Assert.Equal(new[] { tenants.A, demo }.Order(), (await admin.ActiveTenantIdsAsync(TwoTenants.Now, Ct)).Order());
+        Assert.Equal(new SandboxSummary(2, 1, 2, 2, true), await admin.SummaryAsync(TwoTenants.Now, Ct));
+
+        Assert.Equal(2, await admin.DeleteInactiveAsync(TwoTenants.Now.AddDays(60), Ct));
+        Assert.Equal([demo], await admin.ActiveTenantIdsAsync(TwoTenants.Now.AddDays(60), Ct));
+    }
+
+    [Fact]
     public async Task Migrations_match_the_model()
     {
         var tenants = await TwoTenants.CreateAsync(postgres);

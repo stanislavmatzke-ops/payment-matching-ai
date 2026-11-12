@@ -56,16 +56,18 @@ public static class UiEndpoints
 {
     public static void MapUi(this WebApplication app, IReadOnlyList<string> providers, bool devLogin)
     {
-        app.MapGet("/", async (HttpContext http, PaymentsDbContext db, string? full) =>
+        app.MapGet("/", async (HttpContext http, PaymentsDbContext db, UsageLedger ledger, AiBudgetOptions budget, TimeProvider time, string? full) =>
         {
             if (Authentication.TenantOf(http.User) is null)
             {
-                return Html.Page<SignInPage>(new { Providers = providers, DevLogin = devLogin, SandboxesFull = full == "1" });
+                return Html.Page<SignInPage>(new { Providers = providers, DevLogin = devLogin, SandboxesFull = full == "1", DemoAvailable = Operations.DemoTenantId(app.Configuration) is not null });
             }
 
             var me = await SandboxQueries.MeAsync(db, http.RequestAborted);
             var state = await SandboxState.LoadAsync(db, null, http.RequestAborted);
-            return Html.Page<DashboardPage>(new { Page = PageContext.For(http, me.Name), Me = me, Board = SandboxQueries.Dashboard(state) });
+            var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+            var ai = await Operations.BudgetAsync(state, ledger, budget, today, http.RequestAborted);
+            return Html.Page<DashboardPage>(new { Page = PageContext.For(http, me.Name), Me = me, Board = SandboxQueries.Dashboard(state), Budget = ai });
         });
 
         app.MapGet("/privacy", () => Html.Page<PrivacyPage>(new { }));
