@@ -113,11 +113,11 @@
     - 39 nových testů (celkem 361), ADR 0014, `docs/cost.md`, README, AGENTS.md, `.env.example`.
   - _Ověřeno ručně lokálně:_ job ve stub režimu nad lokální DB (3 sandboxy, druhý běh nic nepřidal ani nevolal, sandbox nad limitem nechal 4 platby čekat), `/demo`, `/admin` a dashboard v prohlížeči.
   - _Odchylky od SPEC / plánu:_
-    - platby nad denní strop **sandboxu** čekají na další běh (rozhodnuto s uživatelem); štítek „AI budget used up“ jen při vyčerpání globálního denního stropu nebo měsíčního rozpočtu,
+    - platby nad denní strop **sandboxu** čekají na další běh (rozhodnuto s vývojářem); štítek „AI budget used up“ jen při vyčerpání globálního denního stropu nebo měsíčního rozpočtu,
     - injection bez kandidátů rozhodne politika bez modelu, takže některé dny dávka model nepotřebuje vůbec,
     - měsíční rozpočet se hlídá rezervou $0,05 na volání (ne přesnou cenou dopředu),
     - souběh dvou instancí jobu může strop přetáhnout o volání; v Azure parallelism 1 + spend limit v konzoli.
-  - _Útrata:_ $0,0007. Jeden živý běh jobu nad lokální DB se souhlasem uživatele (odhad ≤ 5 volání, < $0,02). Skutečnost: 2 volání Haiku v jediném sandboxu, který ještě měl denní limit; ostatní sandboxy ho ten den vyčerpaly stub během, a protože ledger počítá i volání stubu, jejich platby čekají na další den. Výsledek: 1 automatické spárování (confidence 0,96) a 1 platba pro člověka (0,80).
+  - _Útrata:_ $0,0007. Jeden živý běh jobu nad lokální DB se souhlasem vývojáře (odhad ≤ 5 volání, < $0,02). Skutečnost: 2 volání Haiku v jediném sandboxu, který ještě měl denní limit; ostatní sandboxy ho ten den vyčerpaly stub během, a protože ledger počítá i volání stubu, jejich platby čekají na další den. Výsledek: 1 automatické spárování (confidence 0,96) a 1 platba pro člověka (0,80).
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
@@ -192,7 +192,7 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Drobnosti, které chytil build/test: neuzavřený `sed` v heredocu (soubory se nezapsaly), `--` v XML komentáři csproj, `JsonException` místo `FormatException` z parseru, porovnání recordů se seznamy přes referenci.
 - Model (Haiku) v jednom zdůvodnění tvrdil, že zpráva jmenuje obě faktury, přitom jmenovala jednu. Rozhodnutí bylo správně, zdůvodnění ne. Proto zdůvodnění není důkaz a rozhoduje validace.
 
-- Permission prompty v Claude Code zdržovaly; uživatel povolil běžné příkazy v `.claude/settings.local.json` (mimo git).
+- Permission prompty v Claude Code zdržovaly; vývojář povolil běžné příkazy v `.claude/settings.local.json` (mimo git).
 
 **Fáze 5 (2026-11-12)**
 - Plán vznikl znovu v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn.
@@ -214,7 +214,7 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn.
 - **Leak testy záměrně se stejnými id v obou tenantech** (`P0001`, stejná čísla faktur): odliší je jen filtr. Seznam testovaných tabulek se bere z EF modelu, takže nová tabulka bez tenantu test shodí sama.
 - **Poprvé testy proti skutečné databázi** (Testcontainers). Unikátní klíče a souběh (dva běhy rozhodnou stejnou platbu, dvě první přihlášení naráz) nejde poctivě otestovat nad in-memory providerem.
-- OIDC bez sítě a bez tajných klíčů: test podstrčí metadata poskytovatele a kontroluje přesměrování (autorita, `client_id`, scope, PKCE, callback). Skutečné přihlášení přes Microsoft/Google ověří až uživatel s vlastní registrací aplikace.
+- OIDC bez sítě a bez tajných klíčů: test podstrčí metadata poskytovatele a kontroluje přesměrování (autorita, `client_id`, scope, PKCE, callback). Skutečné přihlášení přes Microsoft/Google ověří až vývojář s vlastní registrací aplikace.
 - Drobnosti, co agent pokazil:
   - jednorázová sonda „je tu python?“ přes heredoc spustila na Windows interaktivní REPL a visela 2 minuty → zastaveno, dál jen Write/Edit,
   - `sed` se zpětnými lomítky v cestě csproj počtvrté tiše nic nenahradil; tentokrát hned vidět v kontrolním výpisu, opraveno přes Edit,
@@ -237,11 +237,11 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Provozní: lokálně běžela starší verze webu z jiné session na 7180, nová verze se ověřovala na 7181 (stejná DB, migrace navíc jen přidá tabulku).
 
 **Změna SPEC před fází 9 (2026-11-12)**
-- Uživatel před fází 9 zpochybnil „5–10 nových plateb denně v každém sandboxu“: veřejná ukázka nemá pálit tokeny na data, na která nikdo nekouká. Agent spočítal cenu z evalů (≈ $0,0008 za AI platbu, původní plán ~$1,5–12 měsíčně podle počtu uživatelů) a navrhl doplňování podle aktivity, sdílenou denní dávku s cache odpovědí (cena nezávislá na počtu uživatelů), tři vrstvy rozpočtu a režim „jen malý model“. Schváleno celé, včetně dema bez přihlášení a `/admin` jen se souhrny. Zapsáno do SPEC 9b a ADR 0013.
+- Vývojář před fází 9 zpochybnil „5–10 nových plateb denně v každém sandboxu“: veřejná ukázka nemá pálit tokeny na data, na která nikdo nekouká. Agent spočítal cenu z evalů (≈ $0,0008 za AI platbu, původní plán ~$1,5–12 měsíčně podle počtu uživatelů) a navrhl doplňování podle aktivity, sdílenou denní dávku s cache odpovědí (cena nezávislá na počtu uživatelů), tři vrstvy rozpočtu a režim „jen malý model“. Schváleno celé, včetně dema bez přihlášení a `/admin` jen se souhrny. Zapsáno do SPEC 9b a ADR 0013.
 - Postřeh: cache odpovědí je jen produkční využití record/replay z fáze 4. Nástroj postavený kvůli testům bez API klíče se vrací jako úspora v provozu.
 
 **Fáze 9 (2026-11-12)**
-- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu. Agent se před schválením zeptal na jedinou věc, kterou ADR 0013 nedořešil: nový sandbox má ve startovních datech ~5–7 AI plateb, ale strop 2 volání denně. Doslovné čtení („člověku se štítkem“) by novému uživateli hned ukázalo 3–5 štítků „rozpočet vyčerpán“. Uživatel zvolil: nad strop sandboxu se čeká na další den, štítek jen pro globální rozpočet.
+- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu. Agent se před schválením zeptal na jedinou věc, kterou ADR 0013 nedořešil: nový sandbox má ve startovních datech ~5–7 AI plateb, ale strop 2 volání denně. Doslovné čtení („člověku se štítkem“) by novému uživateli hned ukázalo 3–5 štítků „rozpočet vyčerpán“. Vývojář zvolil: nad strop sandboxu se čeká na další den, štítek jen pro globální rozpočet.
 - **Měření místo předpokladu:** první verze dávky brala „pravidlové“ případy podle intuice. Test přes 400 dní selhal (3 platby pro model místo 1–2); jednorázová sonda ukázala, že `MultiInvoice` jde do AI vždy a částečné úhrady a VS ve zprávě jen někdy. Pooly dávky upraveny podle čísel a test to drží.
 - Druhý nález z testu: injection bez kandidátů rozhodne politika bez modelu, takže „AI případ“ neznamená vždy „volání modelu“. Testy cache si proto vybírají den, kdy dávka model opravdu potřebuje.
 - **Past v rozpočtu odhalená při návrhu:** gateway kontroloval strop *před* voláním poskytovatele, takže při vyčerpaném stropu by nepustil ani zdarma dostupnou odpověď z cache. Doplněno `IAnswerCache` + test „přes strop se cached odpověď použije, model ne“.
@@ -252,4 +252,4 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - `--` v XML komentáři csproj podruhé (build),
   - test s pořadím GUID by procházel náhodou (porovnání seřazené množiny se seznamem v pevném pořadí) – opraveno před commitem,
   - spojení dvou interpolovaných řetězců přes `+` uvnitř `FormattableString.Invariant` neprojde překladem (výsledek je `string`).
-- Po fázi uživatel zpochybnil limit 2 volání na sandbox a den: na dashboardu „2 / 2“ vypadalo směšně, když jedno volání stojí zlomek centu, a nové sandboxy čekaly na AI několik dní. Ochranu proti „oškubání“ drží globální stropy a počet nových sandboxů, ne limit sandboxu. Změněno: 20 volání na sandbox a den, 5 nových sandboxů denně (dodatek v ADR 0014). Pro nasazení doporučen měsíční rozpočet $0,50 a spend limit $5 v Anthropic konzoli.
+- Po fázi vývojář zpochybnil limit 2 volání na sandbox a den: na dashboardu „2 / 2“ vypadalo směšně, když jedno volání stojí zlomek centu, a nové sandboxy čekaly na AI několik dní. Ochranu proti „oškubání“ drží globální stropy a počet nových sandboxů, ne limit sandboxu. Změněno: 20 volání na sandbox a den, 5 nových sandboxů denně (dodatek v ADR 0014). Pro nasazení doporučen měsíční rozpočet $0,50 a spend limit $5 v Anthropic konzoli.
