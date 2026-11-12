@@ -15,6 +15,13 @@ public sealed record MatchingOptions
     /// <summary>Below this confidence the small model's answer is escalated to the large model.</summary>
     public double EscalationConfidence { get; init; } = 0.90;
 
+    /// <summary>
+    /// Ask the large model only when some candidate set could still pass validation, i.e. when its answer
+    /// can change the outcome. Otherwise (overpayment, third-party payer, no fitting amount) the payment
+    /// goes to a person whatever the model says, and the small model's proposal is enough (ADR 0009).
+    /// </summary>
+    public bool EscalateOnlyWhenAutoMatchPossible { get; init; }
+
     /// <summary>Amount tolerance in CZK (BR-15, strictly less than).</summary>
     public decimal Tolerance { get; init; } = 1.00m;
 

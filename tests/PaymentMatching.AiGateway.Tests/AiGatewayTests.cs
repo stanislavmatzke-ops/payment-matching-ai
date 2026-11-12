@@ -50,6 +50,19 @@ public class AiGatewayTests
     }
 
     [Fact]
+    public async Task Without_a_large_model_the_unsure_small_answer_is_the_proposal()
+    {
+        var provider = ScriptedProvider.ByModel(new() { [Small] = """{"confidence":0.5}""" });
+
+        var result = await Ask(new AiGateway(provider, Options with { Large = null }, PriceTable.Claude));
+
+        Assert.Equal(0.5, result.Value!.Confidence);
+        Assert.Equal(Small, result.Model);
+        Assert.False(result.Escalated);
+        Assert.Single(provider.Requests);
+    }
+
+    [Fact]
     public async Task When_neither_model_is_confident_the_large_answer_is_returned_as_a_proposal()
     {
         var provider = ScriptedProvider.ByModel(new() { [Small] = """{"confidence":0.5}""", [Large] = """{"confidence":0.6}""" });

@@ -24,6 +24,7 @@ public sealed class MatchingPipeline(
     private readonly CandidateSelector _selector = new(data, options);
     private readonly PromptBuilder _prompts = new(data);
     private readonly AiDecisionMaker _decisions = new(options);
+    private readonly ProposalValidator _validator = new(data, new CandidateSelector(data, options), options);
 
     public async Task<RunReport> RunAsync(CancellationToken cancellationToken = default)
     {
@@ -93,16 +94,18 @@ public sealed class MatchingPipeline(
             return Record(decision, AuditRecord.PolicyLayer, [], []);
         }
 
+        // Escalation costs ~30x a small-model call; skip it when no answer could lead to an automatic match.
+        var escalate = !options.EscalateOnlyWhenAutoMatchPossible || (!injection && _validator.AnyValidProposal(payment, candidates, unavailable));
         var result = await gateway.CompleteAsync(
             _prompts.SystemPrompt,
             _prompts.UserContent(payment, candidates),
             AiMatchAnswer.Schema,
             AiMatchAnswer.Parse,
-            a => a.Decision != AiMatchAnswer.Uncertain && a.Confidence >= options.EscalationConfidence,
+            a => !escalate || (a.Decision != AiMatchAnswer.Uncertain && a.Confidence >= options.EscalationConfidence),
             cancellationToken);
 
         var validation = result.Value is { Decision: AiMatchAnswer.Match or AiMatchAnswer.Uncertain } answer
-            ? new ProposalValidator(data, _selector, options).Validate(payment, answer.InvoiceNumbers, candidates, unavailable, injection)
+            ? _validator.Validate(payment, answer.InvoiceNumbers, candidates, unavailable, injection)
             : null;
         var aiDecision = _decisions.Decide(payment, result, validation, payerKnown, injection);
         return Record(aiDecision, AuditRecord.AiLayer, validation?.Failures ?? [], result.Calls);

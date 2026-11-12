@@ -3,7 +3,8 @@ namespace PaymentMatching.AiGateway;
 /// <summary>A model and how to call it.</summary>
 public sealed record ModelRoute(string Model, string Effort, int MaxTokens);
 
-public sealed record GatewayOptions(ModelRoute Small, ModelRoute Large)
+/// <param name="Large">Model for escalation; null means the small model answers alone (no escalation).</param>
+public sealed record GatewayOptions(ModelRoute Small, ModelRoute? Large)
 {
     /// <summary>Wall-clock limit for one provider call (the SDK retries inside it).</summary>
     public TimeSpan CallTimeout { get; init; } = TimeSpan.FromSeconds(60);
@@ -78,7 +79,8 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         T? fallback = null;
         string? fallbackModel = null;
 
-        foreach (var (route, tier) in new[] { (options.Small, "small"), (options.Large, "large") })
+        var routes = options.Large is null ? new[] { (options.Small, "small") } : [(options.Small, "small"), (options.Large, "large")];
+        foreach (var (route, tier) in routes)
         {
             if (CallsLeft == 0)
             {

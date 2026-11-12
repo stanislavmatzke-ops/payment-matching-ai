@@ -11,6 +11,7 @@ public static class Rejections
     public const string AmountMismatch = "AMOUNT_MISMATCH";
     public const string PayerNotCustomer = "PAYER_NOT_CUSTOMER";
     public const string InjectionSuspected = "PROMPT_INJECTION_SUSPECTED";
+    public const string Ambiguous = "AMBIGUOUS";
 }
 
 public sealed record ValidationResult(IReadOnlyList<string> Failures)
@@ -27,6 +28,30 @@ public sealed class ProposalValidator(MatchingDataset data, CandidateSelector se
 {
     public ValidationResult Validate(BankPayment payment, IReadOnlyList<string> invoiceNumbers, CandidateSet candidates, IReadOnlySet<string> unavailable, bool injectionSuspected)
     {
+        var failures = CheckProposal(payment, invoiceNumbers, candidates, unavailable, injectionSuspected);
+
+        // A proposal is only as good as its uniqueness: when another candidate set passes the same
+        // checks (two invoices with the same amount and the same VS typo, two combinations with the
+        // same total), the payment does not tell which one it pays. A person decides.
+        if (failures.Count == 0 && ProposalSets(candidates).Any(set => !SameSet(set, invoiceNumbers) && CheckProposal(payment, set, candidates, unavailable, false).Count == 0))
+        {
+            failures.Add(Rejections.Ambiguous);
+        }
+
+        return new ValidationResult(failures);
+    }
+
+    /// <summary>True when some candidate invoice or suggested combination passes validation (a tie passes none).</summary>
+    public bool AnyValidProposal(BankPayment payment, CandidateSet candidates, IReadOnlySet<string> unavailable) =>
+        ProposalSets(candidates).Any(set => Validate(payment, set, candidates, unavailable, injectionSuspected: false).IsValid);
+
+    private static IEnumerable<IReadOnlyList<string>> ProposalSets(CandidateSet candidates) =>
+        candidates.Invoices.Select(c => (IReadOnlyList<string>)[c.Invoice.Number]).Concat(candidates.Combinations);
+
+    private static bool SameSet(IReadOnlyList<string> a, IReadOnlyList<string> b) => a.Count == b.Count && a.All(b.Contains);
+
+    private List<string> CheckProposal(BankPayment payment, IReadOnlyList<string> invoiceNumbers, CandidateSet candidates, IReadOnlySet<string> unavailable, bool injectionSuspected)
+    {
         var failures = new List<string>();
         if (injectionSuspected)
         {
@@ -36,13 +61,13 @@ public sealed class ProposalValidator(MatchingDataset data, CandidateSelector se
         if (invoiceNumbers.Count == 0)
         {
             failures.Add(Rejections.NoInvoices);
-            return new ValidationResult(failures);
+            return failures;
         }
 
         if (invoiceNumbers.Any(n => !candidates.Contains(n)))
         {
             failures.Add(Rejections.NotACandidate);
-            return new ValidationResult(failures);
+            return failures;
         }
 
         // The payer's own identifiers win over amounts: the proposal must include every invoice the
@@ -76,6 +101,6 @@ public sealed class ProposalValidator(MatchingDataset data, CandidateSelector se
             failures.Add(Rejections.PayerNotCustomer);
         }
 
-        return new ValidationResult(failures);
+        return failures;
     }
 }
