@@ -267,9 +267,13 @@ The message is untrusted input. `ExtractVSFromMessage(Msg)` works on bytes:
    `P` = position of the first `FV` (`uVsParser.pas:41-42`). Neither → return empty
    (`uVsParser.pas:43-44`). `FA` inside other words counts (`DEFAULT`, `SAFARI`, `FAX`, `INFA`).
    Only this first keyword is examined; later occurrences are never tried.
-3. Skip non-digit bytes starting right after the keyword. The **first digit must be within the
-   first 15 bytes** after the keyword, i.e. at offset 0–14 (`uVsParser.pas:46-51`,
+3. Skip non-digit bytes starting right after the keyword. The **first digit must be at offset
+   0–15** after the keyword, i.e. within the first **16** bytes (`uVsParser.pas:46-51`,
    `c_MsgScanLen = 15`). Otherwise return empty. A diacritic letter counts as 2 bytes.
+   The loop stops at `i < Limit`, but the following check still accepts a digit at `i = Limit`,
+   so the effective window is 16 bytes, not 15.
+   _(Corrected during phase 3: the first version of this document said offset 0–14. The .NET
+   characterization test and a probe run of the legacy binary showed that offset 15 is accepted.)_
 4. `Year` = the next 4 bytes starting at that first digit. Must be 4 bytes long and
    `StrToIntDef(Year, -1) >= 1990` (`uVsParser.pas:53-55`, `c_MinYear`). So it must be 4 digits
    (there is no upper limit: `9999` passes). Otherwise return empty.
@@ -288,7 +292,8 @@ Examples:
 | `Faktura c. 2026/1234` | `2026001234` |
 | `FV2026-12` | `2026000012` |
 | `faktura 1234/2026` | empty (year `1234` < 1990) |
-| `Platba za DEFAULT sluzby, fa 2026-1234` | empty (first `FA` is in `DEFAULT`, first digit at offset 15) |
+| `Platba za DEFAULT sluzby, fa 2026-1234` | `2026001234` (first `FA` is in `DEFAULT`, first digit at offset 15 – just inside) |
+| `Platba za DEFAULT sluzbyy, fa 2026-1234` | empty (first digit at offset 16) |
 | `fa c. 12, 2026-1234` | empty (first digit run `12, ` is not a year) |
 | `fa 2026-1234567` | `2026123456` (truncated – a different invoice) |
 
@@ -509,7 +514,7 @@ It does not in these points:
 | D-01 | Tolerance | `Abs(diff) < 1.00` (`uMatchEngine.pas:98`) | `ABS(v_diff) <= 1` (`pkg_payment_match.pkb:114`) | diff of exactly ±1.00: PL/SQL `EXACT`/`P`; Delphi `PARTIAL`, `AMOUNT`, `ADV_OVERPAY` or `OVERPAID`. Delphi also compares `Double`, PL/SQL exact `NUMBER`. |
 | D-02 | Empty currency | `'' <> 'CZK'` → `-/CURRENCY` (`uMatchEngine.pas:42`) | `UPPER(TRIM(NULL)) <> 'CZK'` is NULL, not true → **continues matching as CZK** (`pkg_payment_match.pkb:64`) | Payment without currency is matched in PL/SQL, rejected in Delphi. |
 | D-03 | Missing / invalid amount | becomes 0 (`uCsv.pas:65`) → usually `PARTIAL` | NULL amount → `v_diff` NULL → all comparisons unknown → `ELSE` branch → `N`, `OVERPAID`, diff NULL (`pkg_payment_match.pkb:112-127`) | Same input, opposite outcome (`C` vs `N`). |
-| D-04 | Message parsing | first digit within 15 bytes after keyword, number must start at that digit (`uVsParser.pas:46-60`) | regex `[0-9]{4}[-/][0-9]{1,6}` anywhere in the next **26 characters** (`pkg_payment_match.pkb:28`) | See below. |
+| D-04 | Message parsing | first digit within 16 bytes after keyword (offset 0–15), number must start at that digit (`uVsParser.pas:46-60`) | regex `[0-9]{4}[-/][0-9]{1,6}` anywhere in the next **26 characters** (`pkg_payment_match.pkb:28`) | See below. |
 | D-05 | Fuzzy candidate order | first in **file order** (`uMatchEngine.pas:74-79`) | `ORDER BY invoice_number` (string order) (`pkg_payment_match.pkb:91-94`) | Different invoice when several contain the VS. |
 | D-06 | Exact lookup with duplicate VS | first in file order (`uMatchEngine.pas:65-70`) | `ROWNUM = 1` without `ORDER BY` – undefined row (`pkg_payment_match.pkb:81-84`) | Non-deterministic in PL/SQL. |
 | D-07 | Payment order | file order (`uMatchEngine.pas:21`) | `ORDER BY payment_id` as string, only `processed_flag = 'N'` (`pkg_payment_match.pkb:135-137`) | `P10000` sorts before `P9999`; affects who wins an invoice (BR-05). |
@@ -526,11 +531,11 @@ D-04 in detail – inputs where the two implementations disagree:
 
 | Message | Delphi | PL/SQL |
 |---|---|---|
-| `Platba za DEFAULT sluzby, fa 2026-1234` | empty (first digit 15 bytes after the `FA` in `DEFAULT`) | `2026001234` (number is inside the 26-char window) |
+| `Platba za DEFAULT sluzbyy, fa 2026-1234` | empty (first digit 16 bytes after the `FA` in `DEFAULT`) | `2026001234` (number is inside the 26-char window) |
 | `FA 12026-1234` | empty (year candidate `1202` < 1990) | `2026001234` (regex starts at the second digit) |
 | `FA c. 12, 2026-1234` | empty (first digit run `12` is not a year) | `2026001234` |
-| `FAKTURA PRO FIRMU ABC 2026-1234` | empty (first digit at offset 20 > 14) | `2026000001` – the window cuts the number to `2026-1`, a **different invoice** (PL/SQL bug) |
-| keyword + 13 non-digit chars incl. 2 Czech letters + `2026-1234` | empty (2-byte letters push the digit past 14 bytes) | `2026001234` |
+| `FAKTURA PRO FIRMU ABC 2026-1234` | empty (first digit at offset 20 > 15) | `2026000001` – the window cuts the number to `2026-1`, a **different invoice** (PL/SQL bug) |
+| keyword + 14 non-digit chars incl. 2 Czech letters + `2026-1234` | empty (2-byte letters push the digit to offset 16) | `2026001234` |
 
 Same in both: first `FA` only, `FV` only without any `FA`, year ≥ 1990, separator `-` or `/`,
 at most 6 sequence digits, left padding to 6.
