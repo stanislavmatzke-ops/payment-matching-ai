@@ -70,7 +70,22 @@
     - server čte audit log jednou při startu (po novém běhu pipeline restart).
   - _Útrata:_ $0, server model nevolá, žádný `record`/`live` běh.
   - _Pro fázi 7/8:_ fronta návrhů z MCP se má v UI zobrazit vedle návrhů pipeline (kdo navrhl: `agent:mcp`).
-- [ ] **Fáze 7** – **Multi-tenant + přihlášení** – Microsoft/Google login, sandbox na uživatele, startovní data, testy izolace.
+- [x] **Fáze 7** – **Multi-tenant + přihlášení** – Microsoft/Google login, sandbox na uživatele, startovní data, testy izolace.
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - `src/PaymentMatching.Data` (EF Core + Npgsql, migrace): tenanti, uživatelé, data, rozhodnutí, párování faktur, návrhy; `TenantId` v primárním klíči všech tabulek,
+    - izolace v `PaymentsDbContext`: query filter na každé entitě, kontrola zápisu (cizí řádek → `TenantIsolationException`), bez tenantu nic (fail closed); napříč tenanty jen `TenantAdmin` (hlídá test),
+    - idempotence z ADR 0006 jako primární klíče v PostgreSQL (`decisions`, `invoice_matches`), pipeline přes `IDecisionStore` (JSONL zůstává pro CLI a evaly),
+    - `SandboxProvisioner`: první přihlášení = tenant + startovní data (20 plateb, ~25–30 faktur) + jen vrstva pravidel, AI platby čekají na denní job; denní limit nových sandboxů; mazání po 30 dnech neaktivity (`TenantAdmin.DeleteInactiveAsync`, plánování ve fázi 9),
+    - `src/PaymentMatching.Web`: cookie + OIDC Microsoft (common, validace issueru podle `tid`) a Google, code flow + PKCE, tokeny se neukládají; dev login jen v Development; read-only API (`/api/me`, `/api/payments`), `/privacy`, bezpečnostní hlavičky, rate limit přihlášení,
+    - `payments-mcp --tenant <id>` nad tenantovou datovou vrstvou, návrhy v DB,
+    - 44 nových testů (celkem 302) proti skutečnému PostgreSQL (Testcontainers): úniky mezi tenanty se stejnými id ve všech tabulkách, přes HTTP i MCP, souběh, limity, OIDC přesměrování bez sítě a bez tajných klíčů,
+    - ADR 0011, update ADR 0006/0010, README (lokální běh, registrace aplikací), AGENTS.md, `.env.example`.
+  - _Odchylky od SPEC:_
+    - demo bez přihlášení není (volitelné, přesouvám do fáze 8 spolu s UI),
+    - mazání neaktivních sandboxů je hotové jako funkce, spouštět ho bude denní job (fáze 9),
+    - RLS v PostgreSQL jako druhá vrstva zatím ne (kandidát pro fázi 11).
+  - _Útrata:_ $0, žádné volání modelu.
+  - _Pro fázi 8:_ UI nad `/api/*` (zatím jen jednoduché HTML), akce potvrdit / zamítnout / spárovat ručně jako první zápisy uživatele (test „žádný endpoint nepřijímá text“ se pak rozšíří o validované akce), návrhy z MCP ve frontě.
 - [ ] **Fáze 8** – **UI** – seznam plateb, „kdo rozhodl“, fronta pro člověka (potvrdit / zamítnout / spárovat ručně), audit timeline, dashboard.
 - [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI.
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
@@ -164,3 +179,16 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Smoke test přes stdio: prvních pár pokusů nevrátilo nic, protože konec stdin server ukončí dřív, než odešle odpovědi. Testovací skript musel držet stdin otevřený. Ověřeno také, že `dotnet run` nepíše výstup buildu na stdout (rozbil by JSON-RPC).
 - HTTP transport doplněn o filtr `Host` hlavičky (jen loopback), aby se k serveru na localhostu nedostala webová stránka přes DNS rebinding. Ověřeno curl: cizí Host → 400.
 - `sed` se zpětnými lomítky v cestě csproj potřetí tiše nic nenahradil (přidání `InternalsVisibleTo`); tentokrát si toho agent všiml hned z výpisu souboru a přešel na Edit.
+
+**Fáze 7 (2026-11-12)**
+- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn.
+- **Leak testy záměrně se stejnými id v obou tenantech** (`P0001`, stejná čísla faktur): odliší je jen filtr. Seznam testovaných tabulek se bere z EF modelu, takže nová tabulka bez tenantu test shodí sama.
+- **Poprvé testy proti skutečné databázi** (Testcontainers). Unikátní klíče a souběh (dva běhy rozhodnou stejnou platbu, dvě první přihlášení naráz) nejde poctivě otestovat nad in-memory providerem.
+- OIDC bez sítě a bez tajných klíčů: test podstrčí metadata poskytovatele a kontroluje přesměrování (autorita, `client_id`, scope, PKCE, callback). Skutečné přihlášení přes Microsoft/Google ověří až uživatel s vlastní registrací aplikace.
+- Drobnosti, co agent pokazil:
+  - jednorázová sonda „je tu python?“ přes heredoc spustila na Windows interaktivní REPL a visela 2 minuty → zastaveno, dál jen Write/Edit,
+  - `sed` se zpětnými lomítky v cestě csproj počtvrté tiše nic nenahradil; tentokrát hned vidět v kontrolním výpisu, opraveno přes Edit,
+  - pomocník testů ořízl jméno databáze `[..40]` z řetězce, který byl kratší → 9 testů spadlo na `ArgumentOutOfRange`, ne na izolaci,
+  - minimal API neumí navázat `?full=1` na `bool?` → 400; chytil test,
+  - Npgsql si přitáhl EF Core 10.0.4, nástroj `dotnet-ef` byl 10.0.3 → sjednoceno.
+- Provozní: běžící `payments-mcp` (z `.mcp.json`) zamyká Debug výstup, build padal na zamčených DLL. Lokálně proto build/test v Release; zapsáno do AGENTS.md.

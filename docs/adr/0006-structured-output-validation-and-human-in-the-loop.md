@@ -71,3 +71,9 @@ app (phase 7) these become unique indexes in PostgreSQL.
   to a person. See ADR 0008.
 - The 0.90 threshold was checked against recorded answers and kept; escalation now happens only when
   an automatic match is still possible. See ADR 0009.
+
+## Update (phase 7)
+
+- In the hosted app decisions are stored per tenant in PostgreSQL; the two idempotency rules are
+  primary keys of `decisions` and `invoice_matches`. `DecisionLog` (JSONL) remains for the CLIs and
+  evals. See ADR 0011.

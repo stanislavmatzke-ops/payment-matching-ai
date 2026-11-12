@@ -74,3 +74,9 @@ the authenticated caller, never from a tool argument.
   Re-run `Match.Cli`, then restart the server.
 - Two new dependencies, both from the official MCP SDK, only in `PaymentMatching.Mcp`.
 - Workspace-per-process is a deliberate gap until phase 7, written down here and in `docs/PLAN.md`.
+
+## Update (phase 7)
+
+- `payments-mcp --tenant <id>` serves one sandbox of the app database through the tenant-filtered
+  data layer; proposals are stored per tenant in PostgreSQL. The tenant is chosen by whoever starts
+  the process, never by a tool argument. The file workspace stays the default. See ADR 0011.

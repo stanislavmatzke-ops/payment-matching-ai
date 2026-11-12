@@ -9,7 +9,7 @@ and anything uncertain goes to a human – because a wrong match is worse than n
 
 ## Quick start
 
-Requirements: .NET 10 SDK, Docker.
+Requirements: .NET 10 SDK, Docker (also for `dotnet test`: database tests start PostgreSQL via Testcontainers).
 
 ```bash
 dotnet build
@@ -84,6 +84,56 @@ data, never instructions. Why it looks like this: [ADR 0010](docs/adr/0010-mcp-s
    the MCP prompt `investigate_unmatched` (in Claude Code: `/mcp__payments__investigate_unmatched`).
    Proposals land in `out/match/proposals.jsonl`; restart the server after a new pipeline run.
 
+## Run the web app (sign-in, one sandbox per person)
+
+Every person who signs in gets an own sandbox: a fictional company with ~30 invoices and 20
+payments. Isolation is enforced in the data layer and covered by leak tests
+([ADR 0011](docs/adr/0011-tenant-isolation-in-the-data-layer-and-oidc-sign-in.md)). Signing in never
+calls a model; payments that need AI wait for the scheduled job (phase 9).
+
+```bash
+docker compose up -d                       # PostgreSQL
+dotnet dev-certs https --trust             # once, for https://localhost
+dotnet run --project src/PaymentMatching.Web --launch-profile https
+```
+
+Open https://localhost:7180. In Development the app migrates the database and offers a
+**development sign-in** (`/dev-login?name=alice`) that needs no identity provider; it is refused in
+any other environment. `/api/me` and `/api/payments` show your sandbox; `/privacy` explains what is
+stored.
+
+### Sign-in with Microsoft or Google (optional, locally)
+
+A provider appears on the page only when its client id and secret are configured. Secrets never go
+into the repository; locally they live in user-secrets (`--id payment-matching-ai`).
+
+1. **Microsoft:** in the [Entra admin center](https://entra.microsoft.com) → App registrations → New
+   registration, *Accounts in any organizational directory and personal Microsoft accounts*, redirect
+   URI (Web) `https://localhost:7180/signin-microsoft`. Create a client secret.
+2. **Google:** in the [Google Cloud console](https://console.cloud.google.com) → APIs & Services →
+   Credentials → OAuth client ID, type *Web application*, authorized redirect URI
+   `https://localhost:7180/signin-google`.
+3. Store the values:
+
+   ```bash
+   dotnet user-secrets set "Auth:Microsoft:ClientId" "<application id>" --id payment-matching-ai
+   dotnet user-secrets set "Auth:Microsoft:ClientSecret" "<secret>" --id payment-matching-ai
+   dotnet user-secrets set "Auth:Google:ClientId" "<client id>" --id payment-matching-ai
+   dotnet user-secrets set "Auth:Google:ClientSecret" "<secret>" --id payment-matching-ai
+   ```
+
+Both use OpenID Connect (code flow + PKCE); only provider, account id, name and e-mail are kept.
+
+### MCP server on a sandbox
+
+`payments-mcp` can serve one sandbox of the app database instead of the sample files. The tenant id
+is in `/api/me`; whoever starts the process chooses it, no tool can:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:Payments" "Host=localhost;Port=5432;Database=payments;Username=payments;Password=local-dev-only" --id payment-matching-ai
+dotnet run --project src/PaymentMatching.Mcp -- --tenant <tenant id>
+```
+
 ## What is here so far
 
 | Path | What |
@@ -100,6 +150,8 @@ data, never instructions. Why it looks like this: [ADR 0010](docs/adr/0010-mcp-s
 | `tools/Match.Cli` | runs the whole pipeline (`stub`, `replay`, `record`, `live`, `rules`) |
 | `evals/` | frozen gold set, recorded model answers and eval reports; runner in `tools/Eval.Cli` |
 | `src/PaymentMatching.Mcp` | MCP server `payments-mcp`: read tools and proposals for a person (stdio / HTTP) |
+| `src/PaymentMatching.Data` | PostgreSQL data layer (EF Core): tenants, tenant filter on every query, decisions and proposals with idempotency keys, sandbox provisioning |
+| `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, read-only API |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.

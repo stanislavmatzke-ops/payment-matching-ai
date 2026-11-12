@@ -37,8 +37,8 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 
 ## Příkazy
 
-- build: `dotnet build`
-- test: `dotnet test` (xUnit v3 na Microsoft.Testing.Platform, nastaveno v `global.json`)
+- build: `dotnet build` (když běží `payments-mcp` z `.mcp.json`, zamyká Debug výstup → lokálně `dotnet build -c Release` a `dotnet test -c Release --no-build`)
+- test: `dotnet test` (xUnit v3 na Microsoft.Testing.Platform, nastaveno v `global.json`; DB testy potřebují běžící Docker – PostgreSQL přes Testcontainers)
 - formát: `dotnet format --verify-no-changes` (CI), `dotnet format` (opravit)
 - generátor dat: `dotnet run --project tools/DataGen.Cli -- --seed 42 --payments 300 --out data/sample` (`--profile eval` přidá těžké případy zlaté sady)
 - .NET pravidla nad adresářem s CSV: `dotnet run --project tools/Rules.Cli -- data/sample legacy/golden/seed-42/port_matches.csv` (po změně pravidel přegenerovat obě `port_matches.csv`, jinak test selže)
@@ -51,4 +51,7 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 - eval (live, ručně, nic neukládá; rozptyl mezi běhy): `dotnet run --project tools/Eval.Cli -- --mode live --configs routing --repeat 3`
 - zlatá sada je zmrazená (`MANIFEST.sha256`); opravy jen jako nová verze (`gold-v2`), viz `evals/dataset/gold-v1/REVIEW.md`
 - MCP server (stdio, pro Claude Code / Desktop): `dotnet run --project src/PaymentMatching.Mcp -- --data data/sample --state out/match` (čte `audit.jsonl` z `Match.Cli`, zapisuje jen `proposals.jsonl`; HTTP: `--transport http --port 5100`, jen localhost; po novém běhu pipeline restartovat; připojení viz README)
-- lokální běh: `docker compose up -d` (zatím jen PostgreSQL)
+- MCP server nad sandboxem v DB: `dotnet run --project src/PaymentMatching.Mcp -- --tenant <id>` (connection string `ConnectionStrings:Payments` v user-secrets `--id payment-matching-ai`; tenant id z `/api/me`)
+- lokální běh: `docker compose up -d` (PostgreSQL) + `dotnet run --project src/PaymentMatching.Web --launch-profile https` (https://localhost:7180, v Development migrace + dev login `/dev-login?name=alice`; Microsoft/Google jen s client id/secret v user-secrets, viz README)
+- migrace DB: `dotnet ef migrations add <Name> --project src/PaymentMatching.Data` (lokální tool v `dotnet-tools.json`, `dotnet tool restore`); test hlídá, že model a migrace sedí
+- izolace tenantů: nový tenantový typ musí implementovat `ITenantOwned`; mimo `TenantAdmin` nikdy `IgnoreQueryFilters` ani raw SQL (hlídá test)
