@@ -32,7 +32,7 @@ public static class DataGenerator
         var rng = new Random(options.Seed);
         var ctx = new GenerationContext(rng, options);
 
-        var customerCount = Math.Max(10, options.PaymentCount / 5);
+        var customerCount = Math.Max(options.MinCustomers, options.PaymentCount / 5);
         for (var i = 0; i < customerCount; i++)
         {
             ctx.AddCustomer();
@@ -78,7 +78,7 @@ public static class DataGenerator
             .Select((draft, index) => (draft, index))
             .OrderBy(x => x.draft.BookingDate)
             .ThenBy(x => x.index)
-            .Select((x, i) => (Draft: x.draft, Id: "P" + (i + 1).ToString("D4", CultureInfo.InvariantCulture)))
+            .Select((x, i) => (Draft: x.draft, Id: ctx.PaymentIdPrefix + (i + 1).ToString("D4", CultureInfo.InvariantCulture)))
             .ToList();
 
         var transactions = ordered.Select(x => new BankTransaction(

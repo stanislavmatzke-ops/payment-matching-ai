@@ -6,11 +6,9 @@ namespace PaymentMatching.DataGen.Cases;
 /// <summary>Shared mutable state of one generator run: random source, customers and issued invoices.</summary>
 internal sealed class GenerationContext(Random rng, GeneratorOptions options)
 {
-    private const int FirstInvoiceSequence = 1001;
-
     private readonly List<Customer> _customers = [];
     private readonly List<Invoice> _invoices = [];
-    private int _nextSequence = FirstInvoiceSequence;
+    private int _nextSequence = options.FirstInvoiceSequence;
 
     public Random Rng { get; } = rng;
 
@@ -18,13 +16,15 @@ internal sealed class GenerationContext(Random rng, GeneratorOptions options)
 
     public DateOnly ReferenceDate => options.ReferenceDate;
 
+    public string PaymentIdPrefix => options.PaymentIdPrefix;
+
     public IReadOnlyList<Customer> Customers => _customers;
 
     public IReadOnlyList<Invoice> Invoices => _invoices;
 
     public Customer AddCustomer()
     {
-        var id = "C" + (_customers.Count + 1).ToString("D3", CultureInfo.InvariantCulture);
+        var id = options.CustomerIdPrefix + (_customers.Count + 1).ToString("D3", CultureInfo.InvariantCulture);
         var customer = new Customer(id, FictionalNames.Company(Rng), CzechIban.NewDemoBankIban(Rng));
         _customers.Add(customer);
         return customer;

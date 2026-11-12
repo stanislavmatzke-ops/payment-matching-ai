@@ -49,11 +49,28 @@ public sealed record GeneratorOptions
 
     public IReadOnlyDictionary<CaseType, double> CaseMix { get; init; } = DefaultCaseMix;
 
+    /// <summary>At least this many customers (more for large sets: one per five payments).</summary>
+    public int MinCustomers { get; init; } = 10;
+
+    /// <summary>Prefix of customer ids (C001, C002, …). The daily batch of the hosted app uses a dated prefix.</summary>
+    public string CustomerIdPrefix { get; init; } = "C";
+
+    /// <summary>Prefix of payment ids (P0001, P0002, …).</summary>
+    public string PaymentIdPrefix { get; init; } = "P";
+
+    /// <summary>Sequence of the first invoice ({year}-{sequence}); the VS is derived from it.</summary>
+    public int FirstInvoiceSequence { get; init; } = 1001;
+
     public void Validate()
     {
         if (PaymentCount < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(PaymentCount), "At least one payment is required.");
+        }
+
+        if (MinCustomers < 1 || FirstInvoiceSequence is < 1 or > 999_999)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MinCustomers), "At least one customer and an invoice sequence of 1 to 999 999.");
         }
 
         if (OpenInvoiceRatio < 0)
