@@ -34,7 +34,22 @@ jobs:
       - name: Sample data is reproducible
         run: |
           dotnet run --project tools/DataGen.Cli --configuration Release --no-build -- --seed 42 --out data/sample
-          git diff --exit-code -- data/sample
+          dotnet run --project tools/DataGen.Cli --configuration Release --no-build -- --seed 2005 --payments 1000 --out legacy/golden/seed-2005/input
+          git diff --exit-code -- data/sample legacy/golden/seed-2005/input
+
+  legacy-golden-master:
+    name: Legacy golden master (Free Pascal)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build legacy and run it on the golden sets
+        run: |
+          bash legacy/run-legacy.sh data/sample legacy/golden/seed-42/legacy_matches.csv
+          bash legacy/run-legacy.sh legacy/golden/seed-2005/input legacy/golden/seed-2005/legacy_matches.csv
+
+      - name: Golden master unchanged
+        run: git diff --exit-code -- legacy/golden
 
   secrets-scan:
     name: Secret scan (gitleaks)
