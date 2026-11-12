@@ -188,6 +188,25 @@ dotnet user-secrets set "ConnectionStrings:Payments" "Host=localhost;Port=5432;D
 dotnet run --project src/PaymentMatching.Mcp -- --tenant <tenant id>
 ```
 
+## Traces and metrics (OpenTelemetry)
+
+Every run can be watched as traces: payment → layer → model call (model, tier, tokens, cost, latency,
+cached answer) → outcome, plus metrics for calls, tokens, cost and budget hits. Nothing is exported
+unless an endpoint is configured, and telemetry never carries bank statement text, names, prompts or
+model output (tests check it; see [ADR 0015](docs/adr/0015-opentelemetry-without-leaking-data.md)).
+
+Locally, with the Aspire dashboard:
+
+```bash
+docker compose --profile observability up -d
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 dotnet run --project tools/Match.Cli -- data/sample --out out/otel --mode replay
+```
+
+Then open http://localhost:18888 (Traces: `payments-match: matching.run`; Metrics: `payments.ai.*`).
+The same variable works for the web app (`payments-web`), the daily job (`payments-job`) and the MCP
+server (`payments-mcp`). In Azure, `APPLICATIONINSIGHTS_CONNECTION_STRING` sends the same data to
+Application Insights.
+
 ## What is here so far
 
 | Path | What |
@@ -207,6 +226,7 @@ dotnet run --project src/PaymentMatching.Mcp -- --tenant <tenant id>
 | `src/PaymentMatching.Data` | PostgreSQL data layer (EF Core): tenants, tenant filter on every query, decisions, proposals and a person's reviews with idempotency keys, sandbox provisioning |
 | `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, server-rendered UI (queue, audit trail, dashboard) with confirm / reject / manual match |
 | `src/PaymentMatching.Job` | `payments-job`: the scheduled daily job (shared batch, response cache, AI budgets, demo, clean-up) |
+| `src/PaymentMatching.Observability` | OpenTelemetry for the hosts: exporters chosen by configuration (OTLP, Application Insights) and redaction before export |
 | `docs/cost.md` | what the hosted app costs and why (AI budgets, cache) |
 | `docs/adr` | architecture decision records |
 

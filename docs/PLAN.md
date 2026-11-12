@@ -118,7 +118,22 @@
     - měsíční rozpočet se hlídá rezervou $0,05 na volání (ne přesnou cenou dopředu),
     - souběh dvou instancí jobu může strop přetáhnout o volání; v Azure parallelism 1 + spend limit v konzoli.
   - _Útrata:_ $0,0007. Jeden živý běh jobu nad lokální DB se souhlasem vývojáře (odhad ≤ 5 volání, < $0,02). Skutečnost: 2 volání Haiku v jediném sandboxu, který ještě měl denní limit; ostatní sandboxy ho ten den vyčerpaly stub během, a protože ledger počítá i volání stubu, jejich platby čekají na další den. Výsledek: 1 automatické spárování (confidence 0,96) a 1 platba pro člověka (0,80).
-- [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
+- [x] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - knihovny (gateway, pipeline, job) zapisují jen přes BCL (`ActivitySource` + `Meter` „PaymentMatching“ v `AiGateway/Telemetry.cs`), bez nové závislosti,
+    - spany `matching.run` → `matching.payment` (vrstva, pravidlo, výsledek, kódy) → `ai.complete` → `chat {model}` (GenAI konvence: model, tokeny; navíc tier, cena, cached, latence poskytovatele, kategorie chyby); `job.run` → `job.sandbox` s pseudonymem tenantu (12 hex SHA-256),
+    - metriky `payments.ai.calls|tokens|cost|call.duration|budget_exhausted`, `payments.matching.decisions`,
+    - `src/PaymentMatching.Observability`: SDK a exportéry jen v hostitelích (web, job, MCP, `Match.Cli`), zapnuté jen konfigurací (`OTEL_EXPORTER_OTLP_ENDPOINT`, `APPLICATIONINSIGHTS_CONNECTION_STRING`), redakční procesor před exportem; ASP.NET Core instrumentace bez statických souborů,
+    - Aspire dashboard v `docker compose --profile observability` (jen localhost),
+    - 18 nových testů (celkem 380) včetně testů úniku: replay skutečných odpovědí nad `data/sample`, job nad sandboxem, web s `?name=` a user agentem, MCP s označenými argumenty; allowlist tagů,
+    - ADR 0015, README, AGENTS.md, `.env.example`.
+  - _Ověřeno ručně:_ `Match.Cli --mode replay` s exportem do Aspire – strom 463 spanů, detail `chat claude-opus-5-5` s tokeny, cenou a latencí, metriky `payments.ai.*`.
+  - _Odchylky od SPEC / plánu:_
+    - Npgsql spany vynechány (jen metriky): chyba DB nese hodnoty ve zprávě,
+    - logy se neexportují (zůstávají na stdout),
+    - Azure Monitor jen jako exportér, ne celá „distro“ (ta zapíná i logy a live metrics); skutečné napojení na App Insights až ve fázi 11,
+    - job nad lokální DB jsem se stubem nepouštěl (stub počítá volání do denního limitu sandboxu); spany jobu kryjí testy nad Testcontainers.
+  - _Útrata:_ $0, žádný `record`/`live` běh.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
   - **Hlavní jazyk repa je angličtina.** `README.md`, `AGENTS.md`, `docs/SPEC.md`, `docs/PLAN.md` a všechny dokumenty v `docs/` budou anglicky.
@@ -253,3 +268,16 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - test s pořadím GUID by procházel náhodou (porovnání seřazené množiny se seznamem v pevném pořadí) – opraveno před commitem,
   - spojení dvou interpolovaných řetězců přes `+` uvnitř `FormattableString.Invariant` neprojde překladem (výsledek je `string`).
 - Po fázi vývojář zpochybnil limit 2 volání na sandbox a den: na dashboardu „2 / 2“ vypadalo směšně, když jedno volání stojí zlomek centu, a nové sandboxy čekaly na AI několik dní. Ochranu proti „oškubání“ drží globální stropy a počet nových sandboxů, ne limit sandboxu. Změněno: 20 volání na sandbox a den, 5 nových sandboxů denně (dodatek v ADR 0014). Pro nasazení doporučen měsíční rozpočet $0,50 a spend limit $5 v Anthropic konzoli.
+
+**Fáze 10 (2026-11-12)**
+- Plán vznikl v nové session z PLAN/SPEC/ADR a kódu, schválen beze změn.
+- **Hlavní nález z testu, ne z návrhu:** MCP SDK u nástroje, který skončí chybou, dává do statusu spanu celou odpověď nástroje – a ta opakuje argumenty od agenta (např. neznámé id). Test s označenými argumenty to chytil napoprvé; redakční procesor proto maže popis chyby u všech cizích spanů. Ponaučení: „instrumentace knihovny nezapisuje argumenty“ neznamená, že je nezapíše jinudy.
+- Návrhové rozhodnutí: knihovny jen na BCL `System.Diagnostics`, SDK jen v hostitelích. CI tak nepotřebuje backend ani balíček navíc a testy čtou spany přes `ActivityListener` filtrovaný podle vlastního trace (testy běží paralelně, posluchače jsou globální).
+- Replay hlásí cenu a latenci z nahrávky (jako audit). Proto je v spanu i `payments.ai.latency_ms` – délka spanu při replay je zlomek milisekundy.
+- Drobnosti, co agent pokazil:
+  - nový projekt `PaymentMatching.Telemetry` zastínil třídu `Telemetry` v namespace `PaymentMatching.*` (build) → přejmenováno na `PaymentMatching.Observability`,
+  - webový test telemetrie prošel samostatně, v celé sadě ne: instrumentace ASP.NET Core poslouchá celý proces a viděla požadavky paralelních testů (`Assert.Single` našel 6 přihlášení). Oprava: test hledá jen své unikátní cesty a značky, nikdy počty,
+  - poslední požadavek testu: span na test serveru končí až po předání odpovědi → krátké čekání na span,
+  - analyzátory (IDE0062 statická lokální funkce, xUnit2029 `Assert.Empty` nad filtrem) – build.
+- Během fáze vývojář doplnil do AGENTS.md pravidlo pro sdílené soubory (case-study-notes jen přidávat na konec, před úpravou znovu načíst). Agent tu změnu nechal necommitnutou (není jeho) a do indexu přidal jen svůj řádek s příkazy telemetrie.
+
