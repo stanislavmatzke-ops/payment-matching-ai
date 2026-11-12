@@ -1,0 +1,17 @@
+{
+  "requestHash": "3895815b6474c538903daa755250e9b9",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Žulmar Nábytek a.s. (C038)\",\r\n  \"booking_date\": \"2026-03-19\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1313\",\r\n      \"variable_symbol\": \"2026001313\",\r\n      \"customer\": \"Žulmar Nábytek a.s. (C038)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 110681.16,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-13\",\r\n      \"signals\": [\r\n        \"vs_one_typo\",\r\n        \"amount_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 110681.16,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"ZULMAR NABYTEK A.S.\",\r\n  \"variable_symbol\": \"202600313\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The bank VS 202600313 differs from invoice VS 2026001313 by one missing digit, a typing error. Amount matches exactly in CZK and the payer account belongs to the customer C038.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1313\"],\"confidence\":0.93,\"flags\":[\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1888,
+      "outputTokens": 118,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3666962"
+  }
+}

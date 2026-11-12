@@ -1,0 +1,17 @@
+{
+  "requestHash": "969b45b49eaac498604bfe517287e30b",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Večerka Nova Tiskárna s.r.o. (C053)\",\r\n  \"booking_date\": \"2026-02-28\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1251\",\r\n      \"variable_symbol\": \"2026001251\",\r\n      \"customer\": \"Večerka Nova Tiskárna s.r.o. (C053)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 148904.44,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-12\",\r\n      \"signals\": [\r\n        \"vs_one_typo\",\r\n        \"amount_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1021\",\r\n      \"variable_symbol\": \"2026001021\",\r\n      \"customer\": \"Jasnovit Obchod s.r.o. (C010)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 17840.55,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-16\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1121\",\r\n      \"variable_symbol\": \"2026001121\",\r\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\r\n      \"kind\": \"Advance\",\r\n      \"amount\": 165166.19,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-28\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 148904.44,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"VECERKA NOVA TISKARNA S.R.O.\",\r\n  \"variable_symbol\": \"2026001521\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"The payment amount exactly matches invoice 2026-1251 (148904.44 CZK), the payer account belongs to the same customer, and the VS 2026001521 differs from the invoice VS 2026001251 by swapped adjacent digits (25 vs 52). The other candidates have different customers and amounts that do not fit, so the only plausible match is 2026-1251.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1251\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2175,
+      "outputTokens": 180,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4898952"
+  }
+}

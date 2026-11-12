@@ -1,0 +1,17 @@
+{
+  "requestHash": "a1d183dae6abfe86f487420aa15a193c",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Úvalka Potraviny s.r.o. (C009)\",\r\n  \"booking_date\": \"2026-03-19\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1299\",\r\n      \"variable_symbol\": \"2026001299\",\r\n      \"customer\": \"Úvalka Potraviny s.r.o. (C009)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 32237.20,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-03\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1300\",\r\n      \"variable_symbol\": \"2026001300\",\r\n      \"customer\": \"Úvalka Potraviny s.r.o. (C009)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 23619.84,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-29\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": [\r\n    [\r\n      \"2026-1299\",\r\n      \"2026-1300\"\r\n    ]\r\n  ]\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 55857.04,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"Úvalka Potraviny s.r\",\r\n  \"variable_symbol\": \"\",\r\n  \"message\": \"fa 2026-1299, 2026-1300\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoices (2026-1299 and 2026-1300), and their CZK totals sum exactly to the payment amount of 55857.04. The payer account belongs to the customer C009, and both invoices are from the same customer. The counterparty name is truncated and the VS is empty, but the account match and the named invoice numbers support the match.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1299\",\"2026-1300\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2081,
+      "outputTokens": 282,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.5537474"
+  }
+}

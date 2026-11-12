@@ -1,0 +1,17 @@
+{
+  "requestHash": "d6ecb62c34ce0c1bdd8fcfb0adfe79c2",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Klenovit Stavby s.r.o. (C041)\",\r\n  \"booking_date\": \"2026-03-20\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1372\",\r\n      \"variable_symbol\": \"2026001372\",\r\n      \"customer\": \"Klenovit Stavby s.r.o. (C041)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 171938.74,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-15\",\r\n      \"signals\": [\r\n        \"vs_one_typo\",\r\n        \"amount_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 171938.74,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"Klenovit Stavby s.r.\",\r\n  \"variable_symbol\": \"202600372\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The bank VS 202600372 equals invoice VS 2026001372 with one digit missing, which the rule allows as a typing error. The amount matches exactly at 171938.74 CZK, the payer account belongs to the customer C041, and this is the only candidate.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1372\"],\"confidence\":0.9,\"flags\":[\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1887,
+      "outputTokens": 430,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.5504028"
+  }
+}

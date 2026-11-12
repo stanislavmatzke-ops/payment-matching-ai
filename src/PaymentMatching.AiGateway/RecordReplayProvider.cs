@@ -62,7 +62,7 @@ public sealed class RecordReplayProvider(string directory, RecordingMode mode, I
     }
 
     private sealed record Recording(
-        string Key,
+        string RequestHash,
         string Model,
         [property: JsonPropertyName("request")] string UserContent,
         LlmResponse Response);

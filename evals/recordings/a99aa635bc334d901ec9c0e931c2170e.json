@@ -1,0 +1,17 @@
+{
+  "requestHash": "a99aa635bc334d901ec9c0e931c2170e",
+  "model": "claude-opus-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Večerka Nova Logistika s.r.o. (C001)\",\r\n  \"booking_date\": \"2026-03-18\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1348\",\r\n      \"variable_symbol\": \"2026001348\",\r\n      \"customer\": \"Večerka Nova Logistika s.r.o. (C001)\",\r\n      \"kind\": \"Advance\",\r\n      \"amount\": 96349.37,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-03\",\r\n      \"signals\": [\r\n        \"vs_one_typo\",\r\n        \"amount_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 96349.37,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"VECERKA NOVA LOGISTIKA S.R.O.\",\r\n  \"variable_symbol\": \"202600348\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-opus-5-5",
+    "json": "{\"reasoning\":\"The VS is the invoice VS with one digit missing, the amount matches exactly and the payer account belongs to the customer C001. The only deviation is the VS typing error.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1348\"],\"confidence\":0.93,\"flags\":[\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1901,
+      "outputTokens": 201,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:03.0182323"
+  }
+}

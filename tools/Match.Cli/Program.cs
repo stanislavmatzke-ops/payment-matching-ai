@@ -26,12 +26,7 @@ if (options is null)
 var data = MatchingDataset.Load(options.InputDir);
 Directory.CreateDirectory(options.OutDir);
 
-var gatewayOptions = new GatewayOptions(
-    new ModelRoute("claude-haiku-5-5", "low", 2048),
-    new ModelRoute("claude-opus-5-5", "medium", 4096))
-{
-    MaxCalls = options.MaxCalls,
-};
+var gatewayOptions = ModelSettings.Default with { MaxCalls = options.MaxCalls };
 
 ILlmProvider? provider;
 try

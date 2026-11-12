@@ -1,0 +1,17 @@
+{
+  "requestHash": "c8a624eeaade958294048e64d4f1ec09",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Úvalka Elektro a.s. (C035)\",\r\n  \"booking_date\": \"2026-03-30\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1159\",\r\n      \"variable_symbol\": \"2026001159\",\r\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 102516.54,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-03\",\r\n      \"signals\": [\r\n        \"vs_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1059\",\r\n      \"variable_symbol\": \"2026001059\",\r\n      \"customer\": \"Hradiva Tiskárna v.o.s. (C050)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 126012.79,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-27\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1150\",\r\n      \"variable_symbol\": \"2026001150\",\r\n      \"customer\": \"Klenovit Účetní služby v.o.s. (C051)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 58090.48,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-06\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1152\",\r\n      \"variable_symbol\": \"2026001152\",\r\n      \"customer\": \"Čerpaton Obchod v.o.s. (C024)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 67052.66,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-15\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 102626.54,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"Uvalka Elektro a.s.\",\r\n  \"variable_symbol\": \"2026001159\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"VS exactly matches invoice 2026-1159 of customer Úvalka Elektro (C035), and the payer account belongs to that customer. However the payment is 102626.54 CZK against an invoice of 102516.54 CZK, a difference of 110.00 CZK, which exceeds the 1.00 CZK tolerance, so it is an overpayment that needs review rather than a clean match.\", \"decision\": \"uncertain\", \"invoice_numbers\": [\"2026-1159\"], \"confidence\": 0.5, \"flags\": [\"overpayment\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2286,
+      "outputTokens": 190,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6194511"
+  }
+}

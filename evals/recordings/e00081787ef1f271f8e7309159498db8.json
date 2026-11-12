@@ -1,0 +1,17 @@
+{
+  "requestHash": "e00081787ef1f271f8e7309159498db8",
+  "model": "claude-opus-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Klenovit Účetní služby v.o.s. (C051)\",\r\n  \"booking_date\": \"2026-03-20\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1342\",\r\n      \"variable_symbol\": \"2026001342\",\r\n      \"customer\": \"Klenovit Účetní služby v.o.s. (C051)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 152458.11,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-14\",\r\n      \"signals\": [\r\n        \"vs_exact\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1042\",\r\n      \"variable_symbol\": \"2026001042\",\r\n      \"customer\": \"Večerka Nova Obchod s.r.o. (C015)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 83876.52,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-03\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1142\",\r\n      \"variable_symbol\": \"2026001142\",\r\n      \"customer\": \"Lunexa Potraviny v.o.s. (C047)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 235294.68,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-13\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1343\",\r\n      \"variable_symbol\": \"2026001343\",\r\n      \"customer\": \"Rybolan Stavby v.o.s. (C036)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 98417.43,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-13\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1362\",\r\n      \"variable_symbol\": \"2026001362\",\r\n      \"customer\": \"Sázavit Logistika v.o.s. (C048)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 84760.92,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-04-03\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1372\",\r\n      \"variable_symbol\": \"2026001372\",\r\n      \"customer\": \"Klenovit Stavby s.r.o. (C041)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 171938.74,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-03-15\",\r\n      \"signals\": [\r\n        \"vs_one_typo\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": []\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 152638.11,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"Klenovit Účetní služ\",\r\n  \"variable_symbol\": \"2026001342\",\r\n  \"message\": \"\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-opus-5-5",
+    "json": "{\"reasoning\":\"The VS exactly matches invoice 2026-1342 and the payer account belongs to that customer (C051). However, the payment is 180.00 CZK more than the invoice amount, so this is an overpayment that needs review.\",\"decision\":\"uncertain\",\"invoice_numbers\":[\"2026-1342\"],\"confidence\":0.8,\"flags\":[\"overpayment\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2562,
+      "outputTokens": 127,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.1976477"
+  }
+}

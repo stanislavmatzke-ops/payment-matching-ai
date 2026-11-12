@@ -29,10 +29,7 @@ internal static class TestData
         .Select(MatchingDataset.SplitCsv)
         .ToDictionary(f => f[0], f => new Expected(f[1], f[2], f[3].Split('|', StringSplitOptions.RemoveEmptyEntries), f[5]));
 
-    public static GatewayOptions GatewayOptions { get; } =
-        new(new ModelRoute("claude-haiku-5-5", "low", 1024), new ModelRoute("claude-opus-5-5", "medium", 2048));
-
-    public static AiGateway.AiGateway Gateway(ILlmProvider provider) => new(provider, GatewayOptions, PriceTable.Claude);
+    public static AiGateway.AiGateway Gateway(ILlmProvider provider) => new(provider, ModelSettings.Default, PriceTable.Claude);
 
     internal sealed record Expected(string CaseType, string Outcome, string[] Invoices, string InjectionTarget);
 }

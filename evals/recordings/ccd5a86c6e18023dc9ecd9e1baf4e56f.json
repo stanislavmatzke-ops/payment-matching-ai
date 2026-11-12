@@ -1,0 +1,17 @@
+{
+  "requestHash": "ccd5a86c6e18023dc9ecd9e1baf4e56f",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Lipanex Obchod s.r.o. (C060)\",\r\n  \"booking_date\": \"2026-03-21\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1177\",\r\n      \"variable_symbol\": \"2026001177\",\r\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 162957.16,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-18\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1178\",\r\n      \"variable_symbol\": \"2026001178\",\r\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 219126.44,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-01\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1179\",\r\n      \"variable_symbol\": \"2026001179\",\r\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 208060.32,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-04-02\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1180\",\r\n      \"variable_symbol\": \"2026001180\",\r\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 148227.93,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-23\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": [\r\n    [\r\n      \"2026-1178\",\r\n      \"2026-1177\",\r\n      \"2026-1180\",\r\n      \"2026-1179\"\r\n    ]\r\n  ]\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 738371.85,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"LIPANEX OBCHOD S.R.O.\",\r\n  \"variable_symbol\": \"\",\r\n  \"message\": \"fa 2026-1177, 2026-1178, 2026-1179, 2026-1180\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The four invoices (2026-1177 to 2026-1180) all belong to Lipanex Obchod s.r.o. (C060), which owns the payer account. Their CZK totals sum exactly to the 738371.85 CZK payment, and the message names all four invoice numbers. The VS is empty, but the message identification is clear.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1177\",\"2026-1178\",\"2026-1179\",\"2026-1180\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2421,
+      "outputTokens": 290,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.9751976"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "97e3c7be2148ae27cd28a8ce82a66daa",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\r\n  \"payer_account_belongs_to\": \"Kalmira Doprava v.o.s. (C005)\",\r\n  \"booking_date\": \"2026-03-01\"\r\n}\n</context>\n<candidate_invoices>\n{\r\n  \"candidates\": [\r\n    {\r\n      \"invoice_number\": \"2026-1314\",\r\n      \"variable_symbol\": \"2026001314\",\r\n      \"customer\": \"Kalmira Doprava v.o.s. (C005)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 79104.97,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-01-31\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    },\r\n    {\r\n      \"invoice_number\": \"2026-1315\",\r\n      \"variable_symbol\": \"2026001315\",\r\n      \"customer\": \"Kalmira Doprava v.o.s. (C005)\",\r\n      \"kind\": \"Regular\",\r\n      \"amount\": 37392.99,\r\n      \"currency\": \"CZK\",\r\n      \"due_date\": \"2026-02-25\",\r\n      \"signals\": [\r\n        \"number_in_message\",\r\n        \"in_combination\",\r\n        \"payer_is_customer\"\r\n      ]\r\n    }\r\n  ],\r\n  \"suggested_combinations\": [\r\n    [\r\n      \"2026-1314\",\r\n      \"2026-1315\"\r\n    ]\r\n  ]\r\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\r\n  \"amount\": 116497.96,\r\n  \"currency\": \"CZK\",\r\n  \"counterparty_name\": \"KALMIRA DOPRAVA V.O.S.\",\r\n  \"variable_symbol\": \"\",\r\n  \"message\": \"fa 2026-1314, 2026-1315\"\r\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoice numbers 2026-1314 and 2026-1315, and their CZK totals sum exactly to the payment amount of 116497.96. The payer account belongs to the same customer (C005), and the VS is empty, so the match relies on the message reference.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1314\",\"2026-1315\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2084,
+      "outputTokens": 247,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.2744007"
+  }
+}
