@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PaymentMatching.DataGen/PaymentMatching.DataGen.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PaymentMatching.DataGen.Tests/PaymentMatching.DataGen.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/DataGen.Cli/DataGen.Cli.csproj" />
+  </Folder>
+</Solution>
