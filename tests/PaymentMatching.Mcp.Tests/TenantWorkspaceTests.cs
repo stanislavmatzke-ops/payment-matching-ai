@@ -93,9 +93,19 @@ public class TenantWorkspaceTests(PostgresFixture postgres)
         string matchedPayment, rejectedPayment, invoice;
         await using (var db = PaymentsDb.ForTenant(cs, a))
         {
+            // Payments the pipeline did not match (the random starter data may have fewer).
+            var store = await DbDecisionStore.LoadAsync(db, Ct);
+            foreach (var (id, seq) in new[] { ("P0901", 900), ("P0902", 901), ("P0903", 902) })
+            {
+                var bank = new BankPayment(id, new DateOnly(2026, 11, 10), 100, "CZK", "", "Unknown payer", "", "no reference", $"{id}|no reference");
+                db.Payments.Add(new PaymentRow { Id = id, Seq = seq, BookingDate = bank.BookingDate, Amount = 100, Currency = "CZK", CounterpartyIban = "", CounterpartyName = bank.CounterpartyName, VariableSymbol = "", Message = bank.Message, RawLine = bank.RawLine });
+                store.Append(new AuditRecord(DecisionLog.KeyFor(bank), id, DateTimeOffset.UtcNow, AuditRecord.PolicyLayer, null, null, new Decision(id, Outcome.NoMatch, [], DecidedBy.Policy, "No related invoice.", []), [], [], []));
+            }
+
+            await db.SaveChangesAsync(Ct);
             var state = await SandboxState.LoadAsync(db, null, Ct);
-            var actionable = state.Data.Payments.Where(p => state.IsActionable(p.Id)).ToList();
-            (matchedPayment, rejectedPayment) = (actionable[0].Id, actionable[1].Id);
+            (matchedPayment, rejectedPayment) = ("P0901", "P0902");
+            Assert.True(state.IsActionable(matchedPayment) && state.IsActionable(rejectedPayment));
             invoice = state.OpenInvoices()[0].Number;
             var actions = new ReviewActions(db, TimeProvider.System);
             var preview = await actions.PreviewAsync(matchedPayment, [invoice], Ct);
@@ -113,7 +123,7 @@ public class TenantWorkspaceTests(PostgresFixture postgres)
             Assert.Contains("person has already decided", error.Message, StringComparison.Ordinal);
         }
 
-        var other = queries.ListUnmatched(50).Payments.First(p => p.Id != matchedPayment && p.Id != rejectedPayment).Id;
+        var other = "P0903";
         var taken = Assert.Throws<McpException>(() => queries.ProposeMatch(other, [invoice], "Agent proposes a taken invoice."));
         Assert.Contains($"{invoice} → {matchedPayment}", taken.Message, StringComparison.Ordinal);
     }

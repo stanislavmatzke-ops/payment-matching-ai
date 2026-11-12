@@ -218,5 +218,6 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - přepsal `Pages.cs` novým obsahem a s ním i třídu `SecurityHeaders`; všiml si hned po zápisu a vrátil ji do vlastního souboru,
   - proměnná `code` v Razoru koliduje s direktivou `@code` (chytil build),
   - shell skript s několika heredocy se celý nepřeložil a nezapsal nic → zbytek přes Write,
-  - test MCP předpokládal kontrolu `INVOICE_ALREADY_MATCHED`, ale server obsazenou fakturu odmítne už dřív výjimkou; opraveno před spuštěním.
+  - test MCP předpokládal kontrolu `INVOICE_ALREADY_MATCHED`, ale server obsazenou fakturu odmítne už dřív výjimkou; opraveno před spuštěním,
+  - **nový MCP test závisel na náhodě:** bral „druhou otevřenou platbu“ ze startovních dat sandboxu, jejichž seed je odvozený z náhodného id tenantu. Lokálně prošel, v CI data otevřené platby neměla → `ArgumentOutOfRange`. Oprava: test si potřebné platby a rozhodnutí vloží sám. Ponaučení: test nad generovanými daty buď s pevným seedem, nebo s vlastními řádky.
 - Provozní: lokálně běžela starší verze webu z jiné session na 7180, nová verze se ověřovala na 7181 (stejná DB, migrace navíc jen přidá tabulku).
