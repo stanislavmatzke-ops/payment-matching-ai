@@ -102,8 +102,8 @@ public static class LegacyCsv
     }
 
     /// <summary>BR-04: invariant decimal point; anything unparseable silently becomes 0.</summary>
-    public static double ParseAmount(string text) =>
-        double.TryParse(PascalText.Trim(text), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 0;
+    public static decimal ParseAmount(string text) =>
+        decimal.TryParse(PascalText.Trim(text), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 0;
 
     /// <summary>BR-01/02: skip the header line, blank lines and lines with too few fields.</summary>
     private static IEnumerable<List<string>> ReadRecords(string path, int minFields) =>

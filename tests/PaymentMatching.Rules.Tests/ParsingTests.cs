@@ -66,7 +66,7 @@ public class ParsingTests
     [InlineData("", 0)]
     [InlineData("CZK 100", 0)]
     public void Parses_amount_with_legacy_fallback_to_zero(string text, double expected) =>
-        Assert.Equal(expected, LegacyCsv.ParseAmount(text));
+        Assert.Equal((decimal)expected, LegacyCsv.ParseAmount(text));
 
     private static string Latin1(string text) =>
         System.Text.Encoding.Latin1.GetString(System.Text.Encoding.UTF8.GetBytes(text));

@@ -9,8 +9,8 @@ public static class PaymentMatcher
 {
     private const string HomeCurrency = "CZK";
     private const string BankName = "DEMO BANK";
-    private const double Tolerance = 1.00;
-    private const double AdvanceOverpaymentLimit = 5000.0;
+    private const decimal Tolerance = 1.00m;
+    private const decimal AdvanceOverpaymentLimit = 5000m;
 
     public static IReadOnlyList<MatchResult> Match(IReadOnlyList<Invoice> invoices, IReadOnlyList<Payment> payments)
     {
@@ -21,7 +21,7 @@ public static class PaymentMatcher
 
     private static MatchResult MatchOne(Payment payment, IReadOnlyList<Invoice> invoices, InvoiceLookup lookup, bool[] paid)
     {
-        MatchResult NotMatched(string rule, double? diff = null) => new(payment.Id, MatchStatus.None, null, rule, diff);
+        MatchResult NotMatched(string rule, decimal? diff = null) => new(payment.Id, MatchStatus.None, null, rule, diff);
 
         // BR-06: bank's own movements
         if (PascalText.UpperAscii(payment.CounterpartyName).Contains(BankName, StringComparison.Ordinal))

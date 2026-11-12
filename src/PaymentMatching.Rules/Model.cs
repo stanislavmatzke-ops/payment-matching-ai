@@ -1,7 +1,7 @@
 namespace PaymentMatching.Rules;
 
 /// <summary>An invoice as the rules see it. <see cref="VariableSymbol"/> is already normalized (BR-08).</summary>
-public sealed record Invoice(string Number, string VariableSymbol, string Kind, double Amount)
+public sealed record Invoice(string Number, string VariableSymbol, string Kind, decimal Amount)
 {
     public const string AdvanceKind = "Advance";
 
@@ -11,7 +11,7 @@ public sealed record Invoice(string Number, string VariableSymbol, string Kind, 
 /// <summary>A bank statement line. All text fields are untrusted input.</summary>
 public sealed record Payment(
     string Id,
-    double Amount,
+    decimal Amount,
     string Currency,
     string CounterpartyName,
     string VariableSymbol,
@@ -38,4 +38,4 @@ public sealed record MatchResult(
     MatchStatus Status,
     string? InvoiceNumber,
     string Rule,
-    double? AmountDiff);
+    decimal? AmountDiff);

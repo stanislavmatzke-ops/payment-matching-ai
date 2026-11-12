@@ -3,15 +3,15 @@ namespace PaymentMatching.Rules.Tests;
 /// <summary>BR-05..BR-19 – one test per rule, examples from docs/business-rules.md.</summary>
 public class PaymentMatcherTests
 {
-    private static readonly Invoice Regular = new("2026-1234", "2026001234", "Regular", 12100.00);
-    private static readonly Invoice Advance = new("2026-1300", "2026001300", Invoice.AdvanceKind, 500.00);
+    private static readonly Invoice Regular = new("2026-1234", "2026001234", "Regular", 12100.00m);
+    private static readonly Invoice Advance = new("2026-1300", "2026001300", Invoice.AdvanceKind, 500.00m);
 
     [Fact]
     public void Exact_vs_and_amount_is_paired()
     {
         var r = MatchSingle(Pay(12100.00, vs: "2026001234"));
 
-        Assert.Equal((MatchStatus.Paired, "2026-1234", "FIELD/EXACT", 0.0), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.Paired, "2026-1234", "FIELD/EXACT", 0m), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
     }
 
     [Fact]
@@ -19,7 +19,7 @@ public class PaymentMatcherTests
     {
         var r = MatchSingle(Pay(12100.00, vs: "2026001234", name: "Demo Banking Services s.r.o."));
 
-        Assert.Equal((MatchStatus.Skipped, "-/BANK_OWN", (double?)null), (r.Status, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.Skipped, "-/BANK_OWN", (decimal?)null), (r.Status, r.Rule, r.AmountDiff));
     }
 
     [Theory]
@@ -59,7 +59,7 @@ public class PaymentMatcherTests
     {
         var r = MatchSingle(Pay(10000.00, vs: "2026001234"));
 
-        Assert.Equal((MatchStatus.Partial, "2026-1234", "FIELD/PARTIAL", -2100.0), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.Partial, "2026-1234", "FIELD/PARTIAL", -2100m), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class PaymentMatcherTests
     {
         var r = MatchSingle(Pay(10000.00, message: "fa 2026-1234"));
 
-        Assert.Equal((MatchStatus.None, (string?)null, "MSG/AMOUNT", -2100.0), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.None, (string?)null, "MSG/AMOUNT", -2100m), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
     }
 
     [Theory]
@@ -94,11 +94,11 @@ public class PaymentMatcherTests
     public void Substring_lookup_matches_the_first_invoice_containing_the_vs()
     {
         // R-02: VS cut at the end -> first invoice in file order that contains it -> wrong invoice.
-        Invoice[] invoices = [new("2026-1201", "2026001201", "Regular", 30000.00), Regular];
+        Invoice[] invoices = [new("2026-1201", "2026001201", "Regular", 30000.00m), Regular];
 
         var r = Match(invoices, Pay(12100.00, vs: "20260012"))[0];
 
-        Assert.Equal((MatchStatus.Partial, "2026-1201", "FUZZY/PARTIAL", -17900.0), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.Partial, "2026-1201", "FUZZY/PARTIAL", -17900m), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
     }
 
     [Fact]
@@ -111,5 +111,5 @@ public class PaymentMatcherTests
         PaymentMatcher.Match(invoices, payments);
 
     private static Payment Pay(double amount, string vs = "", string message = "", string name = "Kalmira Logistika s.r.o.", string currency = "CZK", string id = "P1") =>
-        new(id, amount, currency, name, vs, message);
+        new(id, (decimal)amount, currency, name, vs, message);
 }
