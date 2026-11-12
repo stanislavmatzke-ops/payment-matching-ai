@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>payments-job</AssemblyName>
+    <RootNamespace>PaymentMatching.Job</RootNamespace>
+    <!-- Same id as the other tools, so one user-secrets store (id payment-matching-ai) serves all. -->
+    <UserSecretsId>payment-matching-ai</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.Data\PaymentMatching.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PaymentMatching.Job.Tests" />
+  </ItemGroup>
+
+</Project>
