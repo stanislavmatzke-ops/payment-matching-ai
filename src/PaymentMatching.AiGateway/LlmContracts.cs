@@ -17,8 +17,15 @@ public sealed record TokenUsage(int InputTokens, int OutputTokens, int CacheRead
     public static TokenUsage None { get; } = new(0, 0);
 }
 
-/// <summary>A provider answer. <see cref="Json"/> is the raw text the model produced.</summary>
-public sealed record LlmResponse(string Model, string Json, string StopReason, TokenUsage Usage, TimeSpan Latency);
+/// <summary>
+/// A provider answer. <see cref="Json"/> is the raw text the model produced. <see cref="Cached"/> means
+/// the answer was stored earlier for the identical request and no model was called now (ADR 0013).
+/// </summary>
+public sealed record LlmResponse(string Model, string Json, string StopReason, TokenUsage Usage, TimeSpan Latency)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Cached { get; init; }
+}
 
 /// <summary>A model provider behind the gateway (Anthropic today, Azure OpenAI could be another).</summary>
 public interface ILlmProvider
@@ -28,3 +35,12 @@ public interface ILlmProvider
 
 /// <summary>A provider call failed or returned something that is not an answer (refusal, truncated output).</summary>
 public sealed class LlmException(string message, Exception? inner = null) : Exception(message, inner);
+
+/// <summary>
+/// A provider that can answer some requests from stored answers without calling a model (the response
+/// cache of the hosted app, ADR 0013). The gateway asks it when the call budget is used up.
+/// </summary>
+public interface IAnswerCache
+{
+    Task<bool> ContainsAsync(LlmRequest request, CancellationToken cancellationToken);
+}

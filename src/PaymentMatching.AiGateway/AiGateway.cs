@@ -28,7 +28,10 @@ public enum CallOutcome
     Failed,
 }
 
-/// <summary>One provider call, for the audit trail and cost reporting.</summary>
+/// <summary>
+/// One provider call, for the audit trail and cost reporting. A <see cref="Cached"/> call reused a stored
+/// answer: no model ran, it costs nothing and does not count against <see cref="GatewayOptions.MaxCalls"/>.
+/// </summary>
 public sealed record UsageRecord(
     string Model,
     string Tier,
@@ -37,7 +40,11 @@ public sealed record UsageRecord(
     decimal CostUsd,
     TimeSpan Latency,
     string? RawOutput,
-    string? Error);
+    string? Error)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Cached { get; init; }
+}
 
 /// <summary>
 /// Result of a routed request. <see cref="Value"/> is null when no model gave a usable answer;
@@ -62,7 +69,8 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
 
     public IReadOnlyList<UsageRecord> Calls => _calls;
 
-    public int CallsLeft => Math.Max(0, options.MaxCalls - _calls.Count);
+    /// <summary>Model calls still allowed; answers reused from the cache are not model calls.</summary>
+    public int CallsLeft => Math.Max(0, options.MaxCalls - _calls.Count(c => !c.Cached));
 
     /// <param name="parse">Strict parser; returns null or throws <see cref="FormatException"/> / <see cref="System.Text.Json.JsonException"/> for an invalid answer.</param>
     /// <param name="isConfident">True when the answer is good enough not to ask the large model.</param>
@@ -82,12 +90,12 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         var routes = options.Large is null ? new[] { (options.Small, "small") } : [(options.Small, "small"), (options.Large, "large")];
         foreach (var (route, tier) in routes)
         {
-            if (CallsLeft == 0)
+            var request = new LlmRequest(route.Model, route.Effort, route.MaxTokens, systemPrompt, userContent, schemaJson);
+            if (CallsLeft == 0 && !await IsCachedAsync(request, cancellationToken))
             {
                 return new GatewayResult<T>(fallback, fallbackModel, calls, calls.Count > 0, BudgetExhausted: true);
             }
 
-            var request = new LlmRequest(route.Model, route.Effort, route.MaxTokens, systemPrompt, userContent, schemaJson);
             var (value, record) = await CallAsync(request, tier, parse, isConfident, cancellationToken);
             calls.Add(record);
             _calls.Add(record);
@@ -112,6 +120,10 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
 
         return new GatewayResult<T>(fallback, fallbackModel, calls, Escalated: calls.Count > 1, BudgetExhausted: false);
     }
+
+    /// <summary>Over the call budget a stored answer may still be reused: it is not a model call.</summary>
+    private async Task<bool> IsCachedAsync(LlmRequest request, CancellationToken cancellationToken) =>
+        provider is IAnswerCache cache && await cache.ContainsAsync(request, cancellationToken);
 
     private async Task<(T? Value, UsageRecord Record)> CallAsync<T>(
         LlmRequest request, string tier, Func<string, T?> parse, Func<T, bool> isConfident, CancellationToken cancellationToken)
@@ -138,7 +150,7 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
             return (null, Failure(request.Model, tier, TransportError + ex.Message));
         }
 
-        var cost = prices.Cost(request.Model, response.Usage);
+        var cost = response.Cached ? 0m : prices.Cost(request.Model, response.Usage);
         T? value;
         try
         {
@@ -152,7 +164,7 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         var outcome = value is null ? CallOutcome.InvalidOutput
             : isConfident(value) ? CallOutcome.Accepted
             : CallOutcome.NotConfident;
-        return (value, new UsageRecord(request.Model, tier, outcome, response.Usage, cost, response.Latency, response.Json, null));
+        return (value, new UsageRecord(request.Model, tier, outcome, response.Usage, cost, response.Latency, response.Json, null) { Cached = response.Cached });
     }
 
     private static UsageRecord Failure(string model, string tier, string error) =>
