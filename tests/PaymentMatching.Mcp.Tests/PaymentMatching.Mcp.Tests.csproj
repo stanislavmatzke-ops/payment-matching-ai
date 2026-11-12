@@ -7,10 +7,12 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Compile Include="..\Shared\PostgresFixture.cs" Link="Shared\PostgresFixture.cs" />
   </ItemGroup>
 
   <ItemGroup>

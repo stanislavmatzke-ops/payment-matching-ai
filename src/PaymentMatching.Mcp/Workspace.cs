@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using PaymentMatching.Data;
 using PaymentMatching.Matching;
 
 namespace PaymentMatching.Mcp;
@@ -7,7 +9,7 @@ namespace PaymentMatching.Mcp;
 /// statement) and one state directory with the pipeline's audit log and the proposal queue.
 /// The server reads the audit log but has no way to write it: the only write is a proposal for a
 /// person (<see cref="ProposalQueue"/>). The workspace is fixed when the process starts; no tool
-/// can choose another one (tenants with isolation in the data layer come in phase 7, ADR 0010).
+/// can choose another one: a dataset directory, or one tenant of the app database (ADR 0010, 0011).
 /// </summary>
 public sealed class Workspace
 {
@@ -61,6 +63,25 @@ public sealed class Workspace
         var decisions = File.Exists(auditPath) ? new DecisionLog(auditPath).Records.ToList() : [];
         Directory.CreateDirectory(stateDirectory);
         return new Workspace(data, decisions, new ProposalQueue(Path.Combine(stateDirectory, ProposalsFile)));
+    }
+
+    /// <summary>
+    /// The workspace of one tenant in the app database (phase 7). <paramref name="db"/> is bound to the tenant
+    /// chosen when the process started, so every read is tenant-filtered by the data layer and proposals
+    /// are saved under that tenant. The context lives as long as the server (it writes proposals).
+    /// </summary>
+    public static async Task<Workspace> LoadAsync(PaymentsDbContext db, CancellationToken cancellationToken = default)
+    {
+        if (!await db.Tenants.AnyAsync(cancellationToken))
+        {
+            throw new InvalidOperationException("The tenant does not exist (deleted after 30 days without use?).");
+        }
+
+        var data = await TenantData.LoadDatasetAsync(db, cancellationToken);
+
+        // Read-only: the store is loaded for its records and never appended to.
+        var decisions = (await DbDecisionStore.LoadAsync(db, cancellationToken)).Records.ToList();
+        return new Workspace(data, decisions, await DbProposalStore.LoadAsync(db, cancellationToken));
     }
 
     public BankPayment? Payment(string id) => _paymentById.GetValueOrDefault(id.Trim());
