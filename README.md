@@ -99,8 +99,29 @@ dotnet run --project src/PaymentMatching.Web --launch-profile https
 
 Open https://localhost:7180. In Development the app migrates the database and offers a
 **development sign-in** (`/dev-login?name=alice`) that needs no identity provider; it is refused in
-any other environment. `/api/me` and `/api/payments` show your sandbox; `/privacy` explains what is
-stored.
+any other environment. `/privacy` explains what is stored.
+
+What you can do there ([ADR 0012](docs/adr/0012-server-rendered-ui-and-a-persons-decisions.md)):
+
+- **Dashboard** (`/`): automation rate, decisions by a person, caught prompt injection, AI cost per
+  day and per 1 000 payments, live precision of proposals (rule / ai / agent:mcp).
+- **Payments** (`/payments`) with their state and who decided; **Queue** (`/queue`) with what waits
+  for you.
+- **Payment detail**: who decided (rule, or model + prompt version + confidence + reasoning), the
+  proposals from the pipeline and from agents (`agent:mcp`), and the **audit trail**.
+- **Confirm / Reject / Match manually** (pick 1–4 open invoices). A match runs the same checks as
+  any proposal: blocking failures stop it, warnings must be ticked one by one. You never type text
+  and never start a model.
+
+A new sandbox has only the rules layer's decisions; the AI layer runs in the scheduled job (phase 9).
+To see AI decisions locally without any model call, run the deterministic stub over your sandbox
+(tenant id from `/api/me`, connection string as in "MCP server on a sandbox" below):
+
+```bash
+dotnet run --project tools/Match.Cli -- --tenant <tenant id>
+```
+
+The JSON views stay available at `/api/me`, `/api/payments` and `/api/payments/{id}`.
 
 ### Sign-in with Microsoft or Google (optional, locally)
 
@@ -147,11 +168,11 @@ dotnet run --project src/PaymentMatching.Mcp -- --tenant <tenant id>
 | `tools/Rules.Cli` | runs the .NET rules like the legacy CLI |
 | `docs/modernization.md` | how the legacy module is moved to .NET, with before/after numbers |
 | `src/PaymentMatching.AiGateway`, `src/PaymentMatching.Matching` | thin AI gateway (small → large model, record/replay) and the matching pipeline: rules → candidates → AI → validation by code |
-| `tools/Match.Cli` | runs the whole pipeline (`stub`, `replay`, `record`, `live`, `rules`) |
+| `tools/Match.Cli` | runs the whole pipeline (`stub`, `replay`, `record`, `live`, `rules`); `--tenant` runs the stub over one app sandbox |
 | `evals/` | frozen gold set, recorded model answers and eval reports; runner in `tools/Eval.Cli` |
 | `src/PaymentMatching.Mcp` | MCP server `payments-mcp`: read tools and proposals for a person (stdio / HTTP) |
-| `src/PaymentMatching.Data` | PostgreSQL data layer (EF Core): tenants, tenant filter on every query, decisions and proposals with idempotency keys, sandbox provisioning |
-| `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, read-only API |
+| `src/PaymentMatching.Data` | PostgreSQL data layer (EF Core): tenants, tenant filter on every query, decisions, proposals and a person's reviews with idempotency keys, sandbox provisioning |
+| `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, server-rendered UI (queue, audit trail, dashboard) with confirm / reject / manual match |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.

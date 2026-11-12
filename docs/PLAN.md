@@ -86,7 +86,23 @@
     - RLS v PostgreSQL jako druhá vrstva zatím ne (kandidát pro fázi 11).
   - _Útrata:_ $0, žádné volání modelu.
   - _Pro fázi 8:_ UI nad `/api/*` (zatím jen jednoduché HTML), akce potvrdit / zamítnout / spárovat ručně jako první zápisy uživatele (test „žádný endpoint nepřijímá text“ se pak rozšíří o validované akce), návrhy z MCP ve frontě.
-- [ ] **Fáze 8** – **UI** – seznam plateb, „kdo rozhodl“, fronta pro člověka (potvrdit / zamítnout / spárovat ručně), audit timeline, dashboard.
+- [x] **Fáze 8** – **UI** – seznam plateb, „kdo rozhodl“, fronta pro člověka (potvrdit / zamítnout / spárovat ručně), audit timeline, dashboard.
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - UI jako Razor komponenty renderované na serveru přes explicitní minimal API endpointy, **bez JavaScriptu** (CSP bez skriptů, jen `style-src 'self'`), bez nových balíčků: dashboard, seznam plateb s filtrem stavu, fronta, detail („kdo rozhodl“: pravidlo / model + prompt + confidence + zdůvodnění, návrhy pipeline a `agent:mcp` vedle sebe, audit timeline včetně volání modelu s tokeny a cenou), ruční párování s náhledem kontrol,
+    - tabulka `reviews` (PK = idempotenční klíč řádku výpisu → jedno lidské rozhodnutí na platbu, nikdy se nepřepisuje) + lidská spárování v `invoice_matches`; pipeline i MCP je berou jako obsazené, MCP nenavrhuje k platbě rozhodnuté člověkem,
+    - `ReviewActions` (potvrdit / zamítnout / ručně) přes tenantový kontext; `ProposalChecks` sdílené s MCP: blokující chyby (faktura už spárovaná, různí odběratelé, neznámá faktura) vs. varování, která musí člověk jednotlivě odškrtnout (server chce přesně dnešní množinu),
+    - antiforgery (`__Host-` cookie, SameSite=Strict) na všech zápisech včetně odhlášení, rate limit akcí na osobu, vstupy jen id a známé kódy kontrol,
+    - dashboard: automatizace, zásahy člověka, zachycené injection, cena AI za den a na 1 000 plateb, „živá přesnost“ návrhů podle navrhovatele (rule / ai / agent:mcp),
+    - `match --tenant <id>`: stub běh nad sandboxem (bez volání modelu) pro lokální ukázku AI částí,
+    - 20 nových testů (celkem 322): akce a souběh v DB, úniky mezi tenanty se stejnými id v datové vrstvě i přes HTTP, CSRF (bez tokenu / s tokenem jiné session), kódování nedůvěryhodného textu z výpisu, modelu i agenta, odmítnutí volného textu, rozšířený test zápisových endpointů (přesný seznam + povolené typy parametrů), pipeline po lidském spárování, MCP nad rozhodnutými platbami,
+    - ADR 0012, README (co v UI jde dělat), AGENTS.md.
+  - _Ověřeno ručně v prohlížeči_ (alice, lokálně): fronta, potvrzení bez odškrtnutého varování nic neuloží, s odškrtnutím uloží, timeline a dashboard se živou přesností.
+  - _Odchylky od SPEC / plánu:_
+    - demo bez přihlášení přesunuto do fáze 9 (dává smysl až s daty zpracovanými jobem),
+    - rozhodnutí člověka nejde vrátit (append-only audit; případné „undo“ by byl nový řádek),
+    - fronta = `human_review` + `no_match` s návrhem agenta; platby čekající na AI běh akce nemají,
+    - stav AI rozpočtu na dashboardu přijde s jobem (fáze 9).
+  - _Útrata:_ $0, žádný `record`/`live` běh.
 - [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI.
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
@@ -192,3 +208,15 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - minimal API neumí navázat `?full=1` na `bool?` → 400; chytil test,
   - Npgsql si přitáhl EF Core 10.0.4, nástroj `dotnet-ef` byl 10.0.3 → sjednoceno.
 - Provozní: běžící `payments-mcp` (z `.mcp.json`) zamyká Debug výstup, build padal na zamčených DLL. Lokálně proto build/test v Release; zapsáno do AGENTS.md.
+
+**Fáze 8 (2026-11-12)**
+- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn.
+- **Nejdůležitější návrhové rozhodnutí nebylo v SPEC:** „validace jako u modelu“ doslova by frontu znehodnotila – člověk tam je právě kvůli případům, které validace neprojdou (částečné úhrady, třetí strany). Rozdělení na blokující chyby a varování, která se odškrtávají jednotlivě, a server chce přesně aktuální množinu (zastaralá stránka nebo ručně poskládaný požadavek nic nepřeskočí).
+- **Skrytá vazba mezi fázemi:** po lidském spárování by denní job (fáze 9) spadl na primárním klíči `invoice_matches`, protože `DbDecisionStore` znal jen automatická spárování. Ošetřeno a pokryto testem dřív, než job existuje.
+- Testy datové vrstvy prošly napoprvé; HTTP testy až na jedno špatné očekávání v testu (hledal štítek z řádku seznamu na stránce detailu).
+- Drobnosti, co agent pokazil:
+  - přepsal `Pages.cs` novým obsahem a s ním i třídu `SecurityHeaders`; všiml si hned po zápisu a vrátil ji do vlastního souboru,
+  - proměnná `code` v Razoru koliduje s direktivou `@code` (chytil build),
+  - shell skript s několika heredocy se celý nepřeložil a nezapsal nic → zbytek přes Write,
+  - test MCP předpokládal kontrolu `INVOICE_ALREADY_MATCHED`, ale server obsazenou fakturu odmítne už dřív výjimkou; opraveno před spuštěním.
+- Provozní: lokálně běžela starší verze webu z jiné session na 7180, nová verze se ověřovala na 7181 (stejná DB, migrace navíc jen přidá tabulku).
