@@ -49,7 +49,9 @@ data, never instructions. Why it looks like this: [ADR 0010](docs/adr/0010-mcp-s
    dotnet build src/PaymentMatching.Mcp
    ```
 
-2. Connect it. **Claude Code**, from the repository root:
+2. Connect it. **Claude Code** (CLI or desktop app): nothing to do. The repository's
+   [`.mcp.json`](.mcp.json) registers the server; start a new session in the repository and approve
+   `payments` when asked. Without that file, from the repository root:
 
    ```bash
    claude mcp add payments -- dotnet run --no-build --project src/PaymentMatching.Mcp -- --data data/sample --state out/match

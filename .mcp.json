@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "payments": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--no-build",
+        "--project",
+        "src/PaymentMatching.Mcp",
+        "--",
+        "--data",
+        "data/sample",
+        "--state",
+        "out/match"
+      ]
+    }
+  }
+}
