@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PaymentMatching.Observability</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Hosts only (web, job, MCP, Match.Cli): the libraries record on System.Diagnostics and never see these (ADR 0015). -->
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PaymentMatching.Web.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.AiGateway\PaymentMatching.AiGateway.csproj" />
+  </ItemGroup>
+
+</Project>

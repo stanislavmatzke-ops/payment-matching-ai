@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\PaymentMatching.Evals\PaymentMatching.Evals.csproj" />
     <ProjectReference Include="..\..\src\PaymentMatching.Data\PaymentMatching.Data.csproj" />
+    <ProjectReference Include="..\..\src\PaymentMatching.Observability\PaymentMatching.Observability.csproj" />
   </ItemGroup>
 
 </Project>

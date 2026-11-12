@@ -21,6 +21,16 @@
     <!-- One standard OpenID Connect handler for both Microsoft and Google sign-in (ADR 0011). -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.3" />
   </ItemGroup>
+  <ItemGroup Label="Observability">
+    <!-- OpenTelemetry SDK in the hosts only; libraries use System.Diagnostics (ADR 0015). -->
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.21.0" />
+    <!-- OTLP to the local Aspire dashboard or any collector. -->
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.21.0" />
+    <!-- HTTP server spans with http.route; the built-in ASP.NET Core activities carry no tags of their own. -->
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.21.0" />
+    <!-- Application Insights in Azure (phase 11), on only with APPLICATIONINSIGHTS_CONNECTION_STRING. -->
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.10.0" />
+  </ItemGroup>
   <ItemGroup Label="Configuration">
     <!-- Match.Cli only: read the API key from dotnet user-secrets or the environment. -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
@@ -32,5 +42,7 @@
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
     <!-- In-memory host for HTTP tests of the web app. -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.3" />
+    <!-- Web tests read spans through the real SDK pipeline, redaction included. -->
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.21.0" />
   </ItemGroup>
 </Project>

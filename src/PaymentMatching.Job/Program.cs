@@ -3,6 +3,7 @@ using PaymentMatching.AiGateway;
 using PaymentMatching.Data;
 using PaymentMatching.Job;
 using PaymentMatching.Matching;
+using PaymentMatching.Observability;
 
 // payments-job: the scheduled daily job of the hosted app (SPEC 9b, ADR 0013/0014). One run, then exit;
 // in Azure a Container Apps Job starts it on a cron schedule (phase 11). Configuration only from the
@@ -69,6 +70,9 @@ if (migrate)
     await OperationsDb.MigrateAllAsync(connectionString);
 }
 
+// Traces and metrics only when OTEL_EXPORTER_OTLP_ENDPOINT or APPLICATIONINSIGHTS_CONNECTION_STRING is set;
+// disposed at exit, which flushes them.
+using var telemetry = TelemetrySetup.StartConsole("payments-job", config);
 var budget = AiBudgetOptions.Read(key => config[key]);
 var job = new DailyJob(
     PaymentsDb.Options(connectionString),

@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Trace;
 using PaymentMatching.Data;
+using PaymentMatching.Observability;
 using PaymentMatching.Web;
 
 // The hosted app: sign-in with Microsoft or Google, one sandbox per person (phase 7), server-rendered
@@ -37,6 +39,8 @@ builder.Services.AddSingleton(new SandboxOptions
 });
 builder.Services.AddSingleton<SandboxProvisioner>();
 builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<PaymentsDbContext>(), sp.GetRequiredService<TimeProvider>()));
+builder.Services.AddPaymentsTelemetry("payments-web", config, tracing => tracing.AddAspNetCoreInstrumentation(o =>
+    o.Filter = http => !Path.HasExtension(http.Request.Path.Value)));
 builder.Services.AddRazorComponents();
 builder.Services.AddAntiforgery(options =>
 {

@@ -1,6 +1,7 @@
 using System.Globalization;
 using PaymentMatching.Data;
 using PaymentMatching.Mcp;
+using PaymentMatching.Observability;
 
 // MCP server "payments-mcp" over one workspace: either a dataset directory with the pipeline's state
 // directory, or one tenant (sandbox) of the app database.
@@ -71,6 +72,7 @@ if (transport == "stdio")
 
     // stdout carries the protocol; every log line must go to stderr.
     builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
+    builder.Services.AddPaymentsTelemetry("payments-mcp", builder.Configuration);
     builder.Services.AddPaymentsMcp(workspace).WithStdioServerTransport();
     await builder.Build().RunAsync();
 }
@@ -81,6 +83,7 @@ else
 
     // Loopback only, and only loopback Host headers (a web page cannot reach it via DNS rebinding).
     builder.Configuration["AllowedHosts"] = "localhost;127.0.0.1;[::1]";
+    builder.Services.AddPaymentsTelemetry("payments-mcp", builder.Configuration);
     builder.Services.AddPaymentsMcp(workspace).WithHttpTransport();
     var app = builder.Build();
     app.MapMcp("/mcp");

@@ -3,6 +3,7 @@ using Match.Cli;
 using Microsoft.Extensions.Configuration;
 using PaymentMatching.AiGateway;
 using PaymentMatching.Matching;
+using PaymentMatching.Observability;
 
 // Runs the whole pipeline (rules → candidates → AI → validation) over a directory with
 // customers.csv, invoices.csv and bank_statement.csv.
@@ -24,6 +25,9 @@ if (args.Length > 0 && args[0] == "--tenant")
 {
     return await TenantRun.RunAsync(args);
 }
+
+// Traces and metrics only when OTEL_EXPORTER_OTLP_ENDPOINT is set (e.g. the local Aspire dashboard).
+using var telemetry = TelemetrySetup.StartConsole("payments-match", new ConfigurationBuilder().AddEnvironmentVariables().Build());
 
 var options = CliOptions.Parse(args);
 if (options is null)
