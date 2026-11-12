@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/PaymentMatching.AiGateway/PaymentMatching.AiGateway.csproj" />
+    <Project Path="src/PaymentMatching.Data/PaymentMatching.Data.csproj" />
     <Project Path="src/PaymentMatching.DataGen/PaymentMatching.DataGen.csproj" />
     <Project Path="src/PaymentMatching.Evals/PaymentMatching.Evals.csproj" />
     <Project Path="src/PaymentMatching.Matching/PaymentMatching.Matching.csproj" />
@@ -9,6 +10,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PaymentMatching.AiGateway.Tests/PaymentMatching.AiGateway.Tests.csproj" />
+    <Project Path="tests/PaymentMatching.Data.Tests/PaymentMatching.Data.Tests.csproj" />
     <Project Path="tests/PaymentMatching.DataGen.Tests/PaymentMatching.DataGen.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Evals.Tests/PaymentMatching.Evals.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Matching.Tests/PaymentMatching.Matching.Tests.csproj" />
