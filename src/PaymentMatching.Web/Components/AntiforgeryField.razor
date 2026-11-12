@@ -1,0 +1,6 @@
+<input type="hidden" name="@Field.Name" value="@Field.Token">
+
+@code {
+    [Parameter, EditorRequired]
+    public FormToken Field { get; set; } = default!;
+}

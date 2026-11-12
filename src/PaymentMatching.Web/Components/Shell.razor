@@ -1,0 +1,46 @@
+@* The page frame. Static server rendering only: no scripts, no inline styles (the CSP forbids both). *@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@Title – Payment matching</title>
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+    <header>
+        <a class="brand" href="/">Payment matching</a>
+        @if (Page is not null)
+        {
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/queue">Queue</a>
+                <a href="/payments">Payments</a>
+            </nav>
+            <form method="post" action="/logout" class="inline">
+                <AntiforgeryField Field="Page.Form" />
+                <span class="muted">@Page.UserName</span>
+                <button>Sign out</button>
+            </form>
+        }
+    </header>
+    <main>
+        @ChildContent
+    </main>
+    <footer>
+        Synthetic data only (fictional Demo Bank). <a href="/privacy">Privacy</a>
+    </footer>
+</body>
+</html>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>The signed-in person; null on public pages.</summary>
+    [Parameter]
+    public PageContext? Page { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

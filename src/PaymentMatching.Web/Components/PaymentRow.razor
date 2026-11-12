@@ -1,0 +1,26 @@
+@* One payment in a table. Payer, VS and message come from the bank statement: untrusted, shown as text only. *@
+<tr>
+    <td><a href="/payments/@Item.Id">@Item.Id</a></td>
+    <td>@Format.Date(Item.BookingDate)</td>
+    <td class="num">@Format.Amount(Item.Amount, Item.Currency)</td>
+    <td class="untrusted">@Item.CounterpartyName</td>
+    <td class="untrusted">@Item.VariableSymbol</td>
+    <td class="untrusted">@Item.Message</td>
+    <td><StateBadge State="@Item.State" /></td>
+    <td>@(Item.DecidedBy ?? "–")</td>
+    <td>
+        @if (Item.InjectionSuspected)
+        {
+            <span class="flag danger">prompt injection?</span>
+        }
+        @foreach (var flag in Item.Flags.Where(f => f != Flags.PromptInjection))
+        {
+            <span class="flag">@flag</span>
+        }
+    </td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public PaymentListItem Item { get; set; } = default!;
+}

@@ -1,0 +1,6 @@
+<span class="state state-@State">@Format.State(State)</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string State { get; set; } = "";
+}

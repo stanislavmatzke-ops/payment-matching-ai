@@ -1,0 +1,85 @@
+<Shell Title="Dashboard" Page="Page">
+    <h1>Your sandbox</h1>
+    <p class="muted">Signed in as @Me.Name (@Me.Email) via @Me.Provider. Sandbox created @Format.Time(Me.SandboxCreatedAt).</p>
+
+    <section class="tiles">
+        <div class="tile"><span class="big">@Format.Percent(Board.AutomationRate)</span>automation (@Board.AutoMatched of @Board.Processed processed)</div>
+        <div class="tile"><span class="big"><a href="/queue">@Board.NeedsReview</a></span>waiting for a person</div>
+        <div class="tile"><span class="big">@Board.HumanInterventions</span>decisions by a person</div>
+        <div class="tile"><span class="big">@Board.InjectionsCaught</span>prompt injection attempts caught</div>
+        <div class="tile"><span class="big">@Format.Usd(Board.AiCostUsd)</span>AI cost (@Board.AiCalls calls)</div>
+        <div class="tile"><span class="big">@(Board.AiCostPer1000Payments is { } per ? Format.Usd(per) : "–")</span>AI cost per 1 000 payments</div>
+    </section>
+
+    <h2>Payments</h2>
+    <table class="narrow">
+        <tr><th scope="row">All payments</th><td class="num">@Board.Payments</td></tr>
+        <tr><th scope="row"><StateBadge State="@PaymentState.Matched" /></th><td class="num">@Count(PaymentState.Matched)</td></tr>
+        <tr><th scope="row"><StateBadge State="@PaymentState.NeedsReview" /></th><td class="num">@Board.NeedsReview</td></tr>
+        <tr><th scope="row"><StateBadge State="@PaymentState.NotMatched" /></th><td class="num">@Board.NotMatched</td></tr>
+        <tr><th scope="row"><StateBadge State="@PaymentState.Rejected" /></th><td class="num">@Board.Rejected</td></tr>
+        <tr><th scope="row"><StateBadge State="@PaymentState.WaitingForAi" /></th><td class="num">@Board.WaitingForAi</td></tr>
+    </table>
+    @if (Board.WaitingForAi > 0)
+    {
+        <p class="muted">
+            Payments that need the AI layer wait for the scheduled daily run. You never start a model yourself,
+            so nothing you type can reach one.
+        </p>
+    }
+
+    <h2>AI cost per day</h2>
+    @if (Board.CostByDay.Count == 0)
+    {
+        <p class="muted">No model calls in this sandbox yet.</p>
+    }
+    else
+    {
+        <table class="narrow">
+            <thead><tr><th>Day</th><th>Calls</th><th>Cost</th></tr></thead>
+            <tbody>
+                @foreach (var day in Board.CostByDay)
+                {
+                    <tr><td>@Format.Date(day.Day)</td><td class="num">@day.Calls</td><td class="num">@Format.Usd(day.CostUsd)</td></tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2>Live precision</h2>
+    <p class="muted">
+        Of the proposals you decided, how many you accepted (confirmed, or matched to the same invoices).
+        This is feedback from use, not ground truth: the evals run on a reviewed gold set.
+    </p>
+    @if (Board.LivePrecision.Count == 0)
+    {
+        <p class="muted">No decided proposals yet.</p>
+    }
+    else
+    {
+        <table class="narrow">
+            <thead><tr><th>Proposed by</th><th>Decided</th><th>Accepted</th><th>Rate</th></tr></thead>
+            <tbody>
+                @foreach (var row in Board.LivePrecision)
+                {
+                    <tr><td>@row.Source</td><td class="num">@row.Decided</td><td class="num">@row.Accepted</td><td class="num">@Format.Percent(row.Rate)</td></tr>
+                }
+            </tbody>
+        </table>
+    }
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public PageContext Page { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public MeView Me { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public DashboardView Board { get; set; } = default!;
+
+    private int Count(string state) => state == PaymentState.Matched
+        ? Board.Payments - Board.NeedsReview - Board.NotMatched - Board.Rejected - Board.WaitingForAi
+        : 0;
+}

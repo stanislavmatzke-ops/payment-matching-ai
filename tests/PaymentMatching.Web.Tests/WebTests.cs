@@ -128,11 +128,20 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
         await using var app = await App();
         var alice = await app.SignedInAsAsync("alice");
 
-        await alice.PostAsync("/logout", null, Ct);
+        var home = await alice.GetStringAsync("/", Ct);
+        var token = System.Text.RegularExpressions.Regex.Match(home, "name=\"__af\" value=\"([^\"]+)\"").Groups[1].Value;
 
+        var response = await alice.PostAsync("/logout", new FormUrlEncodedContent([KeyValuePair.Create("__af", token)]), Ct);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await alice.GetAsync("/api/me", Ct)).StatusCode);
     }
 
+    /// <summary>
+    /// Visitors read, and act only on data that exists: confirm a stored proposal, reject, or pick
+    /// invoices from a list (SPEC 9b). No endpoint takes free text, and every write needs sign-in and an
+    /// anti-forgery token. A new write endpoint, or a new parameter on one, fails this test on purpose.
+    /// </summary>
     [Fact]
     public async Task Visitors_can_only_read_no_endpoint_takes_text()
     {
@@ -142,10 +151,24 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
         var endpoints = app.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().ToList();
         var writes = endpoints
             .Where(e => e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Any(m => m != "GET") ?? true)
-            .Select(e => e.RoutePattern.RawText)
             .ToList();
 
-        Assert.Equal(["/logout"], writes);
+        Assert.Equal(["/logout", "/payments/{id}/confirm", "/payments/{id}/match", "/payments/{id}/reject"], writes.Select(e => e.RoutePattern.RawText).Order(StringComparer.Ordinal));
+        var allowed = new[] { typeof(string), typeof(ConfirmForm), typeof(MatchForm), typeof(ReviewActions), typeof(Microsoft.AspNetCore.Http.HttpContext) };
+        Assert.All(writes, endpoint =>
+        {
+            Assert.True(endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Antiforgery.IAntiforgeryMetadata>()?.RequiresValidation, endpoint.DisplayName);
+            var handler = endpoint.Metadata.GetMetadata<System.Reflection.MethodInfo>()!;
+            Assert.All(handler.GetParameters(), p =>
+            {
+                Assert.Contains(p.ParameterType, allowed);
+                Assert.True(p.ParameterType != typeof(string) || p.Name == "id", $"{endpoint.DisplayName}: {p.Name}");
+            });
+        });
+
+        // The forms carry ids and check codes only; the handlers validate their shape (see ReviewUiTests).
+        Assert.Equal(["Ack", "Proposal"], typeof(ConfirmForm).GetProperties().Select(p => p.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(["Ack", "Invoice"], typeof(MatchForm).GetProperties().Select(p => p.Name).Order(StringComparer.Ordinal));
     }
 
     [Fact]

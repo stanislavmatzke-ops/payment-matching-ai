@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using PaymentMatching.Data;
 using PaymentMatching.Web;
 
-// The hosted app (phase 7): sign-in with Microsoft or Google, one sandbox per person, read-only API
-// over the person's own data. Visitors never trigger a model and never send text to one.
+// The hosted app: sign-in with Microsoft or Google, one sandbox per person (phase 7), server-rendered
+// pages and three actions on existing data: confirm, reject, match manually (phase 8). Visitors never
+// trigger a model and never send text to one.
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
@@ -30,6 +31,15 @@ builder.Services.AddSingleton(new SandboxOptions
     MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 50),
 });
 builder.Services.AddSingleton<SandboxProvisioner>();
+builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<PaymentsDbContext>(), sp.GetRequiredService<TimeProvider>()));
+builder.Services.AddRazorComponents();
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "__Host-pm-af";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.FormFieldName = "__af";
+});
 builder.Services.AddPaymentsAuthentication(config);
 builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
@@ -38,6 +48,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("sign-in", http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+
+    // A person's decisions: generous for a human, a wall for a script.
+    options.AddPolicy("actions", http => RateLimitPartition.GetFixedWindowLimiter(
+        Authentication.TenantOf(http.User)?.ToString() ?? "anonymous",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
 });
 
 var app = builder.Build();
@@ -55,6 +70,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.Use(SecurityHeaders.AddAsync);
+app.UseStaticFiles();
 app.UseRateLimiter();
 app.UseAuthentication();
 
@@ -69,17 +85,9 @@ app.Use(async (http, next) =>
     await next(http);
 });
 app.UseAuthorization();
+app.UseAntiforgery();
 
 var providers = Authentication.ConfiguredProviders(config);
-
-app.MapGet("/", async (HttpContext http, PaymentsDbContext db, string? full) =>
-    Results.Content(
-        Authentication.TenantOf(http.User) is null
-            ? Pages.SignIn(providers, devLogin, full == "1")
-            : Pages.Sandbox(await SandboxQueries.MeAsync(db, http.RequestAborted)),
-        "text/html; charset=utf-8"));
-
-app.MapGet("/privacy", () => Results.Content(Pages.Privacy(), "text/html; charset=utf-8"));
 
 app.MapGet("/login/{provider}", (string provider) =>
         providers.Contains(provider)
@@ -109,11 +117,7 @@ if (devLogin)
         .RequireRateLimiting("sign-in");
 }
 
-app.MapPost("/logout", async (HttpContext http) =>
-{
-    await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    return Results.Redirect("/");
-});
+app.MapUi(providers, devLogin);
 
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/me", (PaymentsDbContext db, HttpContext http) => SandboxQueries.MeAsync(db, http.RequestAborted));

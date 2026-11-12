@@ -1,0 +1,41 @@
+<Shell Title="Sign in">
+    <h1>Payment matching with AI</h1>
+    <p>
+        Sign in to get your own sandbox: a fictional company with invoices and bank payments
+        (synthetic data, Demo Bank). Nobody else sees your sandbox.
+    </p>
+    @if (SandboxesFull)
+    {
+        <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
+    }
+    @if (Providers.Count == 0 && !DevLogin)
+    {
+        <p>No sign-in method is configured. See README: "Sign-in (local)".</p>
+    }
+    <ul>
+        @foreach (var provider in Providers)
+        {
+            <li><a href="/login/@provider">Sign in with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a></li>
+        }
+        @if (DevLogin)
+        {
+            <li>
+                <form method="get" action="/dev-login">
+                    <label>Development sign-in as <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
+                    <button>Sign in</button>
+                </form>
+            </li>
+        }
+    </ul>
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<string> Providers { get; set; } = [];
+
+    [Parameter]
+    public bool DevLogin { get; set; }
+
+    [Parameter]
+    public bool SandboxesFull { get; set; }
+}

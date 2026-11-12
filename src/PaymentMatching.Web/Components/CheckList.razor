@@ -1,0 +1,25 @@
+@* Validation failures with what they mean. Codes come from ProposalValidator, never from the request. *@
+@if (Failures.Count == 0)
+{
+    <p class="ok">All checks passed.</p>
+}
+else
+{
+    <ul class="checks">
+        @foreach (var check in Failures)
+        {
+            <li class="@(ProposalChecks.Blocking.Contains(check) ? "blocking" : "warning")">
+                <code>@check</code> – @Format.Check(check)
+                @if (ProposalChecks.Blocking.Contains(check))
+                {
+                    <strong> (blocks the match)</strong>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<string> Failures { get; set; } = [];
+}

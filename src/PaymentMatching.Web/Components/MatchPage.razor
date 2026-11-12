@@ -1,0 +1,77 @@
+<Shell Title="@($"Match {Payment.Id} manually")" Page="Page">
+    <p><a href="/payments/@Payment.Id">← Payment @Payment.Id</a></p>
+    <h1>Match @Payment.Id manually</h1>
+    <ResultNotice Result="Result" />
+    <PaymentFacts Item="Payment" />
+
+    @if (Preview is { } preview)
+    {
+        <h2>Checks for @string.Join(" + ", Selected)</h2>
+        <p>The same checks as for a proposal from the pipeline or an agent. A wrong match is worse than none.</p>
+        <CheckList Failures="preview.Failures" />
+        @if (preview.Outcome is ReviewOutcome.Done or ReviewOutcome.NeedsAcknowledgement)
+        {
+            <form method="post" action="/payments/@Payment.Id/match">
+                <AntiforgeryField Field="Page.Form" />
+                @foreach (var number in Selected)
+                {
+                    <input type="hidden" name="invoice" value="@number">
+                }
+                <AcknowledgeFields Warnings="preview.Failures" />
+                <button>Match to @string.Join(" + ", Selected)</button>
+            </form>
+        }
+        else
+        {
+            <p class="notice danger">@Format.Result(preview.Outcome)</p>
+        }
+    }
+
+    <h2>Pick invoices (1–@ProposalChecks.MaxInvoices)</h2>
+    @if (Invoices.Count == 0)
+    {
+        <p class="muted">No open invoices.</p>
+    }
+    else
+    {
+        <form method="get" action="/payments/@Payment.Id/match">
+            <table>
+                <thead><tr><th></th><th>Invoice</th><th>VS</th><th>Customer</th><th>Due</th><th>Amount</th></tr></thead>
+                <tbody>
+                    @foreach (var invoice in Invoices)
+                    {
+                        <tr>
+                            <td><input type="checkbox" name="invoice" value="@invoice.Number" id="@($"i-{invoice.Number}")" checked="@Selected.Contains(invoice.Number)"></td>
+                            <td><label for="@($"i-{invoice.Number}")">@invoice.Number</label></td>
+                            <td>@invoice.VariableSymbol</td>
+                            <td>@invoice.CustomerName (@invoice.CustomerId)</td>
+                            <td>@Format.Date(invoice.DueDate)</td>
+                            <td class="num">@Format.Amount(invoice.Amount, invoice.Currency)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button>Check</button>
+        </form>
+    }
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public PageContext Page { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public PaymentListItem Payment { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<InvoiceOption> Invoices { get; set; } = [];
+
+    [Parameter]
+    public IReadOnlyList<string> Selected { get; set; } = [];
+
+    [Parameter]
+    public ReviewResult? Preview { get; set; }
+
+    [Parameter]
+    public ReviewOutcome? Result { get; set; }
+}

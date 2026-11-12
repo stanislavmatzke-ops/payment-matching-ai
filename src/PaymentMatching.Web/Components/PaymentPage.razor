@@ -1,0 +1,139 @@
+<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page">
+    <p><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
+    <h1>Payment @Detail.Payment.Id</h1>
+    <ResultNotice Result="Result" />
+    <PaymentFacts Item="Detail.Payment" />
+
+    <h2>Who decided</h2>
+    @if (Detail.Decision is { } d)
+    {
+        <dl class="facts">
+            <dt>Pipeline</dt><dd>@d.DecidedBy (@d.Layer layer): @Format.Status(d.Status)</dd>
+            @if (d.RuleCode is not null)
+            {
+                <dt>Rule</dt><dd>@d.RuleCode</dd>
+            }
+            @if (d.PromptVersion is not null)
+            {
+                <dt>Prompt</dt><dd>@d.PromptVersion</dd>
+            }
+            @if (d.Confidence is { } confidence)
+            {
+                <dt>Confidence</dt><dd>@confidence.ToString("0.00", CultureInfo.InvariantCulture)</dd>
+            }
+            @if (d.InvoiceNumbers.Count > 0)
+            {
+                <dt>@(d.Status == PaymentStatus.AutoMatched ? "Matched to" : "Proposed")</dt><dd>@string.Join(", ", d.InvoiceNumbers)</dd>
+            }
+            <dt>Reasoning</dt><dd class="untrusted">@d.Reason</dd>
+            @if (d.ValidationFailures.Count > 0)
+            {
+                <dt>Validation</dt><dd>@string.Join(", ", d.ValidationFailures)</dd>
+            }
+        </dl>
+    }
+    else
+    {
+        <p class="muted">Not processed yet: this payment needs the AI layer and waits for the scheduled daily run.</p>
+    }
+    @if (Detail.Review is { } r)
+    {
+        <dl class="facts">
+            <dt>Person</dt><dd>@r.DecidedBy, @Format.Time(r.At): @SandboxQueries.ActionText(r.Action)</dd>
+            @if (r.InvoiceNumbers.Count > 0)
+            {
+                <dt>Invoices</dt><dd>@string.Join(", ", r.InvoiceNumbers)</dd>
+            }
+            @if (r.Acknowledged.Count > 0)
+            {
+                <dt>Accepted warnings</dt><dd>@string.Join(", ", r.Acknowledged)</dd>
+            }
+        </dl>
+    }
+
+    @if (Detail.Actionable)
+    {
+        <h2>Your decision</h2>
+        @if (Detail.Queue.Count == 0)
+        {
+            <p class="muted">Nobody proposed a match. Match it manually or reject it.</p>
+        }
+        @foreach (var proposal in Detail.Queue)
+        {
+            var warnings = proposal.Checks.Where(c => !ProposalChecks.Blocking.Contains(c)).ToList();
+            var blocked = proposal.Checks.Any(ProposalChecks.Blocking.Contains);
+            <section class="proposal">
+                <h3>Proposal: @string.Join(" + ", proposal.InvoiceNumbers)</h3>
+                <ul>
+                    @foreach (var source in proposal.Sources)
+                    {
+                        <li>
+                            Proposed by <strong>@source.ProposedBy</strong>
+                            @if (source.Confidence is { } c)
+                            {
+                                <span>, confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                            }
+                            @if (source.PromptVersion is not null)
+                            {
+                                <span>, prompt @source.PromptVersion</span>
+                            }
+                            <div class="untrusted">@(source.ByAgent ? "Agent's reason (untrusted): " : "Reasoning: ")@source.Reason</div>
+                        </li>
+                    }
+                </ul>
+                <CheckList Failures="proposal.Checks" />
+                @if (!blocked)
+                {
+                    <form method="post" action="/payments/@Detail.Payment.Id/confirm">
+                        <AntiforgeryField Field="Page.Form" />
+                        <input type="hidden" name="proposal" value="@proposal.Id">
+                        <AcknowledgeFields Warnings="warnings" />
+                        <button>Confirm</button>
+                    </form>
+                }
+            </section>
+        }
+        <div class="actions">
+            <a class="button" href="/payments/@Detail.Payment.Id/match">Match manually…</a>
+            <form method="post" action="/payments/@Detail.Payment.Id/reject" class="inline">
+                <AntiforgeryField Field="Page.Form" />
+                <button class="secondary">Reject (do not match)</button>
+            </form>
+        </div>
+    }
+
+    <h2>Audit trail</h2>
+    <ol class="timeline">
+        @foreach (var e in Detail.Timeline)
+        {
+            <li>
+                <span class="when">@Format.Time(e.At)</span>
+                <strong>@e.Actor</strong>: @e.Summary
+                @if (e.InvoiceNumbers.Count > 0)
+                {
+                    <span> Invoices: @string.Join(", ", e.InvoiceNumbers).</span>
+                }
+                @if (e.Details.Count > 0)
+                {
+                    <ul>
+                        @foreach (var detail in e.Details)
+                        {
+                            <li class="untrusted">@detail</li>
+                        }
+                    </ul>
+                }
+            </li>
+        }
+    </ol>
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public PageContext Page { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public PaymentDetailView Detail { get; set; } = default!;
+
+    [Parameter]
+    public ReviewOutcome? Result { get; set; }
+}

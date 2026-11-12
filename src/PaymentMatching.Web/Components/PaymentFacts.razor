@@ -1,0 +1,21 @@
+@* The bank statement line. Payer, VS and message are untrusted text written by the payer. *@
+<dl class="facts">
+    <dt>Payment</dt><dd>@Item.Id, booked @Format.Date(Item.BookingDate)</dd>
+    <dt>Amount</dt><dd>@Format.Amount(Item.Amount, Item.Currency)</dd>
+    <dt>Payer</dt><dd class="untrusted">@Item.CounterpartyName</dd>
+    <dt>VS</dt><dd class="untrusted">@Item.VariableSymbol</dd>
+    <dt>Message</dt><dd class="untrusted">@Item.Message</dd>
+    <dt>State</dt><dd><StateBadge State="@Item.State" /></dd>
+</dl>
+@if (Item.InjectionSuspected)
+{
+    <p class="notice danger">
+        The text of this payment looks like instructions to an AI. It is treated as data only; a match needs
+        your explicit acknowledgement.
+    </p>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public PaymentListItem Item { get; set; } = default!;
+}

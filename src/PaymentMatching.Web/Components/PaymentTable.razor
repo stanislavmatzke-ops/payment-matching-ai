@@ -1,0 +1,28 @@
+@if (Items.Count == 0)
+{
+    <p class="muted">@Empty</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Payment</th><th>Booked</th><th>Amount</th><th>Payer</th><th>VS</th><th>Message</th><th>State</th><th>Decided by</th><th>Flags</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <PaymentRow Item="item" />
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<PaymentListItem> Items { get; set; } = [];
+
+    [Parameter]
+    public string Empty { get; set; } = "No payments.";
+}

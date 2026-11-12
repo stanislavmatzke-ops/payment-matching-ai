@@ -1,0 +1,9 @@
+@if (Result is { } result)
+{
+    <p class="notice @(result == ReviewOutcome.Done ? "success" : "danger")">@Format.Result(result)</p>
+}
+
+@code {
+    [Parameter]
+    public ReviewOutcome? Result { get; set; }
+}

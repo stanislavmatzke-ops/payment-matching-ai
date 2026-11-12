@@ -1,0 +1,41 @@
+<Shell Title="@Title" Page="Page">
+    <h1>@Title</h1>
+    @if (ShowFilter)
+    {
+        <form method="get" action="/payments" class="filter">
+            <label>
+                State
+                <select name="state">
+                    <option value="">all</option>
+                    @foreach (var state in PaymentState.All)
+                    {
+                        <option value="@state" selected="@(state == Filter)">@Format.State(state)</option>
+                    }
+                </select>
+            </label>
+            <button>Filter</button>
+        </form>
+    }
+    <p class="muted">Payer, VS and message are written by the payer and shown as plain text.</p>
+    <PaymentTable Items="Items" Empty="@Empty" />
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public PageContext Page { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<PaymentListItem> Items { get; set; } = [];
+
+    [Parameter]
+    public string Title { get; set; } = "Payments";
+
+    [Parameter]
+    public string? Filter { get; set; }
+
+    [Parameter]
+    public bool ShowFilter { get; set; } = true;
+
+    [Parameter]
+    public string Empty { get; set; } = "No payments.";
+}

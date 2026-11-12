@@ -1,0 +1,10 @@
+@* One checkbox per warning. The server accepts the match only when exactly today's warnings are ticked. *@
+@foreach (var check in Warnings)
+{
+    <label class="ack"><input type="checkbox" name="ack" value="@check"> I checked <code>@check</code>: @Format.Check(check)</label>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<string> Warnings { get; set; } = [];
+}
