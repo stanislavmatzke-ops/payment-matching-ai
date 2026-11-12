@@ -21,6 +21,9 @@ public static class DataGenerator
         new ForeignCurrencyCase(),
         new UnrelatedCase(),
         new PromptInjectionCase(),
+        new AmbiguousReferenceCase(),
+        new UnparsedReferenceCase(),
+        new HiddenInjectionCase(),
     }.ToDictionary(b => b.Type);
 
     public static Dataset Generate(GeneratorOptions options)

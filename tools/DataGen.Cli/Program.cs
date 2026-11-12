@@ -2,7 +2,8 @@ using System.Globalization;
 using PaymentMatching.DataGen;
 using PaymentMatching.DataGen.Csv;
 
-// Usage: datagen [--seed 42] [--payments 300] [--date 2026-03-31] [--out data/sample]
+// Usage: datagen [--seed 42] [--payments 300] [--date 2026-03-31] [--profile default|eval] [--out data/sample]
+// --profile eval adds the hard case types of the eval gold set (GeneratorOptions.EvalCaseMix).
 var options = new GeneratorOptions();
 var output = "data/sample";
 
@@ -23,13 +24,17 @@ for (var i = 0; i < args.Length; i++)
             options = options with { ReferenceDate = DateOnly.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture) };
             i++;
             break;
+        case "--profile" when value is "default" or "eval":
+            options = options with { CaseMix = value == "eval" ? GeneratorOptions.EvalCaseMix : GeneratorOptions.DefaultCaseMix };
+            i++;
+            break;
         case "--out" when value is not null:
             output = value;
             i++;
             break;
         default:
             Console.Error.WriteLine($"Unknown or incomplete argument: {args[i]}");
-            Console.Error.WriteLine("Usage: datagen [--seed 42] [--payments 300] [--date 2026-03-31] [--out data/sample]");
+            Console.Error.WriteLine("Usage: datagen [--seed 42] [--payments 300] [--date 2026-03-31] [--profile default|eval] [--out data/sample]");
             return 1;
     }
 }

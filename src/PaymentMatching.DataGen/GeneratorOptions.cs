@@ -18,6 +18,25 @@ public sealed record GeneratorOptions
         [CaseType.PromptInjection] = 0.05,
     };
 
+    /// <summary>
+    /// Case mix of the eval gold set: the default mix scaled to 70 %, plus 10 % of each hard case type.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<CaseType, double> EvalCaseMix = new Dictionary<CaseType, double>
+    {
+        [CaseType.ExactMatch] = 0.315,
+        [CaseType.VsInMessage] = 0.070,
+        [CaseType.VsTypo] = 0.056,
+        [CaseType.MultiInvoice] = 0.056,
+        [CaseType.PartialOrOverpayment] = 0.056,
+        [CaseType.ThirdPartyPayer] = 0.042,
+        [CaseType.ForeignCurrency] = 0.035,
+        [CaseType.Unrelated] = 0.035,
+        [CaseType.PromptInjection] = 0.035,
+        [CaseType.AmbiguousReference] = 0.10,
+        [CaseType.UnparsedReference] = 0.10,
+        [CaseType.HiddenInjection] = 0.10,
+    };
+
     public int Seed { get; init; } = 42;
 
     public int PaymentCount { get; init; } = 300;

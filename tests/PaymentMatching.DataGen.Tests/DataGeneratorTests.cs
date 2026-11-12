@@ -43,7 +43,7 @@ public class DataGeneratorTests
         var small = DataGenerator.Generate(new GeneratorOptions { PaymentCount = 20 });
 
         Assert.Equal(20, small.Transactions.Count);
-        Assert.Equal(Enum.GetValues<CaseType>().Length, small.Expected.Select(e => e.CaseType).Distinct().Count());
+        Assert.Equal(GeneratorOptions.DefaultCaseMix.Count, small.Expected.Select(e => e.CaseType).Distinct().Count());
     }
 
     [Fact]
