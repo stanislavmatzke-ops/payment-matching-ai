@@ -57,7 +57,19 @@
   - _Odchylky od SPEC:_ runner je `tools/Eval.Cli` (ne `dotnet run --project evals`), živý eval `--mode live`. Precision gate platí pro všechny konfigurace, nejen pro produkční.
   - _Útrata za živá volání:_ $0,67 nahrávání + $0,24 rozptyl = $0,91 (schválený strop $2,50).
   - _Pro tebe:_ namátková kontrola 14 plateb ze zlaté sady (tabulka v `evals/dataset/gold-v1/REVIEW.md`); opravy by šly do `gold-v2`.
-- [ ] **Fáze 6** – **MCP server** + návod pro Claude Desktop / Code.
+- [x] **Fáze 6** – **MCP server** + návod pro Claude Desktop / Code.
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - `src/PaymentMatching.Mcp` (`payments-mcp`): oficiální C# MCP SDK 2.4.0, transport stdio (výchozí) a Streamable HTTP (jen localhost, filtr `Host` hlavičky),
+    - nástroje `list_unmatched`, `get_payment`, `get_customer`, `search_invoices` (jen čtení) a `propose_match` (jen návrh do fronty `proposals.jsonl`, idempotentní, s kontrolami `ProposalValidator`), MCP prompt `investigate_unmatched`,
+    - text z výpisu jen pod `untrusted_bank_data` + `injection_suspected`, instrukce serveru a popisy nástrojů,
+    - 37 testů (nástroje, injection, idempotence, audit log beze změny, skutečný MCP klient přes in-memory streamy: seznam nástrojů, anotace, schémata bez tenant/cesty, chyby, prompt), celkem 256,
+    - ADR 0010, návod v README (Claude Code, Claude Desktop, HTTP), příkaz v AGENTS.md.
+  - _Odchylky od SPEC:_
+    - parametr `invoiceIds` se jmenuje `invoiceNumbers` (v doméně je identifikátor faktury její číslo),
+    - místo tenantu „workspace na proces“ (adresář dat + stavu z příkazové řádky, žádný nástroj ho nevybírá); izolace tenantů v datové vrstvě přijde ve fázi 7 a MCP na ni přejde (ADR 0010),
+    - server čte audit log jednou při startu (po novém běhu pipeline restart).
+  - _Útrata:_ $0, server model nevolá, žádný `record`/`live` běh.
+  - _Pro fázi 7/8:_ fronta návrhů z MCP se má v UI zobrazit vedle návrhů pipeline (kdo navrhl: `agent:mcp`).
 - [ ] **Fáze 7** – **Multi-tenant + přihlášení** – Microsoft/Google login, sandbox na uživatele, startovní data, testy izolace.
 - [ ] **Fáze 8** – **UI** – seznam plateb, „kdo rozhodl“, fronta pro člověka (potvrdit / zamítnout / spárovat ručně), audit timeline, dashboard.
 - [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI.
@@ -144,3 +156,11 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Nové pravidlo eskalace snížilo volání Opus 39 → 4 při stejných výsledcích. Rozhodnutí je kód (stejný validátor), ne úsudek modelu.
 - Nahrávací běh v režimu `record` zahrnul i sweep prahů: jiný práh mění, které faktury se spárují dřív, takže pozdější platby dostanou jiné kandidáty a vzniklo 25 volání Haiku navíc (~$0,01). Neškodné, ale poučné: „sweep zdarma“ platí jen pro replay.
 - Drobnosti, co agent pokazil: heredoc + Python (Windows Store stub) nezapsal nic → Write/Edit; `sed` se zpětnými lomítky v cestách csproj tiše nic nenahradil (dvakrát, odhalil build); `sha256sum` na Windows píše `*` před název souboru, první manifest proto nesouhlasil (odhalil runner hned při prvním běhu).
+
+**Fáze 6 (2026-11-12)**
+- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn. Jediná vědomá odchylka: tenant až ve fázi 7, do té doby „workspace na proces“ (zapsáno v ADR 0010).
+- **Test protokolu chytil chybu, kterou kompilátor nevidí:** `WithPrompts(typeof(InvestigatePrompt))` se navázalo na generické přetížení „instance cíle“ (`TPromptType target`) s objektem `Type`, takže se nezaregistroval žádný prompt. Unit testy nad třídou by prošly; selhal až test přes skutečného MCP klienta (`prompts/list` „not available“). Oprava: `WithPrompts([typeof(...)])`. Ponaučení: u DI/atributových registrací testovat přes protokol, ne jen třídu.
+- `dotnet run` u projektu s Web SDK spouští aplikaci v adresáři projektu, takže výchozí relativní cesty (`data/sample`) neexistovaly. Odhalil to ruční smoke test přes stdio. Oprava: `RunWorkingDirectory = $(MSBuildStartupDirectory)`.
+- Smoke test přes stdio: prvních pár pokusů nevrátilo nic, protože konec stdin server ukončí dřív, než odešle odpovědi. Testovací skript musel držet stdin otevřený. Ověřeno také, že `dotnet run` nepíše výstup buildu na stdout (rozbil by JSON-RPC).
+- HTTP transport doplněn o filtr `Host` hlavičky (jen loopback), aby se k serveru na localhostu nedostala webová stránka přes DNS rebinding. Ověřeno curl: cizí Host → 400.
+- `sed` se zpětnými lomítky v cestě csproj potřetí tiše nic nenahradil (přidání `InternalsVisibleTo`); tentokrát si toho agent všiml hned z výpisu souboru a přešel na Edit.

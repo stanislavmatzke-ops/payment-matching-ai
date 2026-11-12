@@ -33,6 +33,55 @@ replayed in CI. The build fails below 99 % precision or on any matched prompt in
 Full report: [evals/reports](evals/reports/2026-11-12-claude-haiku-5-5+opus-5-5-match-payment.v1.md).
 Run it: `dotnet run --project tools/Eval.Cli` (replay, no key needed).
 
+## Investigate unmatched payments with an agent (MCP)
+
+`payments-mcp` is an MCP server that lets Claude Code, Claude Desktop or any MCP client investigate
+the payments the pipeline sent to a person. It has four read tools (`list_unmatched`,
+`get_payment`, `get_customer`, `search_invoices`) and `propose_match`, which **only queues a
+proposal** for a person, with the pipeline's validation checks attached. It never matches anything,
+never calls a model, and returns bank-statement text only under `untrusted_bank_data`, labelled as
+data, never instructions. Why it looks like this: [ADR 0010](docs/adr/0010-mcp-server-read-tools-and-proposals-only.md).
+
+1. Run the pipeline once (recorded answers, no key) and build the server:
+
+   ```bash
+   dotnet run --project tools/Match.Cli -- data/sample --out out/match --mode replay
+   dotnet build src/PaymentMatching.Mcp
+   ```
+
+2. Connect it. **Claude Code**, from the repository root:
+
+   ```bash
+   claude mcp add payments -- dotnet run --no-build --project src/PaymentMatching.Mcp -- --data data/sample --state out/match
+   ```
+
+   **Claude Desktop**: add to `claude_desktop_config.json` (Settings → Developer → Edit Config),
+   with absolute paths, and restart the app:
+
+   ```json
+   {
+     "mcpServers": {
+       "payments": {
+         "command": "dotnet",
+         "args": [
+           "/path/to/payment-matching-ai/src/PaymentMatching.Mcp/bin/Debug/net10.0/payments-mcp.dll",
+           "--data", "/path/to/payment-matching-ai/data/sample",
+           "--state", "/path/to/payment-matching-ai/out/match"
+         ]
+       }
+     }
+   }
+   ```
+
+   **HTTP** instead of stdio: start `dotnet run --project src/PaymentMatching.Mcp -- --transport http`
+   (listens on `http://localhost:5100/mcp`, loopback only, no authentication) and connect with
+   `claude mcp add --transport http payments http://localhost:5100/mcp`.
+
+3. Ask the agent, for example: *"Use the payments tools to investigate the first 10 unmatched
+   payments and propose matches where the evidence is clear."* The server also offers this task as
+   the MCP prompt `investigate_unmatched` (in Claude Code: `/mcp__payments__investigate_unmatched`).
+   Proposals land in `out/match/proposals.jsonl`; restart the server after a new pipeline run.
+
 ## What is here so far
 
 | Path | What |
@@ -48,6 +97,7 @@ Run it: `dotnet run --project tools/Eval.Cli` (replay, no key needed).
 | `src/PaymentMatching.AiGateway`, `src/PaymentMatching.Matching` | thin AI gateway (small → large model, record/replay) and the matching pipeline: rules → candidates → AI → validation by code |
 | `tools/Match.Cli` | runs the whole pipeline (`stub`, `replay`, `record`, `live`, `rules`) |
 | `evals/` | frozen gold set, recorded model answers and eval reports; runner in `tools/Eval.Cli` |
+| `src/PaymentMatching.Mcp` | MCP server `payments-mcp`: read tools and proposals for a person (stdio / HTTP) |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.

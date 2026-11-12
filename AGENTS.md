@@ -50,4 +50,5 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 - eval (nahrát chybějící odpovědi, stojí peníze): `dotnet run --project tools/Eval.Cli -- --mode record` (report do `evals/reports/`, nahrávky commitnout)
 - eval (live, ručně, nic neukládá; rozptyl mezi běhy): `dotnet run --project tools/Eval.Cli -- --mode live --configs routing --repeat 3`
 - zlatá sada je zmrazená (`MANIFEST.sha256`); opravy jen jako nová verze (`gold-v2`), viz `evals/dataset/gold-v1/REVIEW.md`
+- MCP server (stdio, pro Claude Code / Desktop): `dotnet run --project src/PaymentMatching.Mcp -- --data data/sample --state out/match` (čte `audit.jsonl` z `Match.Cli`, zapisuje jen `proposals.jsonl`; HTTP: `--transport http --port 5100`, jen localhost; po novém běhu pipeline restartovat; připojení viz README)
 - lokální běh: `docker compose up -d` (zatím jen PostgreSQL)
