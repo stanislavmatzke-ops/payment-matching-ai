@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>match</AssemblyName>
+    <RootNamespace>Match.Cli</RootNamespace>
+    <!-- Fixed id, so the key can be stored before the project is built (see AGENTS.md, Commands). -->
+    <UserSecretsId>payment-matching-ai</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PaymentMatching.Matching\PaymentMatching.Matching.csproj" />
+  </ItemGroup>
+
+</Project>
