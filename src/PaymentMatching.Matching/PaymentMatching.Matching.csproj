@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PaymentMatching.Matching</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.AiGateway\PaymentMatching.AiGateway.csproj" />
+    <ProjectReference Include="..\PaymentMatching.Rules\PaymentMatching.Rules.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Versioned prompts live in /prompts; they are compiled in so a build always uses the reviewed file. -->
+    <EmbeddedResource Include="..\..\prompts\*.md" LogicalName="prompts.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PaymentMatching.Matching.Tests" />
+  </ItemGroup>
+
+</Project>
