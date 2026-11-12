@@ -41,6 +41,7 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 - test: `dotnet test` (xUnit v3 na Microsoft.Testing.Platform, nastaveno v `global.json`)
 - formát: `dotnet format --verify-no-changes` (CI), `dotnet format` (opravit)
 - generátor dat: `dotnet run --project tools/DataGen.Cli -- --seed 42 --payments 300 --out data/sample`
+- legacy (přeložit + spustit, potřebuje Docker): `bash legacy/run-legacy.sh data/sample legacy/golden/seed-42/legacy_matches.csv`
 - eval (replay): _(fáze 5)_
 - eval (live, ručně): _(fáze 5)_
 - lokální běh: `docker compose up -d` (zatím jen PostgreSQL)
