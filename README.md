@@ -89,7 +89,7 @@ data, never instructions. Why it looks like this: [ADR 0010](docs/adr/0010-mcp-s
 Every person who signs in gets an own sandbox: a fictional company with ~30 invoices and 20
 payments. Isolation is enforced in the data layer and covered by leak tests
 ([ADR 0011](docs/adr/0011-tenant-isolation-in-the-data-layer-and-oidc-sign-in.md)). Signing in never
-calls a model; payments that need AI wait for the scheduled job (phase 9).
+calls a model; payments that need AI wait for the scheduled daily job (below).
 
 ```bash
 docker compose up -d                       # PostgreSQL
@@ -113,12 +113,45 @@ What you can do there ([ADR 0012](docs/adr/0012-server-rendered-ui-and-a-persons
   any proposal: blocking failures stop it, warnings must be ticked one by one. You never type text
   and never start a model.
 
-A new sandbox has only the rules layer's decisions; the AI layer runs in the scheduled job (phase 9).
-To see AI decisions locally without any model call, run the deterministic stub over your sandbox
-(tenant id from `/api/me`, connection string as in "MCP server on a sandbox" below):
+- **AI budget** on the dashboard: model calls of your sandbox today, answers reused from the cache,
+  and whether the app-wide budget is available. A payment sent to you because the budget was used
+  up carries the label **AI budget used up**.
+
+### The daily job
+
+`payments-job` runs once a day ([ADR 0013](docs/adr/0013-ai-cost-model-for-the-hosted-app.md),
+[ADR 0014](docs/adr/0014-daily-job-cache-budgets-demo-and-admin.md)): it deletes sandboxes unused
+for 30 days, adds one **shared daily batch** (3–5 payments, the same for everyone that day) to
+sandboxes used in the last 7 days whose person resolved something or whose queue is short, and runs
+rules → AI → validation over every undecided payment. Model answers are cached by the exact prompt,
+so the same case in the next sandbox costs nothing. Budgets: 2 model calls per sandbox and day (the
+rest waits for tomorrow), 50 per day app-wide and $2 a month (then payments go to a person with a
+label). Locally, without a key and without cost:
 
 ```bash
-dotnet run --project tools/Match.Cli -- --tenant <tenant id>
+dotnet user-secrets set "ConnectionStrings:Payments" "Host=localhost;Port=5432;Database=payments;Username=payments;Password=local-dev-only" --id payment-matching-ai
+dotnet run --project src/PaymentMatching.Job -- --mode stub --migrate
+```
+
+`--mode live` calls the real model (needs `Anthropic:ApiKey`) within the same budgets. Settings:
+`Ai:Budget:CallsPerSandboxPerDay`, `Ai:Budget:CallsPerDay`, `Ai:Budget:MonthlyUsd`,
+`Ai:SmallModelOnly`. Cost model: [docs/cost.md](docs/cost.md).
+
+To see AI decisions over one sandbox without the job, the deterministic stub works too (tenant id
+from `/api/me`): `dotnet run --project tools/Match.Cli -- --tenant <tenant id>`.
+
+### Demo without sign-in and the admin overview
+
+- **Demo** (`/demo`): one shared sandbox, read-only, processed by the job like the others. Set
+  `Demo:TenantId` (any GUID) for the job and the web app; the job creates it. The page shows the
+  sandbox only if it is marked as the demo, and nothing can be saved through it.
+- **Admin** (`/admin`): only for accounts in `Admin:Accounts` (`provider:subject`, e.g. `dev:boss`
+  locally); everyone else gets 404. Aggregates only: calls and cost per day and month, budget left,
+  cache hit rate, sandboxes, sign-ins turned away.
+
+```bash
+dotnet user-secrets set "Demo:TenantId" "<any guid>" --id payment-matching-ai
+dotnet user-secrets set "Admin:Accounts:0" "dev:boss" --id payment-matching-ai
 ```
 
 The JSON views stay available at `/api/me`, `/api/payments` and `/api/payments/{id}`.
@@ -173,6 +206,8 @@ dotnet run --project src/PaymentMatching.Mcp -- --tenant <tenant id>
 | `src/PaymentMatching.Mcp` | MCP server `payments-mcp`: read tools and proposals for a person (stdio / HTTP) |
 | `src/PaymentMatching.Data` | PostgreSQL data layer (EF Core): tenants, tenant filter on every query, decisions, proposals and a person's reviews with idempotency keys, sandbox provisioning |
 | `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, server-rendered UI (queue, audit trail, dashboard) with confirm / reject / manual match |
+| `src/PaymentMatching.Job` | `payments-job`: the scheduled daily job (shared batch, response cache, AI budgets, demo, clean-up) |
+| `docs/cost.md` | what the hosted app costs and why (AI budgets, cache) |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.

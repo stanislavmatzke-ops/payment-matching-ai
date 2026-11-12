@@ -103,15 +103,21 @@
     - fronta = `human_review` + `no_match` s návrhem agenta; platby čekající na AI běh akce nemají,
     - stav AI rozpočtu na dashboardu přijde s jobem (fáze 9).
   - _Útrata:_ $0, žádný `record`/`live` běh.
-- [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI. _Upřesněno 2026-11-12 (ADR 0013, SPEC 9b):_
-  - doplňování jen aktivním sandboxům (7 dní) a jen když uživatel něco vyřešil / fronta pod prahem; sdílená denní dávka 3–5 plateb (seed podle data), většina pro pravidla, 1–2 pro AI,
-  - cache odpovědí modelu pod otiskem promptu (stejný případ v dalším sandboxu bez volání),
-  - stropy: 2 AI volání / sandbox / den, 50 / den globálně, měsíční rozpočet ($2 výchozí); po vyčerpání člověku se štítkem; stav na dashboardu,
-  - volba „jen malý model“ (bez Opus) pro produkci,
-  - demo bez přihlášení (sdílený sandbox jen ke čtení, zpracovaný jobem),
-  - `/admin` jen se souhrny (allowlist účtů v konfiguraci): volání a cena den/měsíc, zbývající rozpočet, cache hit rate, sandboxy, pořadník,
-  - plánování mazání neaktivních sandboxů (`TenantAdmin.DeleteInactiveAsync`),
-  - před prvním živým během odhad počtu volání a ceny + souhlas uživatele.
+- [x] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI (upřesněno 2026-11-12, ADR 0013, SPEC 9b).
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - `src/PaymentMatching.Job` (`payments-job`): konzolový job „jeden běh a konec“ pro pozdější Container Apps Job, `--mode stub|live`, `--migrate`; maže neaktivní sandboxy (30 dní, nikdy demo), zakládá demo, doplňuje sdílenou dávku jen aktivním sandboxům (7 dní) po vyřešení něčeho nebo při frontě < 3 (demo vždy), pak pravidla → AI → validace,
+    - sdílená denní dávka `DailyBatch` (seed = datum, 3–5 plateb, 1–2 do AI vrstvy; ověřeno přes 400 dní), id s datem (`P261112-0001`); generátor dostal volby prefixů a číselné řady (výchozí hodnoty = `data/sample` beze změny),
+    - cache odpovědí `CachingProvider` pod klíčem record/replay (+ zdroj `live`/`stub`), cached odpověď stojí $0, nepočítá se do stropu a projde validací v každém sandboxu,
+    - `OperationsDbContext` (vlastní migrace): `ai_response_cache`, `daily_usage`; rozpočty `AiAllowance` = jedno číslo na sandbox z tří vrstev; strop sandboxu → platba čeká na další den, glob. den / měsíc → člověku se štítkem „AI budget used up“; `Ai:SmallModelOnly`,
+    - web: `/demo` (bez přihlášení, jen čtení, tenant z konfigurace + `IsDemo`, read-only kontext, rate limit), `/admin` (allowlist, jinak 404, jen souhrny), AI rozpočet na dashboardu, štítek v seznamu a detailu, cached odpověď v audit timeline, počítání odmítnutých přihlášení (pořadník),
+    - 39 nových testů (celkem 361), ADR 0014, `docs/cost.md`, README, AGENTS.md, `.env.example`.
+  - _Ověřeno ručně lokálně:_ job ve stub režimu nad lokální DB (3 sandboxy, druhý běh nic nepřidal ani nevolal, sandbox nad limitem nechal 4 platby čekat), `/demo`, `/admin` a dashboard v prohlížeči.
+  - _Odchylky od SPEC / plánu:_
+    - platby nad denní strop **sandboxu** čekají na další běh (rozhodnuto s uživatelem); štítek „AI budget used up“ jen při vyčerpání globálního denního stropu nebo měsíčního rozpočtu,
+    - injection bez kandidátů rozhodne politika bez modelu, takže některé dny dávka model nepotřebuje vůbec,
+    - měsíční rozpočet se hlídá rezervou $0,05 na volání (ne přesnou cenou dopředu),
+    - souběh dvou instancí jobu může strop přetáhnout o volání; v Azure parallelism 1 + spend limit v konzoli.
+  - _Útrata:_ $0 (žádný `live` běh; volitelný živý běh nabídnut s odhadem).
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
@@ -233,3 +239,16 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 **Změna SPEC před fází 9 (2026-11-12)**
 - Uživatel před fází 9 zpochybnil „5–10 nových plateb denně v každém sandboxu“: veřejná ukázka nemá pálit tokeny na data, na která nikdo nekouká. Agent spočítal cenu z evalů (≈ $0,0008 za AI platbu, původní plán ~$1,5–12 měsíčně podle počtu uživatelů) a navrhl doplňování podle aktivity, sdílenou denní dávku s cache odpovědí (cena nezávislá na počtu uživatelů), tři vrstvy rozpočtu a režim „jen malý model“. Schváleno celé, včetně dema bez přihlášení a `/admin` jen se souhrny. Zapsáno do SPEC 9b a ADR 0013.
 - Postřeh: cache odpovědí je jen produkční využití record/replay z fáze 4. Nástroj postavený kvůli testům bez API klíče se vrací jako úspora v provozu.
+
+**Fáze 9 (2026-11-12)**
+- Plán znovu vznikl v nové session jen z PLAN/SPEC/ADR a kódu. Agent se před schválením zeptal na jedinou věc, kterou ADR 0013 nedořešil: nový sandbox má ve startovních datech ~5–7 AI plateb, ale strop 2 volání denně. Doslovné čtení („člověku se štítkem“) by novému uživateli hned ukázalo 3–5 štítků „rozpočet vyčerpán“. Uživatel zvolil: nad strop sandboxu se čeká na další den, štítek jen pro globální rozpočet.
+- **Měření místo předpokladu:** první verze dávky brala „pravidlové“ případy podle intuice. Test přes 400 dní selhal (3 platby pro model místo 1–2); jednorázová sonda ukázala, že `MultiInvoice` jde do AI vždy a částečné úhrady a VS ve zprávě jen někdy. Pooly dávky upraveny podle čísel a test to drží.
+- Druhý nález z testu: injection bez kandidátů rozhodne politika bez modelu, takže „AI případ“ neznamená vždy „volání modelu“. Testy cache si proto vybírají den, kdy dávka model opravdu potřebuje.
+- **Past v rozpočtu odhalená při návrhu:** gateway kontroloval strop *před* voláním poskytovatele, takže při vyčerpaném stropu by nepustil ani zdarma dostupnou odpověď z cache. Doplněno `IAnswerCache` + test „přes strop se cached odpověď použije, model ne“.
+- Riziko, které agent ošetřil předem: cache sdílená mezi `stub` a `live` by v lokální DB uložila odpověď stubu pod klíčem skutečného modelu a pozdější živý běh by ji vrátil. Klíč cache má proto i zdroj.
+- Drobnosti, co agent pokazil:
+  - shell skript s několika heredocy se znovu nepřeložil a nezapsal nic → Write,
+  - `sed` se zpětnými lomítky v cestě csproj popáté tiše nic nenahradil (odhalil to `grep` hned po něm) → Edit,
+  - `--` v XML komentáři csproj podruhé (build),
+  - test s pořadím GUID by procházel náhodou (porovnání seřazené množiny se seznamem v pevném pořadí) – opraveno před commitem,
+  - spojení dvou interpolovaných řetězců přes `+` uvnitř `FormattableString.Invariant` neprojde překladem (výsledek je `string`).
