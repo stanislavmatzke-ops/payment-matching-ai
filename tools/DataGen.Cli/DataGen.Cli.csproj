@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>datagen</AssemblyName>
+    <RootNamespace>DataGen.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PaymentMatching.DataGen\PaymentMatching.DataGen.csproj" />
+  </ItemGroup>
+
+</Project>
