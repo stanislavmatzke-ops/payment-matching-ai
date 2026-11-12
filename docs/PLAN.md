@@ -103,7 +103,15 @@
     - fronta = `human_review` + `no_match` s návrhem agenta; platby čekající na AI běh akce nemají,
     - stav AI rozpočtu na dashboardu přijde s jobem (fáze 9).
   - _Útrata:_ $0, žádný `record`/`live` běh.
-- [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI.
+- [ ] **Fáze 9** – **Denní job** – generátor + automatické zpracování, limity a rozpočet na AI. _Upřesněno 2026-11-12 (ADR 0013, SPEC 9b):_
+  - doplňování jen aktivním sandboxům (7 dní) a jen když uživatel něco vyřešil / fronta pod prahem; sdílená denní dávka 3–5 plateb (seed podle data), většina pro pravidla, 1–2 pro AI,
+  - cache odpovědí modelu pod otiskem promptu (stejný případ v dalším sandboxu bez volání),
+  - stropy: 2 AI volání / sandbox / den, 50 / den globálně, měsíční rozpočet ($2 výchozí); po vyčerpání člověku se štítkem; stav na dashboardu,
+  - volba „jen malý model“ (bez Opus) pro produkci,
+  - demo bez přihlášení (sdílený sandbox jen ke čtení, zpracovaný jobem),
+  - `/admin` jen se souhrny (allowlist účtů v konfiguraci): volání a cena den/měsíc, zbývající rozpočet, cache hit rate, sandboxy, pořadník,
+  - plánování mazání neaktivních sandboxů (`TenantAdmin.DeleteInactiveAsync`),
+  - před prvním živým během odhad počtu volání a ceny + souhlas uživatele.
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
@@ -221,3 +229,7 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - test MCP předpokládal kontrolu `INVOICE_ALREADY_MATCHED`, ale server obsazenou fakturu odmítne už dřív výjimkou; opraveno před spuštěním,
   - **nový MCP test závisel na náhodě:** bral „druhou otevřenou platbu“ ze startovních dat sandboxu, jejichž seed je odvozený z náhodného id tenantu. Lokálně prošel, v CI data otevřené platby neměla → `ArgumentOutOfRange`. Oprava: test si potřebné platby a rozhodnutí vloží sám. Ponaučení: test nad generovanými daty buď s pevným seedem, nebo s vlastními řádky.
 - Provozní: lokálně běžela starší verze webu z jiné session na 7180, nová verze se ověřovala na 7181 (stejná DB, migrace navíc jen přidá tabulku).
+
+**Změna SPEC před fází 9 (2026-11-12)**
+- Uživatel před fází 9 zpochybnil „5–10 nových plateb denně v každém sandboxu“: veřejná ukázka nemá pálit tokeny na data, na která nikdo nekouká. Agent spočítal cenu z evalů (≈ $0,0008 za AI platbu, původní plán ~$1,5–12 měsíčně podle počtu uživatelů) a navrhl doplňování podle aktivity, sdílenou denní dávku s cache odpovědí (cena nezávislá na počtu uživatelů), tři vrstvy rozpočtu a režim „jen malý model“. Schváleno celé, včetně dema bez přihlášení a `/admin` jen se souhrny. Zapsáno do SPEC 9b a ADR 0013.
+- Postřeh: cache odpovědí je jen produkční využití record/replay z fáze 4. Nástroj postavený kvůli testům bez API klíče se vrací jako úspora v provozu.

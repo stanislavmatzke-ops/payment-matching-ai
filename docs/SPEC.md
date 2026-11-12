@@ -129,11 +129,16 @@ Projekt nebude jen repo. Bude to **běžící aplikace, do které se kdokoli př
 - Každý uživatel dostane **vlastní sandbox (tenant)**: vlastní firmu, faktury, bankovní výpisy a frontu. Nikdo nevidí data jiného uživatele. Izolace se vynucuje v datové vrstvě (filtr podle tenantId na každém dotazu, např. global query filter) a je pokrytá testy na únik mezi tenanty.
 - Při prvním přihlášení se sandbox naplní startovními daty (~30 faktur, ~20 plateb různých typů z kap. 3).
 - Ukládáme jen minimum z přihlášení (ID, jméno, e-mail). Stránka se zásadami ochrany údajů. Jen nezbytné cookies. Neaktivní sandboxy se po 30 dnech smažou.
-- Volitelně **demo bez přihlášení** (jen čtení, sdílený ukázkový sandbox), aby se dalo rychle nahlédnout.
+- **Demo bez přihlášení:** jeden sdílený ukázkový sandbox jen ke čtení (dashboard, platby, detail, timeline), zpracovávaný denním jobem jako ostatní. Žádné akce; kdo chce potvrzovat a párovat, přihlásí se a dostane vlastní sandbox. _(Upřesněno 2026-11-12, ADR 0013.)_
+- **Admin přehled** (`/admin`): přístup jen pro účty vyjmenované v konfiguraci (provider + subject), jen souhrny napříč sandboxy – AI volání a cena za den a měsíc, zbývající rozpočet, cache hit rate, počet aktivních sandboxů, nové za den, pořadník. Žádný pohled do dat jiných uživatelů. _(Doplněno 2026-11-12, ADR 0013.)_
 
 **Denní život aplikace**
-- **Generátor** každý den ráno (scheduled job) vytvoří v každém aktivním sandboxu několik nových faktur a plateb (5–10), s náhodným mixem případů z kap. 3 včetně občasného pokusu o prompt injection ve zprávě.
+- **Generátor** každý den ráno (scheduled job) doplní nové faktury a platby, ale **jen tam, kde má smysl** _(upřesněno 2026-11-12, ADR 0013)_:
+  - jen **aktivní sandboxy** (přihlášení za posledních 7 dní) a demo,
+  - jen když uživatel od minulého běhu něco vyřešil nebo fronta klesla pod práh (~3 otevřené položky); kdo nepracuje, nedostane nic nového a nic nestojí,
+  - **sdílená denní dávka:** nové platby a faktury jsou ten den pro všechny sandboxy stejné (seed podle data), 3–5 plateb, z toho většina deterministická pro pravidla a jen 1–2 „zajímavé“ pro AI (nečitelné číslo faktury, třetí strana, občasný pokus o prompt injection).
 - **Zpracování** proběhne automaticky po generování: pravidla → AI → validace → automaticky spárováno, nebo fronta pro člověka.
+  - **Cache odpovědí modelu** pod otiskem promptu (stejný mechanismus jako record/replay): stejný případ ve druhém a dalším sandboxu model nevolá. Cena tak nezávisí na počtu uživatelů. Když se prompt liší (uživatel ručním párováním změnil stav faktur), volá se znovu v rámci stropů.
 - Uživatel v UI vidí:
   - seznam plateb se stavem (spárováno / čeká na potvrzení / nespárováno / odmítnuto),
   - **kdo rozhodl**: pravidlo (které), AI (model, verze promptu, confidence, zdůvodnění), nebo člověk,
@@ -145,7 +150,9 @@ Projekt nebude jen repo. Bude to **běžící aplikace, do které se kdokoli př
 **Bezpečnost a náklady – tvrdé hranice**
 - **Uživatel nikdy nespouští AI ručně** a nikdy nezadává text, který jde do modelu. Žádné tlačítko „zpracuj znovu s AI“, žádný chat, žádný vlastní import. AI běží jen v plánovaném jobu nad daty z generátoru. Tím odpadá zneužití modelu i prompt injection od veřejnosti.
 - Uživatelské akce jsou jen nad existujícími daty: potvrdit, zamítnout, vybrat fakturu ze seznamu. Vstupy validované, žádný volný text do modelu ani do HTML (ochrana proti XSS).
-- **Rozpočet na AI:** limit volání na sandbox a den a globální denní strop (např. max 500 AI volání/den celkem). Při dosažení stropu zůstanou platby ve frontě pro člověka. Stav limitu je vidět na dashboardu.
+- **Rozpočet na AI** ve třech vrstvách _(upřesněno 2026-11-12, ADR 0013)_: max 2 AI volání na sandbox a den, globálně max 50 volání za den a měsíční rozpočet (výchozí $2, konfigurovatelný). Při vyčerpání jdou platby člověku se štítkem „AI rozpočet vyčerpán“. Stav je vidět na dashboardu a v `/admin`. Jako tvrdá pojistka navíc spend limit v Anthropic konzoli.
+- Velký model (Opus) jen při eskalaci, která může změnit výsledek (ADR 0009); konfigurací lze v produkci vypnout a nechat jen malý model (evaly: stejná precision, automatizace 52,0 % vs. 53,3 %, cca poloviční cena).
+- Cílová cena AI veřejné aplikace: řádově desítky centů měsíčně, nikdy nad měsíční rozpočet.
 - Při velkém zájmu limit nových sandboxů za den (pořadník), aby náklady zůstaly pod kontrolou.
 - Rate limiting na API, bezpečnostní hlavičky, HTTPS, tajné klíče v Azure Key Vault nebo Managed Identity.
 
