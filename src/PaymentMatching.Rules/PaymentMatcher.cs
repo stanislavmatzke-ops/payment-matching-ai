@@ -3,7 +3,7 @@ namespace PaymentMatching.Rules;
 /// <summary>
 /// Deterministic matching rules ported from the legacy PAYMATCH module. Payments are processed
 /// in input order; a matched invoice is consumed for the rest of the run (BR-05, BR-19).
-/// Rule IDs (BR-xx) refer to docs/business-rules.md.
+/// Rule IDs (BR-xx) refer to docs/business-rules.md, deliberate changes (Fx) to docs/modernization.md.
 /// </summary>
 public static class PaymentMatcher
 {
@@ -35,6 +35,12 @@ public static class PaymentMatcher
             return NotMatched("-/CURRENCY");
         }
 
+        // Change F2: an unreadable (parsed as 0), zero or negative amount must never close an invoice
+        if (payment.Amount <= 0)
+        {
+            return NotMatched("-/INVALID_AMOUNT");
+        }
+
         // BR-09, BR-10: VS from the field, otherwise from the message
         var vs = VariableSymbol.Normalize(payment.VariableSymbol);
         var fromField = vs.Length > 0;
@@ -50,17 +56,8 @@ public static class PaymentMatcher
             return NotMatched("-/NO_VS");
         }
 
-        // BR-11, BR-12, BR-13
+        // BR-11, BR-13 (BR-12 substring lookup removed: change F1)
         var found = lookup.FindExact(vs);
-        if (found < 0)
-        {
-            found = lookup.FindBySubstring(vs);
-            if (found >= 0)
-            {
-                how = "FUZZY";
-            }
-        }
-
         if (found < 0)
         {
             return NotMatched($"{how}/NOT_FOUND");

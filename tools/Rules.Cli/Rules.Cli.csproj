@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>rules</AssemblyName>
+    <RootNamespace>Rules.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PaymentMatching.Rules\PaymentMatching.Rules.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -91,14 +91,35 @@ public class PaymentMatcherTests
     }
 
     [Fact]
-    public void Substring_lookup_matches_the_first_invoice_containing_the_vs()
+    public void Cut_vs_is_not_found_instead_of_matching_a_wrong_invoice()
     {
-        // R-02: VS cut at the end -> first invoice in file order that contains it -> wrong invoice.
+        // F1 (was R-02): legacy matched the first invoice *containing* the VS – here 2026-1201, wrong.
         Invoice[] invoices = [new("2026-1201", "2026001201", "Regular", 30000.00m), Regular];
 
         var r = Match(invoices, Pay(12100.00, vs: "20260012"))[0];
 
-        Assert.Equal((MatchStatus.Partial, "2026-1201", "FUZZY/PARTIAL", -17900m), (r.Status, r.InvoiceNumber, r.Rule, r.AmountDiff));
+        Assert.Equal((MatchStatus.None, (string?)null, "FIELD/NOT_FOUND"), (r.Status, r.InvoiceNumber, r.Rule));
+    }
+
+    [Theory]
+    [InlineData(0)]          // also what an unreadable amount parses to
+    [InlineData(-500.00)]
+    public void Zero_or_negative_payment_never_closes_an_invoice(double amount)
+    {
+        // F2 (was R-01): legacy made these a partial payment and consumed the invoice.
+        var results = Match([Regular], Pay(amount, vs: "2026001234", id: "P1"), Pay(12100.00, vs: "2026001234", id: "P2"));
+
+        Assert.Equal((MatchStatus.None, "-/INVALID_AMOUNT"), (results[0].Status, results[0].Rule));
+        Assert.Equal("FIELD/EXACT", results[1].Rule);
+    }
+
+    [Fact]
+    public void Invoice_with_zero_amount_is_never_matched()
+    {
+        // F2: legacy treated any payment below 1 CZK as an exact match of such an invoice.
+        Invoice[] invoices = [Regular with { Amount = 0m }];
+
+        Assert.Equal("FIELD/NOT_FOUND", Match(invoices, Pay(0.50, vs: "2026001234"))[0].Rule);
     }
 
     [Fact]
