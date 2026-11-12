@@ -2,23 +2,6 @@ using PaymentMatching.Matching;
 
 namespace PaymentMatching.Mcp;
 
-/// <summary>Where a payment stands, as recorded by the matching pipeline (or not processed yet).</summary>
-public static class PaymentStatus
-{
-    public const string AutoMatched = "auto_matched";
-    public const string HumanReview = "human_review";
-    public const string NoMatch = "no_match";
-    public const string NotProcessed = "not_processed";
-
-    public static string Of(AuditRecord? record) => record?.Decision.Outcome switch
-    {
-        Outcome.AutoMatched => AutoMatched,
-        Outcome.HumanReview => HumanReview,
-        Outcome.NoMatch => NoMatch,
-        _ => NotProcessed,
-    };
-}
-
 /// <summary>
 /// The data one MCP server process may see: one dataset directory (customers, invoices, bank
 /// statement) and one state directory with the pipeline's audit log and the proposal queue.

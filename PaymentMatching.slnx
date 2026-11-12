@@ -7,6 +7,7 @@
     <Project Path="src/PaymentMatching.Matching/PaymentMatching.Matching.csproj" />
     <Project Path="src/PaymentMatching.Mcp/PaymentMatching.Mcp.csproj" />
     <Project Path="src/PaymentMatching.Rules/PaymentMatching.Rules.csproj" />
+    <Project Path="src/PaymentMatching.Web/PaymentMatching.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PaymentMatching.AiGateway.Tests/PaymentMatching.AiGateway.Tests.csproj" />
@@ -16,6 +17,7 @@
     <Project Path="tests/PaymentMatching.Matching.Tests/PaymentMatching.Matching.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Mcp.Tests/PaymentMatching.Mcp.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Rules.Tests/PaymentMatching.Rules.Tests.csproj" />
+    <Project Path="tests/PaymentMatching.Web.Tests/PaymentMatching.Web.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/DataGen.Cli/DataGen.Cli.csproj" />

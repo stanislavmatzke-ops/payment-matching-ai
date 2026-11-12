@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
+using PaymentMatching.Matching;
 
 namespace PaymentMatching.Mcp.Tests;
 

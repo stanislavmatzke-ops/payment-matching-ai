@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>PaymentMatching.Web</RootNamespace>
+    <!-- Client secrets of the identity providers: dotnet user-secrets (Development) or environment variables. -->
+    <UserSecretsId>payment-matching-ai</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.Data\PaymentMatching.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PaymentMatching.Web.Tests" />
+  </ItemGroup>
+
+</Project>

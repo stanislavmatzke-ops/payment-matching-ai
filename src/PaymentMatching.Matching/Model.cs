@@ -76,3 +76,20 @@ public sealed record Decision(
     string Reason,
     IReadOnlyList<string> Flags,
     double? Confidence = null);
+
+/// <summary>Where a payment stands, as recorded by the matching pipeline (or not processed yet).</summary>
+public static class PaymentStatus
+{
+    public const string AutoMatched = "auto_matched";
+    public const string HumanReview = "human_review";
+    public const string NoMatch = "no_match";
+    public const string NotProcessed = "not_processed";
+
+    public static string Of(AuditRecord? record) => record?.Decision.Outcome switch
+    {
+        Outcome.AutoMatched => AutoMatched,
+        Outcome.HumanReview => HumanReview,
+        Outcome.NoMatch => NoMatch,
+        _ => NotProcessed,
+    };
+}
