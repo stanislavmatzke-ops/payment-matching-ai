@@ -146,7 +146,7 @@ public sealed class PaymentQueries(Workspace workspace, TimeProvider? time = nul
 
         var checks = Check(payment, numbers);
         var (proposal, created) = workspace.Proposals.Add(new Proposal(
-            ProposalQueue.IdFor(payment.Id, numbers), payment.Id, numbers, reason, Proposal.ByMcpAgent, _time.GetUtcNow(), checks));
+            Proposal.IdFor(payment.Id, numbers), payment.Id, numbers, reason, Proposal.ByMcpAgent, _time.GetUtcNow(), checks));
         return new ProposeResult(
             proposal.Id,
             "pending_human_review",

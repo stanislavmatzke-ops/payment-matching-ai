@@ -37,15 +37,21 @@ public sealed class MatchingDataset
     public static string NormalizeIban(string iban) =>
         new(iban.Where(char.IsAsciiLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
 
-    public static MatchingDataset Load(string directory)
+    public static MatchingDataset Load(string directory) => Parse(
+        File.ReadAllText(Path.Combine(directory, "customers.csv"), Encoding.UTF8),
+        File.ReadAllText(Path.Combine(directory, "invoices.csv"), Encoding.UTF8),
+        File.ReadAllText(Path.Combine(directory, "bank_statement.csv"), Encoding.UTF8));
+
+    /// <summary>The same three files as text (e.g. generated in memory for a new sandbox).</summary>
+    public static MatchingDataset Parse(string customersCsv, string invoicesCsv, string statementCsv)
     {
-        var customers = Read(Path.Combine(directory, "customers.csv"), 3)
+        var customers = Read(customersCsv, 3)
             .Select(f => new Customer(f[0], f[1], f[2]))
             .ToList();
-        var invoices = Read(Path.Combine(directory, "invoices.csv"), 8)
+        var invoices = Read(invoicesCsv, 8)
             .Select(f => new InvoiceRecord(f[0], VariableSymbol.Normalize(f[1]), f[2], f[3], ParseDate(f[5]), LegacyCsv.ParseAmount(f[6]), f[7]))
             .ToList();
-        var payments = ReadWithRaw(Path.Combine(directory, "bank_statement.csv"), 10)
+        var payments = ReadWithRaw(statementCsv, 10)
             .Select(r => new BankPayment(r.Fields[0], ParseDate(r.Fields[1]), LegacyCsv.ParseAmount(r.Fields[2]), r.Fields[3], r.Fields[4], r.Fields[5], r.Fields[6], r.Fields[9], r.Raw))
             .ToList();
         return new MatchingDataset(customers, invoices, payments);
@@ -54,11 +60,11 @@ public sealed class MatchingDataset
     private static DateOnly ParseDate(string text) =>
         DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : default;
 
-    private static IEnumerable<List<string>> Read(string path, int minFields) =>
-        ReadWithRaw(path, minFields).Select(r => r.Fields);
+    private static IEnumerable<List<string>> Read(string csv, int minFields) =>
+        ReadWithRaw(csv, minFields).Select(r => r.Fields);
 
-    private static IEnumerable<(List<string> Fields, string Raw)> ReadWithRaw(string path, int minFields) =>
-        File.ReadAllText(path, Encoding.UTF8)
+    private static IEnumerable<(List<string> Fields, string Raw)> ReadWithRaw(string csv, int minFields) =>
+        csv
             .Split('\n')
             .Skip(1)
             .Select(line => line.TrimEnd('\r'))

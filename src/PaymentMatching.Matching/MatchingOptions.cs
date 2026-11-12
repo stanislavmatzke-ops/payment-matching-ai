@@ -31,6 +31,13 @@ public sealed record MatchingOptions
 
     public decimal MaxEurRate { get; init; } = 26.50m;
 
+    /// <summary>
+    /// Without a gateway, leave payments that need layer 2 undecided (not in the decision store) instead
+    /// of sending them to a person. The hosted app seeds a sandbox this way at sign-in, so a visitor never
+    /// triggers a model call; the scheduled job decides those payments later (phase 9).
+    /// </summary>
+    public bool DeferAiWithoutGateway { get; init; }
+
     /// <summary>Most invoices the model ever sees for one payment.</summary>
     public int MaxCandidates { get; init; } = 8;
 

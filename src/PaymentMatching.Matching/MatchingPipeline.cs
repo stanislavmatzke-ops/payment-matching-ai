@@ -16,7 +16,7 @@ public sealed record RunReport(IReadOnlyList<AuditRecord> Records, int Reused)
 public sealed class MatchingPipeline(
     MatchingDataset data,
     AiGateway.AiGateway? gateway,
-    DecisionLog log,
+    IDecisionStore log,
     MatchingOptions options,
     TimeProvider? time = null)
 {
@@ -63,6 +63,11 @@ public sealed class MatchingPipeline(
         }
 
         // Layer 2: AI over what the rules left, in statement order.
+        if (gateway is null && options.DeferAiWithoutGateway)
+        {
+            forAi.Clear();
+        }
+
         foreach (var payment in forAi)
         {
             records.Add(Append(await DecideWithAiAsync(payment, rules[payment.Id].Rule, cancellationToken)));

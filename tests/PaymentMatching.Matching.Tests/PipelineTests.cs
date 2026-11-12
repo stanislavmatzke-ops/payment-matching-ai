@@ -171,6 +171,36 @@ public class PipelineTests
     }
 
     [Fact]
+    public async Task Deferred_ai_leaves_layer_2_payments_undecided_and_a_later_run_decides_them()
+    {
+        var log = new DecisionLog();
+        var deferred = await new MatchingPipeline(Sample, null, log, MatchingOptions.Default with { DeferAiWithoutGateway = true })
+            .RunAsync(TestContext.Current.CancellationToken);
+
+        Assert.InRange(deferred.Records.Count, 1, Sample.Payments.Count - 1);
+        Assert.All(deferred.Records, r => Assert.Equal(AuditRecord.RuleLayer, r.Layer));
+        Assert.All(deferred.Records, r => Assert.Empty(r.Calls));
+
+        var later = await Run(Sample, new NaiveModelStub(), log);
+        Assert.Equal(deferred.Records.Count, later.Reused);
+        Assert.Equal(Sample.Payments.Count, log.Records.Count);
+    }
+
+    [Fact]
+    public void Dataset_parsed_from_text_equals_the_one_loaded_from_files()
+    {
+        var dir = RepoPaths.Combine("data", "sample");
+        var parsed = MatchingDataset.Parse(
+            File.ReadAllText(Path.Combine(dir, "customers.csv")),
+            File.ReadAllText(Path.Combine(dir, "invoices.csv")),
+            File.ReadAllText(Path.Combine(dir, "bank_statement.csv")));
+
+        Assert.Equal(Sample.Payments, parsed.Payments);
+        Assert.Equal(Sample.Invoices, parsed.Invoices);
+        Assert.Equal(Sample.Customers, parsed.Customers);
+    }
+
+    [Fact]
     public void An_invoice_is_automatically_matched_at_most_once()
     {
         var log = new DecisionLog();

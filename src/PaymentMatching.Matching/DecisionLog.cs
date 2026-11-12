@@ -30,11 +30,26 @@ public sealed record AuditRecord(
 }
 
 /// <summary>
-/// Append-only decision store and audit log (JSON Lines). It is also the idempotency guard:
-/// a payment line is decided once, and an invoice is auto-matched to at most one payment.
-/// In the hosted app (phase 7) the same two rules become unique indexes in PostgreSQL.
+/// Where decisions are kept. It is also the idempotency guard: a payment line is decided once,
+/// and an invoice is auto-matched to at most one payment. Two implementations: <see cref="DecisionLog"/>
+/// (JSON Lines, CLIs and evals) and the tenant's PostgreSQL tables in the hosted app, where the
+/// same two rules are also unique indexes.
 /// </summary>
-public sealed class DecisionLog
+public interface IDecisionStore
+{
+    IReadOnlyCollection<AuditRecord> Records { get; }
+
+    /// <summary>Invoices already matched automatically (in this run or an earlier one).</summary>
+    IReadOnlySet<string> MatchedInvoices { get; }
+
+    bool TryGet(string key, out AuditRecord record);
+
+    /// <summary>Records a decision; throws when the payment is already decided or an invoice already matched.</summary>
+    void Append(AuditRecord record);
+}
+
+/// <summary>Append-only decision store and audit log (JSON Lines).</summary>
+public sealed class DecisionLog : IDecisionStore
 {
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -55,14 +70,18 @@ public sealed class DecisionLog
         {
             foreach (var line in File.ReadLines(path).Where(l => l.Length > 0))
             {
-                Index(JsonSerializer.Deserialize<AuditRecord>(line, Json) ?? throw new InvalidDataException($"Bad audit line in {path}."));
+                Index(Deserialize(line));
             }
         }
     }
 
+    public static string Serialize(AuditRecord record) => JsonSerializer.Serialize(record, Json);
+
+    public static AuditRecord Deserialize(string json) =>
+        JsonSerializer.Deserialize<AuditRecord>(json, Json) ?? throw new InvalidDataException("Bad audit record JSON.");
+
     public IReadOnlyCollection<AuditRecord> Records => _byKey.Values;
 
-    /// <summary>Invoices already matched automatically (in this run or an earlier one).</summary>
     public IReadOnlySet<string> MatchedInvoices => _matchedInvoices.Keys.ToHashSet(StringComparer.Ordinal);
 
     public static string KeyFor(BankPayment payment) =>
@@ -88,7 +107,7 @@ public sealed class DecisionLog
 
         if (_path is not null)
         {
-            File.AppendAllText(_path, JsonSerializer.Serialize(record, Json) + "\n", Encoding.UTF8);
+            File.AppendAllText(_path, Serialize(record) + "\n", Encoding.UTF8);
         }
 
         Index(record);

@@ -34,7 +34,7 @@ public sealed class Workspace
     private readonly Dictionary<string, BankPayment> _paymentById;
     private readonly Dictionary<string, AuditRecord> _decisionByPayment;
 
-    public Workspace(MatchingDataset data, IEnumerable<AuditRecord> decisions, ProposalQueue proposals, MatchingOptions? options = null)
+    public Workspace(MatchingDataset data, IEnumerable<AuditRecord> decisions, IProposalStore proposals, MatchingOptions? options = null)
     {
         Data = data;
         Proposals = proposals;
@@ -62,7 +62,7 @@ public sealed class Workspace
 
     public MatchingDataset Data { get; }
 
-    public ProposalQueue Proposals { get; }
+    public IProposalStore Proposals { get; }
 
     public MatchingOptions Options { get; }
 

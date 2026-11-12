@@ -157,7 +157,7 @@ public sealed class ProposeMatchTests : IDisposable
 
     [Fact]
     public void Proposal_id_ignores_invoice_order() =>
-        Assert.Equal(ProposalQueue.IdFor("P1", ["2026-1002", "2026-1001"]), ProposalQueue.IdFor("P1", ["2026-1001", "2026-1002"]));
+        Assert.Equal(Proposal.IdFor("P1", ["2026-1002", "2026-1001"]), Proposal.IdFor("P1", ["2026-1001", "2026-1002"]));
 
     /// <summary>A third-party payment the pipeline sent to a person, with its correct invoice from the ground truth.</summary>
     private (BankPayment Payment, string[] Invoices) ThirdPartyPaymentInReview()
