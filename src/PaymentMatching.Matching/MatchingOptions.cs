@@ -38,6 +38,14 @@ public sealed record MatchingOptions
     /// </summary>
     public bool DeferAiWithoutGateway { get; init; }
 
+    /// <summary>
+    /// When the gateway's call budget is used up before any model was asked, leave the payment undecided
+    /// for a later run instead of sending it to a person. The daily job sets it when only the per-sandbox
+    /// daily limit stops the call; when the app-wide budget is used up the payment goes to a person with
+    /// <see cref="Flags.AiBudgetUsedUp"/> (ADR 0013).
+    /// </summary>
+    public bool DeferAiWhenBudgetExhausted { get; init; }
+
     /// <summary>Most invoices the model ever sees for one payment.</summary>
     public int MaxCandidates { get; init; } = 8;
 

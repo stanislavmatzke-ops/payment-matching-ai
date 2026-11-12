@@ -59,6 +59,12 @@ public static class Flags
     public const string VsTypo = "vs_typo";
     public const string MultiInvoice = "multi_invoice";
 
+    /// <summary>
+    /// Set by code, never by a model (not in <see cref="All"/>, so not in the answer schema): the app-wide AI
+    /// budget was used up, so the payment went to a person without asking a model (ADR 0013).
+    /// </summary>
+    public const string AiBudgetUsedUp = "ai_budget_used_up";
+
     public static IReadOnlyList<string> All { get; } =
         [PromptInjection, ThirdPartyPayer, PartialPayment, Overpayment, CurrencyConversion, VsTypo, MultiInvoice];
 

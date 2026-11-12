@@ -21,7 +21,8 @@ public sealed class AiDecisionMaker(MatchingOptions options)
         if (answer is null)
         {
             var why = result.BudgetExhausted ? "AI budget exhausted" : "no usable AI answer";
-            return new Decision(payment.Id, Outcome.HumanReview, [], decidedBy, $"Rules could not decide and {why}.", Flagged(injectionDetected, []));
+            IReadOnlyList<string> codeFlags = result.BudgetExhausted && result.Calls.Count == 0 ? [Flags.AiBudgetUsedUp] : [];
+            return new Decision(payment.Id, Outcome.HumanReview, [], decidedBy, $"Rules could not decide and {why}.", Flagged(injectionDetected, codeFlags));
         }
 
         var flags = Flagged(injectionDetected, answer.Flags);

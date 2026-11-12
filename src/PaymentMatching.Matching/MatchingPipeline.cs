@@ -70,14 +70,18 @@ public sealed class MatchingPipeline(
 
         foreach (var payment in forAi)
         {
-            records.Add(Append(await DecideWithAiAsync(payment, rules[payment.Id].Rule, cancellationToken)));
+            if (await DecideWithAiAsync(payment, rules[payment.Id].Rule, cancellationToken) is { } record)
+            {
+                records.Add(Append(record));
+            }
         }
 
         var order = data.Payments.Select((p, i) => (p.Id, i)).ToDictionary(x => x.Id, x => x.i);
         return new RunReport(records.OrderBy(r => order[r.PaymentId]).ToList(), reused);
     }
 
-    private async Task<AuditRecord> DecideWithAiAsync(BankPayment payment, string ruleCode, CancellationToken cancellationToken)
+    /// <summary>Null when the payment is left undecided for a later run (<see cref="MatchingOptions.DeferAiWhenBudgetExhausted"/>).</summary>
+    private async Task<AuditRecord?> DecideWithAiAsync(BankPayment payment, string ruleCode, CancellationToken cancellationToken)
     {
         var key = DecisionLog.KeyFor(payment);
         var unavailable = log.MatchedInvoices;
@@ -108,6 +112,12 @@ public sealed class MatchingPipeline(
             AiMatchAnswer.Parse,
             a => !escalate || (a.Decision != AiMatchAnswer.Uncertain && a.Confidence >= options.EscalationConfidence),
             cancellationToken);
+
+        if (result.BudgetExhausted && result.Calls.Count == 0 && options.DeferAiWhenBudgetExhausted)
+        {
+            // No model was asked: the payment waits for the next run instead of going to a person.
+            return null;
+        }
 
         var validation = result.Value is { Decision: AiMatchAnswer.Match or AiMatchAnswer.Uncertain } answer
             ? _validator.Validate(payment, answer.InvoiceNumbers, candidates, unavailable, injection)
