@@ -19,8 +19,19 @@ public sealed class Workspace
     private readonly Dictionary<string, BankPayment> _paymentById;
     private readonly Dictionary<string, AuditRecord> _decisionByPayment;
 
-    public Workspace(MatchingDataset data, IEnumerable<AuditRecord> decisions, IProposalStore proposals, MatchingOptions? options = null)
+    private readonly IReadOnlySet<string> _resolvedByPerson;
+
+    /// <param name="humanMatches">Invoice → payment matched by a person in the app (its decisions live outside the audit log).</param>
+    /// <param name="resolvedByPerson">Payments a person has already decided in the app.</param>
+    public Workspace(
+        MatchingDataset data,
+        IEnumerable<AuditRecord> decisions,
+        IProposalStore proposals,
+        MatchingOptions? options = null,
+        IReadOnlyDictionary<string, string>? humanMatches = null,
+        IReadOnlySet<string>? resolvedByPerson = null)
     {
+        _resolvedByPerson = resolvedByPerson ?? new HashSet<string>();
         Data = data;
         Proposals = proposals;
         Options = options ?? MatchingOptions.Default;
@@ -41,6 +52,7 @@ public sealed class Workspace
         MatchedInvoices = _decisionByPayment.Values
             .Where(r => r.Decision.Outcome == Outcome.AutoMatched)
             .SelectMany(r => r.Decision.InvoiceNumbers.Select(n => (Invoice: n, r.PaymentId)))
+            .Concat((humanMatches ?? new Dictionary<string, string>()).Select(m => (Invoice: m.Key, PaymentId: m.Value)))
             .GroupBy(x => x.Invoice, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.First().PaymentId, StringComparer.Ordinal);
     }
@@ -80,9 +92,13 @@ public sealed class Workspace
         var data = await TenantData.LoadDatasetAsync(db, cancellationToken);
 
         // Read-only: the store is loaded for its records and never appended to.
-        var decisions = (await DbDecisionStore.LoadAsync(db, cancellationToken)).Records.ToList();
-        return new Workspace(data, decisions, await DbProposalStore.LoadAsync(db, cancellationToken));
+        var store = await DbDecisionStore.LoadAsync(db, cancellationToken);
+        var decisions = store.Records.ToList();
+        var resolved = (await db.Reviews.AsNoTracking().Select(r => r.PaymentId).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
+        return new Workspace(data, decisions, await DbProposalStore.LoadAsync(db, cancellationToken), null, store.HumanMatches, resolved);
     }
+
+    public bool ResolvedByPerson(string paymentId) => _resolvedByPerson.Contains(paymentId);
 
     public BankPayment? Payment(string id) => _paymentById.GetValueOrDefault(id.Trim());
 
@@ -90,7 +106,5 @@ public sealed class Workspace
 
     public string Status(string paymentId) => PaymentStatus.Of(Decision(paymentId));
 
-    public bool LooksLikeInjection(BankPayment payment) =>
-        InjectionDetector.LooksLikeInjection($"{payment.Message} {payment.CounterpartyName} {payment.VariableSymbol}")
-        || Decision(payment.Id)?.Decision.Flags.Contains(Flags.PromptInjection) == true;
+    public bool LooksLikeInjection(BankPayment payment) => ProposalChecks.InjectionSuspected(payment, Decision(payment.Id));
 }

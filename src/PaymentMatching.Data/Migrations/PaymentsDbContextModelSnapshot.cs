@@ -205,6 +205,40 @@ namespace PaymentMatching.Data.Migrations
                     b.ToTable("proposals", (string)null);
                 });
 
+            modelBuilder.Entity("PaymentMatching.Data.ReviewRow", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DecisionKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PaymentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Record")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("TenantId", "DecisionKey");
+
+                    b.HasIndex("TenantId", "PaymentId");
+
+                    b.ToTable("reviews", (string)null);
+                });
+
             modelBuilder.Entity("PaymentMatching.Data.TenantRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -318,6 +352,15 @@ namespace PaymentMatching.Data.Migrations
                 });
 
             modelBuilder.Entity("PaymentMatching.Data.ProposalRow", b =>
+                {
+                    b.HasOne("PaymentMatching.Data.TenantRow", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PaymentMatching.Data.ReviewRow", b =>
                 {
                     b.HasOne("PaymentMatching.Data.TenantRow", null)
                         .WithMany()

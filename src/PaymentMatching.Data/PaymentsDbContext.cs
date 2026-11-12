@@ -30,6 +30,8 @@ public sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> option
 
     public DbSet<ProposalRow> Proposals => Set<ProposalRow>();
 
+    public DbSet<ReviewRow> Reviews => Set<ReviewRow>();
+
     /// <summary>Read by the query filters at query time (EF Core parameterizes it per context instance).</summary>
     internal Guid CurrentTenantId => tenant.TenantId;
 
@@ -107,6 +109,15 @@ public sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> option
             e.HasKey(p => new { p.TenantId, p.Id });
             e.HasIndex(p => new { p.TenantId, p.PaymentId });
             e.Property(p => p.Record).HasColumnType("jsonb");
+        });
+
+        modelBuilder.Entity<ReviewRow>(e =>
+        {
+            e.ToTable("reviews");
+            e.HasKey(r => new { r.TenantId, r.DecisionKey });
+            e.HasIndex(r => new { r.TenantId, r.PaymentId });
+            e.Property(r => r.Action).HasMaxLength(32);
+            e.Property(r => r.Record).HasColumnType("jsonb");
         });
 
         // Every tenant-owned type: a filter on the current tenant and a cascade from the tenant row.

@@ -64,7 +64,11 @@ public sealed class DbDecisionStore : IDecisionStore
 
     public IReadOnlyCollection<AuditRecord> Records => _memory.Records;
 
-    public IReadOnlySet<string> MatchedInvoices => _memory.MatchedInvoices;
+    /// <summary>Invoices matched automatically and invoices a person matched in the app: neither may be matched again.</summary>
+    public IReadOnlySet<string> MatchedInvoices => _memory.MatchedInvoices.Concat(HumanMatches.Keys).ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>Invoice → payment matched by a person (confirmed proposal or manual match); not part of the audit records.</summary>
+    public IReadOnlyDictionary<string, string> HumanMatches { get; private set; } = new Dictionary<string, string>();
 
     public static async Task<DbDecisionStore> LoadAsync(PaymentsDbContext db, CancellationToken cancellationToken = default)
     {
@@ -75,6 +79,10 @@ public sealed class DbDecisionStore : IDecisionStore
             store._memory.Append(DecisionLog.Deserialize(json));
         }
 
+        var auto = store._memory.MatchedInvoices;
+        store.HumanMatches = (await db.InvoiceMatches.AsNoTracking().Select(m => new { m.InvoiceNumber, m.PaymentId }).ToListAsync(cancellationToken))
+            .Where(m => !auto.Contains(m.InvoiceNumber))
+            .ToDictionary(m => m.InvoiceNumber, m => m.PaymentId, StringComparer.Ordinal);
         return store;
     }
 

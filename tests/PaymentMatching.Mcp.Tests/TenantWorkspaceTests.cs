@@ -87,6 +87,38 @@ public class TenantWorkspaceTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Decisions_a_person_made_in_the_app_close_the_payment_and_its_invoices_for_agents()
+    {
+        var (cs, a, _) = await TwoSandboxes(postgres);
+        string matchedPayment, rejectedPayment, invoice;
+        await using (var db = PaymentsDb.ForTenant(cs, a))
+        {
+            var state = await SandboxState.LoadAsync(db, null, Ct);
+            var actionable = state.Data.Payments.Where(p => state.IsActionable(p.Id)).ToList();
+            (matchedPayment, rejectedPayment) = (actionable[0].Id, actionable[1].Id);
+            invoice = state.OpenInvoices()[0].Number;
+            var actions = new ReviewActions(db, TimeProvider.System);
+            var preview = await actions.PreviewAsync(matchedPayment, [invoice], Ct);
+            Assert.Equal(ReviewOutcome.Done, (await actions.MatchManuallyAsync(matchedPayment, [invoice], preview.Failures, Ct)).Outcome);
+            Assert.Equal(ReviewOutcome.Done, (await actions.RejectAsync(rejectedPayment, Ct)).Outcome);
+        }
+
+        var workspace = await Workspace.LoadAsync(PaymentsDb.ForTenant(cs, a), Ct);
+        var queries = new PaymentQueries(workspace);
+
+        Assert.Equal(matchedPayment, workspace.MatchedInvoices[invoice]);
+        foreach (var payment in new[] { matchedPayment, rejectedPayment })
+        {
+            var error = Assert.Throws<McpException>(() => queries.ProposeMatch(payment, [workspace.Data.Invoices[^1].Number], "Agent tries anyway."));
+            Assert.Contains("person has already decided", error.Message, StringComparison.Ordinal);
+        }
+
+        var other = queries.ListUnmatched(50).Payments.First(p => p.Id != matchedPayment && p.Id != rejectedPayment).Id;
+        var taken = Assert.Throws<McpException>(() => queries.ProposeMatch(other, [invoice], "Agent proposes a taken invoice."));
+        Assert.Contains($"{invoice} → {matchedPayment}", taken.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Unknown_tenant_does_not_start()
     {
         var (cs, _, _) = await TwoSandboxes(postgres);

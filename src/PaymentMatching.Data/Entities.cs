@@ -142,3 +142,26 @@ public sealed class ProposalRow : ITenantOwned
 
     public required string Record { get; set; }
 }
+
+/// <summary>
+/// A person's decision on one payment in the app (confirm a proposal, reject, match manually).
+/// The primary key (tenant, decision key) – the payment line's idempotency key – means a payment is
+/// decided by a person once; a double click or two tabs cannot decide it twice. Never updated.
+/// </summary>
+public sealed class ReviewRow : ITenantOwned
+{
+    public Guid TenantId { get; set; }
+
+    public required string DecisionKey { get; set; }
+
+    public required string PaymentId { get; set; }
+
+    public required string Action { get; set; }
+
+    public Guid UserId { get; set; }
+
+    public DateTimeOffset At { get; set; }
+
+    /// <summary>The full <see cref="HumanDecision"/> as JSON.</summary>
+    public required string Record { get; set; }
+}

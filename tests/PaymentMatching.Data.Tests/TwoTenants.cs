@@ -16,7 +16,7 @@ internal sealed class FixedTime(DateTimeOffset now) : TimeProvider
 
 /// <summary>
 /// Two tenants in a fresh database with <b>identical ids</b> (same customers, invoices, payments,
-/// a decision, an invoice match and a proposal). Only the tenant filter can tell their rows apart.
+/// a decision, an invoice match, a proposal and a person's review). Only the tenant filter can tell their rows apart.
 /// </summary>
 internal sealed class TwoTenants
 {
@@ -37,6 +37,9 @@ internal sealed class TwoTenants
     public Guid B { get; }
 
     public MatchingDataset Data { get; }
+
+    /// <summary>The payment a person rejected in both tenants (so every table has rows); other tests leave it alone.</summary>
+    public string RejectedPaymentId { get; private set; } = "";
 
     public DbContextOptions<PaymentsDbContext> Options => PaymentsDb.Options(ConnectionString);
 
@@ -68,5 +71,10 @@ internal sealed class TwoTenants
         var proposal = new Proposal(Proposal.IdFor(payment.Id, [Data.Invoices[0].Number]), payment.Id, [Data.Invoices[0].Number], "test", Proposal.ByMcpAgent, Now, []);
         db.Proposals.Add(new ProposalRow { Id = proposal.Id, PaymentId = payment.Id, At = Now, Record = Proposal.Serialize(proposal) });
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var state = await SandboxState.LoadAsync(db, null, TestContext.Current.CancellationToken);
+        RejectedPaymentId = Data.Payments.Last(p => state.IsActionable(p.Id)).Id;
+        var rejected = await new ReviewActions(db, new FixedTime(Now)).RejectAsync(RejectedPaymentId, TestContext.Current.CancellationToken);
+        Assert.Equal(ReviewOutcome.Done, rejected.Outcome);
     }
 }
