@@ -117,7 +117,7 @@
     - injection bez kandidátů rozhodne politika bez modelu, takže některé dny dávka model nepotřebuje vůbec,
     - měsíční rozpočet se hlídá rezervou $0,05 na volání (ne přesnou cenou dopředu),
     - souběh dvou instancí jobu může strop přetáhnout o volání; v Azure parallelism 1 + spend limit v konzoli.
-  - _Útrata:_ $0 (žádný `live` běh; volitelný živý běh nabídnut s odhadem).
+  - _Útrata:_ $0,0007. Jeden živý běh jobu nad lokální DB se souhlasem uživatele (odhad ≤ 5 volání, < $0,02). Skutečnost: 2 volání Haiku v jediném sandboxu, který ještě měl denní limit; ostatní sandboxy ho ten den vyčerpaly stub během, a protože ledger počítá i volání stubu, jejich platby čekají na další den. Výsledek: 1 automatické spárování (confidence 0,96) a 1 platba pro člověka (0,80).
 - [ ] **Fáze 10** – **Observabilita** – OpenTelemetry, cena a tokeny v trace, Application Insights.
 - [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
