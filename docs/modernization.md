@@ -117,7 +117,48 @@ partial payments without a lower limit (Q-02), absolute 5 000 CZK advance overpa
 bank movements detected by name (Q-05), foreign currency left for manual work (Q-06), no payer
 check (Q-07), invoice currency not checked (R-09).
 
-## 4. Strangler fig (phase 4+)
+## 4. Strangler fig: AI on top of the rules (phase 4, done)
 
-_To do: rules stay as the first layer, AI is added only on top of them. Show that AI broke nothing
-that worked._
+The rules stay as layer 1, unchanged. Layer 2 handles only what they cannot decide (ADR 0006):
+
+```
+statement ─► layer 1: ported rules ─► policy (Q-02, Q-07) ─► auto match / person / no match
+                                         │ rules could not decide
+                                         ▼
+             candidates chosen by code ─► AI gateway (small → large model) ─► validation by code
+                                                                               ─► auto / person / no match
+```
+
+How we show that AI broke nothing that worked:
+
+- Layer 1 inside the pipeline is **byte-identical with `port_matches.csv`** on both golden sets (test).
+- AI never sees or changes a payment the rules decided (test: same decisions with and without AI).
+- Two business decisions changed what "automatic" means: partial payments (Q-02) and third-party
+  payers (Q-07) now go to a person. That is a deliberate change, not a side effect of AI.
+
+### Results on `data/sample` (300 payments, real Claude answers, recorded)
+
+| | Legacy | Port (phase 3) | Rules + AI (phase 4) |
+|---|---|---|---|
+| Matched without a person | 197 (65.7 %) | 195 (65.0 %) | **228 (76.0 %)** |
+| … **wrong invoice** | 3 | 0 | **0** |
+| … correct invoice, should have gone to a person | 34 | 34 | **0** |
+| Precision of automatic matches | 81.2 % | 82.6 % | **100 %** |
+| Prompt injections matched | 0 | 0 | 0 (all 15 flagged) |
+
+76 % is the ceiling of this dataset: the other 24 % should go to a person or stay unmatched, and
+they do. By case: exact VS 135/135, VS in message 30/30, VS typo 24/24, multi-invoice 24/24, EUR
+15/15 matched automatically; partial/overpayments 24/24 and third-party payers 18/18 to a person;
+unrelated 15/15 and injections 15/15 not matched.
+
+AI cost: 79 of 300 payments reached the model (the others were decided by rules or had no
+candidate). 92 calls: 79 × Claude Haiku 5.5, 13 escalations to Claude Opus 5.5. **$0.20 for the
+run, $0.68 per 1 000 payments**; latency per AI payment p50 2.1 s, p95 5.2 s. Opus makes up 85 % of
+the cost, and 8 of its 13 calls were overpayments whose outcome is "a person" anyway. Not escalating
+those is the first cost optimisation for phase 5 (needs an eval run).
+
+An honest caveat: on synthetic data, the code (candidate selection + validation) does most of the
+work. A deterministic stub that just takes the code's first suggestion reaches the same numbers. The
+model's job here is to choose between prepared candidates, recognise injections and explain the
+decision to the reviewer. Phase 5 evaluates it on harder cases and compares rules only, rules +
+stub and rules + model.

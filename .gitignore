@@ -489,3 +489,6 @@ $RECYCLE.BIN/
 
 # Legacy build output
 legacy/delphi/bin/
+
+# Match.Cli output (matches.csv, audit.jsonl)
+out/

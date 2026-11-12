@@ -737,6 +737,8 @@ Port notes for byte-identical output:
 2. **Q-02 Partial payments.** Should a partial payment be matched automatically (`C`) at all,
    given "a wrong match is worse than none"? Is there a minimum share? Should the invoice stay
    open for the rest of the amount? Why are partial payments allowed for `FIELD` but not for `MSG`?
+   _Decided in phase 4 (ADR 0006): never automatic. A person confirms it with a prefilled proposal and
+   the paid share; the invoice stays open. The rules still return `C`; layer 2 routes it._
 3. **Q-03 Fuzzy lookup.** Was it meant only for a cut-off **prefix** (as the comment says) or for
    any substring? What should happen when several invoices qualify?
 4. **Q-04 Advance overpayment.** Is 5 000 CZK an absolute limit on purpose, or should it be
@@ -746,17 +748,24 @@ Port notes for byte-identical output:
 6. **Q-06 Foreign currency.** The 2005 decision was "by hand". `docs/data-format.md` expects EUR
    payments for CZK invoices to be matched automatically. Which rate and which tolerance apply?
    Should `-/CURRENCY` stay status `N` or become `X`?
+   _Phase 4: layer 2 matches an EUR payment to one CZK invoice the payment names, if the implied rate
+   is 24.00–26.50 CZK/EUR (to be replaced by the daily CNB rate ± margin)._
 7. **Q-07 Payer check.** Must the payer (IBAN or name) belong to the invoice customer before a
    message-based match is accepted? How are third-party payers (parent company, factoring)
    handled?
+   _Decided in phase 4 (ADR 0006): an automatic match needs the payer account to belong to the
+   invoice customer, except an exact VS in the VS field with a fitting amount. Third-party payers go
+   to a person with the flag `third_party_payer`._
 8. **Q-08 Earlier runs.** Should invoices paid in earlier runs be known (PL/SQL kept `paid_flag`,
    Delphi does not)? Where does that state live after the port?
+   _Phase 4: the decision log keeps matched invoices across runs (JSON Lines now, PostgreSQL in phase 7)._
 9. **Q-09 Which implementation is right** where Delphi and PL/SQL differ (section 3)? The README
    names Delphi as the reference – is that a business decision or just "the one that runs"?
 10. **Q-10 Invalid input.** Should unparseable amounts, short lines and duplicate IDs stop the run,
     be reported, or be skipped as today?
 11. **Q-11 Multi-invoice payments.** Should one payment be split across several invoices of one
     customer? The output column is already called `invoice_numbers`.
+    _Phase 4: yes, 2–4 invoices of one customer whose total fits, proposed by layer 2 and validated by code._
 12. **Q-12 Uncertain from code alone** (needs a test, not a business answer): exact FPC behaviour of
     `ReadLn` with `\r\n` input, `StrToFloat` with a `,` thousands separator in the default format
     settings, and `FormatFloat` rounding / negative zero for values with more than 2 decimals.

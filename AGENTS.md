@@ -43,6 +43,9 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 - generátor dat: `dotnet run --project tools/DataGen.Cli -- --seed 42 --payments 300 --out data/sample`
 - .NET pravidla nad adresářem s CSV: `dotnet run --project tools/Rules.Cli -- data/sample legacy/golden/seed-42/port_matches.csv` (po změně pravidel přegenerovat obě `port_matches.csv`, jinak test selže)
 - legacy (přeložit + spustit, potřebuje Docker): `bash legacy/run-legacy.sh data/sample legacy/golden/seed-42/legacy_matches.csv`
+- párování celou pipeline (pravidla → AI → validace): `dotnet run --project tools/Match.Cli -- data/sample --out out/match --mode stub|replay|record|live|rules` (`stub` a `replay` bez klíče; audit `out/match/audit.jsonl` se drží mezi běhy kvůli idempotenci)
+- API klíč (jen pro `record`/`live`): `dotnet user-secrets set "Anthropic:ApiKey" "<klíč>" --id payment-matching-ai` (nebo env `ANTHROPIC_API_KEY`)
+- nové nahrávky modelu po změně promptu / kandidátů: `--mode record` (ukládá do `evals/recordings/`, commitnout)
 - eval (replay): _(fáze 5)_
 - eval (live, ručně): _(fáze 5)_
 - lokální běh: `docker compose up -d` (zatím jen PostgreSQL)

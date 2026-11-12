@@ -22,7 +22,24 @@
     - `port_matches.csv`, ADR 0004, `docs/modernization.md` krok 1 a 3.
   - _Výsledek proti ground truth:_ 0 plateb na špatnou fakturu (legacy 3 / 19), všech 450 přesných shod spárováno (legacy 443), přesnost auto párování 82,4 %. Zbytek tvoří jen případy pro člověka (částečné úhrady, třetí strany), a to je úkol fáze 4.
   - _Otevřené pro tebe:_ obchodní otázky Q-01..Q-12 v `business-rules.md`, hlavně Q-02 (automatické částečné úhrady) a Q-07 (kontrola plátce). Zatím chování zůstává jako v legacy.
-- [ ] **Fáze 4** – **AI gateway + AI párování** (structured output, validace, routing, audit, idempotence).
+- [x] **Fáze 4** – **AI gateway + AI párování** (structured output, validace, routing, audit, idempotence).
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - `src/PaymentMatching.AiGateway`: provider abstrakce, oficiální Anthropic SDK, routing Haiku 5.5 → Opus 5.5, timeout, strop volání, tokeny a cena, record/replay,
+    - `src/PaymentMatching.Matching`: politika nad pravidly (Q-02, Q-07), výběr kandidátů kódem, prompt `prompts/match-payment.v1.md`, striktní structured output, validace kódem, rozhodování, append-only audit log s idempotencí,
+    - `tools/Match.Cli`: režimy `stub|replay|record|live|rules`,
+    - 92 nahrávek reálných odpovědí v `evals/recordings/`,
+    - ADR 0005–0007, `modernization.md` krok 4, stav Q-02/Q-06/Q-07/Q-08/Q-11 v `business-rules.md`.
+  - _Výsledek na `data/sample` (reálný model):_ automatizace 76,0 % (strop sady), přesnost auto párování 100 % (port 82,6 %), 0 špatných faktur, 15/15 injection zachyceno, $0,68 za 1 000 plateb, p50 2,1 s / p95 5,2 s na AI platbu. 191 testů.
+  - _Rozhodnuto (schváleno v plánu fáze):_
+    - Q-02: částečné úhrady a přeplatky záloh jdou vždy člověku s návrhem.
+    - Q-07: auto párování vyžaduje IBAN odběratele (výjimka: přesný VS v poli + částka); třetí strany jdou člověku.
+  - _Odchylky od SPEC:_
+    - audit a idempotence zatím v JSONL souboru (`DecisionLog`), PostgreSQL až s tenanty ve fázi 7,
+    - EUR kurz zatím pevné pásmo 24,00–26,50, ne denní kurz ČNB.
+  - _Pro fázi 5:_
+    - neeskalovat odpovědi, které stejně jdou člověku (8 z 13 volání Opus = 85 % ceny),
+    - kalibrace prahů,
+    - srovnání pravidla / stub / model na těžších datech.
 - [ ] **Fáze 5** – **Evaly** – zlatá sada, runner, reporty, replay v CI, práh v CI.
 - [ ] **Fáze 6** – **MCP server** + návod pro Claude Desktop / Code.
 - [ ] **Fáze 7** – **Multi-tenant + přihlášení** – Microsoft/Google login, sandbox na uživatele, startovní data, testy izolace.
@@ -86,5 +103,16 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - `double` → `decimal` (F3) bez jediné změny výstupu. Golden master z toho udělal bezpečný refaktoring.
 - Test „každý rozdíl musí být vysvětlený“ hned **dvakrát chytil nepředvídané důsledky F1**: z `DUPLICATE` se může stát i `OVERPAID`, a VS může pocházet i ze zprávy. Agent to v prvním návrhu klasifikátoru nedomyslel, test ho opravil. Přesně tohle má test dělat.
 - Fuzzy chyba v legacy blokovala i správné platby od třetích stran a s VS ve zprávě (2 případy v sadě 1 000), nejen přesné shody.
+
+**Fáze 4 (2026-11-12)**
+- Plán vznikl v nové session jen z PLAN/SPEC/ADR/business-rules, bez doptávání. Politiku pro Q-02/Q-07 agent navrhl až po spojení výstupu portu s ground truth podle typu případu.
+- **Validaci prolomil stub, ne model.** Deterministický stub (bere první návrh kódu) spároval EUR platbu s kombinací dvou jiných faktur téhož odběratele. Pásmo kurzu je široké ~10 %, takže se do něj součet „vešel“. Test s náhodným modelem to předtím přešel **náhodou**. Oprava:
+  - test nahrazen vyčerpávajícím: každá množina 1–4 kandidátů jako „odpověď modelu“ nad 1 300 platbami; našel 8 + 37 děr, všechny EUR,
+  - dvě nová pravidla validace: platba musí fakturu jmenovat (VS / číslo ve zprávě) a EUR platí jen jednu fakturu,
+  - poté 0 děr.
+- Replay test nejdřív selhal: CLI a testy měly jiné `MaxTokens`, a ty jsou součástí klíče nahrávky. Oprava: jedna definice modelů (`ModelSettings`).
+- Odhad ceny nahrávání „< $0,20“ těsně nevyšel ($0,205): 85 % ceny tvoří eskalace na Opus.
+- Drobnosti, které chytil build/test: neuzavřený `sed` v heredocu (soubory se nezapsaly), `--` v XML komentáři csproj, `JsonException` místo `FormatException` z parseru, porovnání recordů se seznamy přes referenci.
+- Model (Haiku) v jednom zdůvodnění tvrdil, že zpráva jmenuje obě faktury, přitom jmenovala jednu. Rozhodnutí bylo správně, zdůvodnění ne. Proto zdůvodnění není důkaz a rozhoduje validace.
 
 - Permission prompty v Claude Code zdržovaly; uživatel povolil běžné příkazy v `.claude/settings.local.json` (mimo git).
