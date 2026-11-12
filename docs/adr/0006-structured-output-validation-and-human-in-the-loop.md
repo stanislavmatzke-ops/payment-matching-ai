@@ -63,3 +63,11 @@ app (phase 7) these become unique indexes in PostgreSQL.
 - Thresholds (0.90) and the EUR band are first guesses; phase 5 evals calibrate them.
 - On synthetic data the code does most of the work; the model mostly picks between prepared
   candidates and explains. The evals of phase 5 compare rules only, rules + stub, and rules + model.
+
+## Update (phase 5)
+
+- The eval gold set found ties: two invoices or combinations that pass every check. Validation now
+  also requires the proposal to be the **only** candidate set that passes (`AMBIGUOUS`); a tie goes
+  to a person. See ADR 0008.
+- The 0.90 threshold was checked against recorded answers and kept; escalation now happens only when
+  an automatic match is still possible. See ADR 0009.

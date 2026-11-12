@@ -40,12 +40,14 @@ Referenční projekt **Párování plateb s AI – od legacy k AI-native**. Ukaz
 - build: `dotnet build`
 - test: `dotnet test` (xUnit v3 na Microsoft.Testing.Platform, nastaveno v `global.json`)
 - formát: `dotnet format --verify-no-changes` (CI), `dotnet format` (opravit)
-- generátor dat: `dotnet run --project tools/DataGen.Cli -- --seed 42 --payments 300 --out data/sample`
+- generátor dat: `dotnet run --project tools/DataGen.Cli -- --seed 42 --payments 300 --out data/sample` (`--profile eval` přidá těžké případy zlaté sady)
 - .NET pravidla nad adresářem s CSV: `dotnet run --project tools/Rules.Cli -- data/sample legacy/golden/seed-42/port_matches.csv` (po změně pravidel přegenerovat obě `port_matches.csv`, jinak test selže)
 - legacy (přeložit + spustit, potřebuje Docker): `bash legacy/run-legacy.sh data/sample legacy/golden/seed-42/legacy_matches.csv`
 - párování celou pipeline (pravidla → AI → validace): `dotnet run --project tools/Match.Cli -- data/sample --out out/match --mode stub|replay|record|live|rules` (`stub` a `replay` bez klíče; audit `out/match/audit.jsonl` se drží mezi běhy kvůli idempotenci)
 - API klíč (jen pro `record`/`live`): `dotnet user-secrets set "Anthropic:ApiKey" "<klíč>" --id payment-matching-ai` (nebo env `ANTHROPIC_API_KEY`)
 - nové nahrávky modelu po změně promptu / kandidátů: `--mode record` (ukládá do `evals/recordings/`, commitnout)
-- eval (replay): _(fáze 5)_
-- eval (live, ručně): _(fáze 5)_
+- eval (replay, jako CI, bez klíče): `dotnet run --project tools/Eval.Cli` (zlatá sada `evals/dataset/gold-v1`, report `out/eval/report.md`, exit 1 = gate neprošel)
+- eval (nahrát chybějící odpovědi, stojí peníze): `dotnet run --project tools/Eval.Cli -- --mode record` (report do `evals/reports/`, nahrávky commitnout)
+- eval (live, ručně, nic neukládá; rozptyl mezi běhy): `dotnet run --project tools/Eval.Cli -- --mode live --configs routing --repeat 3`
+- zlatá sada je zmrazená (`MANIFEST.sha256`); opravy jen jako nová verze (`gold-v2`), viz `evals/dataset/gold-v1/REVIEW.md`
 - lokální běh: `docker compose up -d` (zatím jen PostgreSQL)

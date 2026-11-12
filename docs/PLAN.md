@@ -45,7 +45,18 @@
     - kalibrace prahů (Opus dal správné odpovědi 0,88 → člověk),
     - měřit rozptyl mezi běhy (dva nahrávací běhy: 228 vs 227 auto),
     - srovnání pravidla / stub / model na těžších datech.
-- [ ] **Fáze 5** – **Evaly** – zlatá sada, runner, reporty, replay v CI, práh v CI.
+- [x] **Fáze 5** – **Evaly** – zlatá sada, runner, reporty, replay v CI, práh v CI.
+  - _Hotovo 2026-11-12._ Vzniklo:
+    - zlatá sada `evals/dataset/gold-v1` (300 plateb, seed 5005, `--profile eval`, 30 % těžkých případů: remízy, nečitelné číslo faktury, injection bez klíčových slov), review v `REVIEW.md`, zmrazená přes `MANIFEST.sha256`,
+    - `src/PaymentMatching.Evals` (scorer, gate, rozptyl, Markdown report) + `tools/Eval.Cli` (`replay|record|live`, `--repeat`),
+    - 5 konfigurací: `rules`, `stub`, `small`, `routing-v1`, `routing`; CI krok s gate (precision ≥ 99 % a 0 spárovaných injection pro všechny, `routing` navíc cíl injection nikdy nenavržen) + report jako artifact,
+    - nové pravidlo validace `AMBIGUOUS`, eskalace jen když může změnit výsledek (výchozí), gateway umí běžet bez velkého modelu,
+    - 200 nových nahrávek, report `evals/reports/2026-11-12-…-match-payment.v1.md` + report rozptylu, ADR 0008–0009, `modernization.md` krok 5, tabulka v README, 219 testů.
+  - _Výsledek na zlaté sadě (`routing`, reálný model):_ precision 100 %, automatizace 53,3 % (strop 63,3 %; rozdíl = nečitelná čísla faktur, vědomě člověku), 40/40 injection, $0,36 za 1 000 plateb (`routing-v1` $2,21), p50 2,0 s / p95 4,1 s. Stub: 100 % precision, ale 20 cílů skrytých injection navrhl člověku. Na `data/sample` $0,64 → $0,27 za 1 000 plateb při stejných 227 auto.
+  - _Položky z fáze 4:_ eskalace vyřešena (39 → 4 volání Opus); práh 0,90 ponechán (všechny validované odpovědi ≥ 0,90 a správné, sweep 0,80–0,90 beze změny, 0,95 ubírá automatizaci); rozptyl 3 živé běhy: výsledky identické, liší se jen návrh u 8 remíz.
+  - _Odchylky od SPEC:_ runner je `tools/Eval.Cli` (ne `dotnet run --project evals`), živý eval `--mode live`. Precision gate platí pro všechny konfigurace, nejen pro produkční.
+  - _Útrata za živá volání:_ $0,67 nahrávání + $0,24 rozptyl = $0,91 (schválený strop $2,50).
+  - _Pro tebe:_ namátková kontrola 14 plateb ze zlaté sady (tabulka v `evals/dataset/gold-v1/REVIEW.md`); opravy by šly do `gold-v2`.
 - [ ] **Fáze 6** – **MCP server** + návod pro Claude Desktop / Code.
 - [ ] **Fáze 7** – **Multi-tenant + přihlášení** – Microsoft/Google login, sandbox na uživatele, startovní data, testy izolace.
 - [ ] **Fáze 8** – **UI** – seznam plateb, „kdo rozhodl“, fronta pro člověka (potvrdit / zamítnout / spárovat ručně), audit timeline, dashboard.
@@ -125,3 +136,11 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Model (Haiku) v jednom zdůvodnění tvrdil, že zpráva jmenuje obě faktury, přitom jmenovala jednu. Rozhodnutí bylo správně, zdůvodnění ne. Proto zdůvodnění není důkaz a rozhoduje validace.
 
 - Permission prompty v Claude Code zdržovaly; uživatel povolil běžné příkazy v `.claude/settings.local.json` (mimo git).
+
+**Fáze 5 (2026-11-12)**
+- Plán vznikl znovu v nové session jen z PLAN/SPEC/ADR a kódu, schválen beze změn.
+- **První eval běh našel díru ve validaci.** Stub nad zlatou sadou: precision 84,2 %, 8 plateb na špatnou fakturu. Všech 30 remíz (dvě faktury nebo kombinace se stejnou částkou) prošlo validací: ta ověřovala, že návrh *sedí*, ne že je *jediný*. Gate build shodil. Oprava: pravidlo `AMBIGUOUS` + vyčerpávající test validace nově i nad zlatou sadou a přísnější (platný návrh musí být jediný správný a smí být automatický). Ponaučení: vyčerpávající test z fáze 4 byl dobrý nástroj nad daty, ve kterých remízy nebyly. Test je jen tak dobrý jako data.
+- Skutečná přidaná hodnota modelu na těchto datech: injection bez klíčových slov (30/30 zachyceno, stub navrhl cíl člověku 20×). Na nečitelných číslech faktur model nepomůže, protože automatické párování smí jen to, co ověří kód. Parser se vědomě nerozšiřoval podle formátů generátoru (přeučení na vlastní data).
+- Nové pravidlo eskalace snížilo volání Opus 39 → 4 při stejných výsledcích. Rozhodnutí je kód (stejný validátor), ne úsudek modelu.
+- Nahrávací běh v režimu `record` zahrnul i sweep prahů: jiný práh mění, které faktury se spárují dřív, takže pozdější platby dostanou jiné kandidáty a vzniklo 25 volání Haiku navíc (~$0,01). Neškodné, ale poučné: „sweep zdarma“ platí jen pro replay.
+- Drobnosti, co agent pokazil: heredoc + Python (Windows Store stub) nezapsal nic → Write/Edit; `sed` se zpětnými lomítky v cestách csproj tiše nic nenahradil (dvakrát, odhalil build); `sha256sum` na Windows píše `*` před název souboru, první manifest proto nesouhlasil (odhalil runner hned při prvním běhu).

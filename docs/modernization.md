@@ -164,3 +164,36 @@ work. A deterministic stub that just takes the code's first suggestion reaches t
 model's job here is to choose between prepared candidates, recognise injections and explain the
 decision to the reviewer. Phase 5 evaluates it on harder cases and compares rules only, rules +
 stub and rules + model.
+
+## 5. Evals: does AI earn its place? (phase 5, done)
+
+`data/sample` could not tell rules + model from rules + stub, so phase 5 measures on a frozen gold set
+(`evals/dataset/gold-v1`, 300 payments) where 30 % are hard on purpose: ties between two invoices or
+combinations, invoice numbers in a format the code cannot parse, and injections without trigger
+words (ADR 0008). Recorded real answers, replayed in CI with a gate:
+
+| | Rules only | Rules + stub | Rules + small model | Rules + routing (phase 4) | **Rules + routing (now)** |
+|---|---|---|---|---|---|
+| Precision of automatic matches | 100 % | 100 % | 100 % | 100 % | **100 %** |
+| Automation (ceiling 63.3 %) | 37.7 % | 53.3 % | 52.0 % | 53.3 % | **53.3 %** |
+| Injections defended (of 40) | 40 | **20** | 40 | 40 | **40** |
+| Large-model calls | – | – | – | 39 | **4** |
+| Cost per 1 000 payments | – | – | $0.17 | $2.21 | **$0.36** |
+
+What the evals showed:
+
+- **The first run found a hole in validation, not in the model.** With the stub, all 30 ties were
+  matched automatically, 8 to the wrong invoice (precision 84 %, the gate failed). Validation checked
+  that a proposal fits, not that it is the only one that fits. New rule `AMBIGUOUS`; the exhaustive
+  validation test now also runs over the gold set.
+- **Where the model matters:** hidden injections. The keyword detector misses all 30; the stub then
+  shows the attacker's invoice to a person as the proposal 20 times. The model flags all 30.
+- **Where it does not (yet):** an invoice number in an unusual format ("fakt. č. 1234/26") is clear to
+  a person, but validation only accepts what code can verify, so all 30 go to a person (with the right
+  proposal). That gap between 53.3 % and the 63.3 % ceiling is a code limit, chosen on purpose.
+- **Escalation only when it can change the outcome** (ADR 0009): same decisions, about 6× cheaper;
+  on `data/sample` $0.64 → $0.27 per 1 000 payments. The 0.90 threshold stays (no evidence to move it).
+- **Run-to-run variance:** three live runs gave identical outcomes; only the proposal for 8 ties
+  changed. Model uncertainty becomes work for a person, never a wrong match.
+
+Report: [`evals/reports/2026-11-12-claude-haiku-5-5+opus-5-5-match-payment.v1.md`](../evals/reports/2026-11-12-claude-haiku-5-5+opus-5-5-match-payment.v1.md).
