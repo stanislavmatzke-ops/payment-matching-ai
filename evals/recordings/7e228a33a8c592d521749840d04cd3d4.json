@@ -1,0 +1,17 @@
+{
+  "requestHash": "7e228a33a8c592d521749840d04cd3d4",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Čerpaton Elektro a.s. (C040)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1334\",\n      \"variable_symbol\": \"2026001334\",\n      \"customer\": \"Čerpaton Elektro a.s. (C040)\",\n      \"kind\": \"Regular\",\n      \"amount\": 6341.01,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-29\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 6341.01,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Čerpaton Elektro a.s\",\n  \"variable_symbol\": \"\",\n  \"message\": \"doklad 1334-26 děkujeme\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate exactly (6341.01 CZK), payer account belongs to the customer, and the message 'doklad 1334-26' references invoice 2026-1334 in a reordered but recognizable form. VS is empty, so identification rests on the message alone, which is a reasonable but not airtight link.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1334\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1885,
+      "outputTokens": 154,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.5980732"
+  }
+}

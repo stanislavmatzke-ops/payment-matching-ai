@@ -1,0 +1,17 @@
+{
+  "requestHash": "a57ab274d1f81cd1bc471e07a6312b01",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Řemenda Tiskárna a.s. (C030)\",\n  \"booking_date\": \"2026-03-31\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1315\",\n      \"variable_symbol\": \"2026001315\",\n      \"customer\": \"Řemenda Tiskárna a.s. (C030)\",\n      \"kind\": \"Regular\",\n      \"amount\": 232181.91,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-24\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 232181.91,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Remenda Tiskarna a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"inv 26-1315\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"The candidate invoice 2026-1315 for Řemenda Tiskárna a.s. (C030) matches the amount exactly in CZK, and the payer account belongs to that customer. The message 'inv 26-1315' references the invoice number in a short form that corresponds to 2026-1315, though the VS is empty. No conflicting signals found.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1315\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1881,
+      "outputTokens": 164,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.4675554"
+  }
+}

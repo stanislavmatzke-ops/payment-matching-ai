@@ -1,0 +1,17 @@
+{
+  "requestHash": "709f0cff473f45949f6d7b2ad41401e4",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lunexa Logistika a.s. (C006)\",\n  \"booking_date\": \"2026-03-27\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1168\",\n      \"variable_symbol\": \"2026001168\",\n      \"customer\": \"Lunexa Logistika a.s. (C006)\",\n      \"kind\": \"Regular\",\n      \"amount\": 84731.70,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-04\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 84731.70,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"LUNEXA LOGISTIKA A.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"doklad 1168-26 děkujeme\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches invoice 2026-1168 exactly (84731.70 CZK), payer account belongs to the customer C006, and the message 'doklad 1168-26' refers to the invoice number in a shortened form. VS is empty, so identification relies on the message; the reference is reasonably clear but not in the exact standard format, so confidence is moderate.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1168\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1888,
+      "outputTokens": 166,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.0765710"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "bd82ab9fcdc7a559dba15ff25795ab9a",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Brezlon Účetní služby s.r.o. (C046)\",\n  \"booking_date\": \"2026-02-18\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1253\",\n      \"variable_symbol\": \"2026001253\",\n      \"customer\": \"Brezlon Účetní služby s.r.o. (C046)\",\n      \"kind\": \"Regular\",\n      \"amount\": 146510.04,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-28\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1023\",\n      \"variable_symbol\": \"2026001023\",\n      \"customer\": \"Brezlon Účetní služby a.s. (C038)\",\n      \"kind\": \"Regular\",\n      \"amount\": 214510.87,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-07\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1223\",\n      \"variable_symbol\": \"2026001223\",\n      \"customer\": \"Doubrak Nábytek s.r.o. (C029)\",\n      \"kind\": \"Advance\",\n      \"amount\": 151840.93,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-26\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1323\",\n      \"variable_symbol\": \"2026001323\",\n      \"customer\": \"Trnovex Účetní služby s.r.o. (C005)\",\n      \"kind\": \"Regular\",\n      \"amount\": 3157.08,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-13\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 146510.04,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Brezlon Ucetni sluzby s.r.o.\",\n  \"variable_symbol\": \"2026001523\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 2026001523 differs from invoice 2026-1253 VS 2026001253 by swapping two adjacent digits (25 vs 52), and the amount matches exactly (146510.04 CZK), with the payer account belonging to the same customer C046. Other candidates have VS typos too but amounts and customers do not fit, so the match is strong.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1253\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2310,
+      "outputTokens": 176,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.9877214"
+  }
+}

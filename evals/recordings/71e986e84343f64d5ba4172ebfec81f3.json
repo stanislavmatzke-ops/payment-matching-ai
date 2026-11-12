@@ -1,0 +1,17 @@
+{
+  "requestHash": "71e986e84343f64d5ba4172ebfec81f3",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Sázavit Strojírny s.r.o. (C014)\",\n  \"booking_date\": \"2026-03-19\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1220\",\n      \"variable_symbol\": \"2026001220\",\n      \"customer\": \"Sázavit Strojírny s.r.o. (C014)\",\n      \"kind\": \"Regular\",\n      \"amount\": 169994.01,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-03\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 169994.01,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Sazavit Strojirny s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"inv 26-1220\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate invoice 2026-1220 exactly (169994.01 CZK), the payer account belongs to the customer C014, and the message 'inv 26-1220' names the invoice number in a short form. The VS is empty, but the message reference and exact amount with the customer's account together support a match.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1220\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1885,
+      "outputTokens": 151,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.2773399"
+  }
+}

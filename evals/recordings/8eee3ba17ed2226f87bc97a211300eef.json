@@ -1,0 +1,17 @@
+{
+  "requestHash": "8eee3ba17ed2226f87bc97a211300eef",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Brezlon Účetní služby s.r.o. (C046)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1164\",\n      \"variable_symbol\": \"2026001164\",\n      \"customer\": \"Brezlon Účetní služby s.r.o. (C046)\",\n      \"kind\": \"Regular\",\n      \"amount\": 178940.90,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-27\",\n      \"signals\": [\n        \"number_in_message\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 178940.90,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Brezlon Účetní služby s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"uhrada FA20261164\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Message names invoice 2026-1164 (FA20261164), amount matches exactly in CZK, and the payer account belongs to the invoice customer. VS is empty but the invoice number in the message is sufficient.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1164\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1899,
+      "outputTokens": 120,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.2356461"
+  }
+}

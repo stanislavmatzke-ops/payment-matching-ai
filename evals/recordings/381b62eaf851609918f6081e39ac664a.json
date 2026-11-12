@@ -1,0 +1,17 @@
+{
+  "requestHash": "381b62eaf851609918f6081e39ac664a",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Trnovex Nábytek s.r.o. (C008)\",\n  \"booking_date\": \"2026-03-13\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1283\",\n      \"variable_symbol\": \"2026001283\",\n      \"customer\": \"Trnovex Nábytek s.r.o. (C008)\",\n      \"kind\": \"Regular\",\n      \"amount\": 185420.92,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-13\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 185420.92,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Trnovex Nabytek s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fakt. č. 1283/26\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payer account belongs to customer C008, amount matches invoice 2026-1283 exactly in CZK, and the message names invoice number 1283/26 which corresponds to 2026-1283. VS is empty but the message identifies the invoice, so this is a match.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1283\"], \"confidence\": 0.95, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1889,
+      "outputTokens": 136,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4878479"
+  }
+}

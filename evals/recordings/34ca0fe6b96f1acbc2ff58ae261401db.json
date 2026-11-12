@@ -1,0 +1,17 @@
+{
+  "requestHash": "34ca0fe6b96f1acbc2ff58ae261401db",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Pernika Účetní služby s.r.o. (C001)\",\n  \"booking_date\": \"2026-03-17\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1369\",\n      \"variable_symbol\": \"2026001369\",\n      \"customer\": \"Pernika Účetní služby s.r.o. (C001)\",\n      \"kind\": \"Regular\",\n      \"amount\": 78228.32,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-14\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 78228.32,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Pernika Účetní služb\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1369 z února\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate exactly (78228.32 CZK), payer account belongs to customer C001, and the message names invoice 1369 (faktura 1369). The VS is empty, but the invoice number is identified in the message. Message mentions 'z února' (of February) while the invoice is dated around March; this is a minor oddity but the number and amount align, so a match is reasonable.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1369\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1881,
+      "outputTokens": 176,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4575468"
+  }
+}

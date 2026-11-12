@@ -1,0 +1,17 @@
+{
+  "requestHash": "ef6a5b8afbb8fef97fd1be18b055a0d0",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Morvik Stavby s.r.o. (C047)\",\n  \"booking_date\": \"2026-03-17\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1312\",\n      \"variable_symbol\": \"2026001312\",\n      \"customer\": \"Morvik Stavby s.r.o. (C047)\",\n      \"kind\": \"Regular\",\n      \"amount\": 209177.21,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-19\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1313\",\n      \"variable_symbol\": \"2026001313\",\n      \"customer\": \"Morvik Stavby s.r.o. (C047)\",\n      \"kind\": \"Regular\",\n      \"amount\": 183560.81,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1313\",\n      \"2026-1312\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 392738.02,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Morvik Stavby s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1312, 2026-1313\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoices (2026-1312 and 2026-1313), and their CZK totals sum exactly to the payment amount of 392738.02. The payer is the customer account (C047), and all invoices belong to that customer.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1312\",\"2026-1313\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2076,
+      "outputTokens": 197,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.5386857"
+  }
+}

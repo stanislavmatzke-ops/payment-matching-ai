@@ -1,0 +1,17 @@
+{
+  "requestHash": "43186ab29df613d53f1638adc54aa0f7",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Morvik Stavby s.r.o. (C047)\",\n  \"booking_date\": \"2026-03-03\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1196\",\n      \"variable_symbol\": \"2026001196\",\n      \"customer\": \"Morvik Stavby s.r.o. (C047)\",\n      \"kind\": \"Regular\",\n      \"amount\": 103542.94,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-12\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1296\",\n      \"variable_symbol\": \"2026001296\",\n      \"customer\": \"Lunexa Software s.r.o. (C059)\",\n      \"kind\": \"Regular\",\n      \"amount\": 10568.62,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-06\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1396\",\n      \"variable_symbol\": \"2026001396\",\n      \"customer\": \"Úvalka Potraviny v.o.s. (C022)\",\n      \"kind\": \"Regular\",\n      \"amount\": 166368.56,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-09\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 103542.94,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Morvik Stavby s.r.o.\",\n  \"variable_symbol\": \"202600196\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 202600196 differs from invoice 2026-1196 VS 2026001196 by one missing digit (a single typo), and it matches the invoice's total exactly (103542.94 CZK). The payer is the customer account (Morvik Stavby, C047). The other candidates have VS typos too, but their amounts and customers do not fit, so the match is to 2026-1196 alone.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1196\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2157,
+      "outputTokens": 187,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3826964"
+  }
+}

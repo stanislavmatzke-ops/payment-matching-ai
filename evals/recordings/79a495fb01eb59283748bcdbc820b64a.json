@@ -1,0 +1,17 @@
+{
+  "requestHash": "79a495fb01eb59283748bcdbc820b64a",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lunexa Software s.r.o. (C059)\",\n  \"booking_date\": \"2026-03-08\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1294\",\n      \"variable_symbol\": \"2026001294\",\n      \"customer\": \"Lunexa Software s.r.o. (C059)\",\n      \"kind\": \"Regular\",\n      \"amount\": 221981.87,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-05\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1295\",\n      \"variable_symbol\": \"2026001295\",\n      \"customer\": \"Lunexa Software s.r.o. (C059)\",\n      \"kind\": \"Regular\",\n      \"amount\": 66025.25,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-28\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1296\",\n      \"variable_symbol\": \"2026001296\",\n      \"customer\": \"Lunexa Software s.r.o. (C059)\",\n      \"kind\": \"Regular\",\n      \"amount\": 10568.62,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-06\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1294\",\n      \"2026-1296\",\n      \"2026-1295\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 298575.74,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"LUNEXA SOFTWARE S.R.O.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1294, 2026-1295, 2026-1296\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names all three invoices (2026-1294, 2026-1295, 2026-1296), and their CZK totals sum exactly to the payment amount of 298575.74. The payer account belongs to the customer, and all invoices belong to Lunexa Software s.r.o. The VS is empty, but the invoice numbers in the message identify the payment.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1294\",\"2026-1295\",\"2026-1296\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2245,
+      "outputTokens": 283,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.4465260"
+  }
+}

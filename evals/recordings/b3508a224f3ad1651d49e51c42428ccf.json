@@ -1,0 +1,17 @@
+{
+  "requestHash": "b3508a224f3ad1651d49e51c42428ccf",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Vostrex Obchod v.o.s. (C035)\",\n  \"booking_date\": \"2026-02-05\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1403\",\n      \"variable_symbol\": \"2026001403\",\n      \"customer\": \"Vostrex Obchod v.o.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 34678.85,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-17\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 34678.85,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Vostrex Obchod v.o.s.\",\n  \"variable_symbol\": \"202600403\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Candidate 2026-1403 has VS 2026001403; the bank VS 202600403 is missing one digit (the leading '1' after '2026' dropped), which is a one-digit omission consistent with a typing error. Amount matches exactly in CZK, and the payer is the customer's own account. Still, the VS differs from the invoice VS, and the message is empty, so a reviewer should confirm.\", \"decision\": \"uncertain\", \"invoice_numbers\": [\"2026-1403\"], \"confidence\": 0.7, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1889,
+      "outputTokens": 192,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.7555966"
+  }
+}

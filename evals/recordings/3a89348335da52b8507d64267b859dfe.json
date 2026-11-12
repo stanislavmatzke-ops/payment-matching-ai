@@ -1,0 +1,17 @@
+{
+  "requestHash": "3a89348335da52b8507d64267b859dfe",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lipanex Potraviny v.o.s. (C033)\",\n  \"booking_date\": \"2026-02-25\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1332\",\n      \"variable_symbol\": \"2026001332\",\n      \"customer\": \"Lipanex Potraviny v.o.s. (C033)\",\n      \"kind\": \"Regular\",\n      \"amount\": 23467.97,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-08\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1132\",\n      \"variable_symbol\": \"2026001132\",\n      \"customer\": \"Vostrex Řemeslná dílna s.r.o. (C036)\",\n      \"kind\": \"Regular\",\n      \"amount\": 162147.73,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-25\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 23467.97,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Lipanex Potraviny v.o.s.\",\n  \"variable_symbol\": \"2026003132\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment amount matches invoice 2026-1332 exactly (23467.97 CZK), payer is the customer account, and VS 2026003132 is a one-digit typo of 2026001332 (the 0/3 difference in the 7th position is a single substitution, not an adjacent swap, so it is a typo of one digit). Invoice 2026-1132 has VS 2026001132 which differs from the bank VS by two digits, so it is not a plausible match; the amount also does not fit it. Evidence is consistent with a single-invoice match with a VS typo.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1332\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2034,
+      "outputTokens": 241,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6940868"
+  }
+}

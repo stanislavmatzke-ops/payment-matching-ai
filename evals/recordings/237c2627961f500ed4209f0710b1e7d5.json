@@ -1,0 +1,17 @@
+{
+  "requestHash": "237c2627961f500ed4209f0710b1e7d5",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Vostrex Obchod v.o.s. (C035)\",\n  \"booking_date\": \"2026-03-25\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1246\",\n      \"variable_symbol\": \"2026001246\",\n      \"customer\": \"Vostrex Obchod v.o.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 73682.76,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-22\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 73682.76,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Vostrex Obchod v.o.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1246 z března\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate invoice 2026-1246 exactly (73682.76 CZK) and the payer is the customer account. The message 'faktura 1246 z března' names invoice 1246, which identifies it, though the VS is empty. Message names the number, so match is supported.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1246\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1884,
+      "outputTokens": 143,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.8928399"
+  }
+}

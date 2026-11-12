@@ -1,0 +1,17 @@
+{
+  "requestHash": "17d5061a3e6ec10a9fa8e3f15de4b0f2",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Potraviny a.s. (C015)\",\n  \"booking_date\": \"2026-03-29\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1207\",\n      \"variable_symbol\": \"2026001207\",\n      \"customer\": \"Úvalka Potraviny a.s. (C015)\",\n      \"kind\": \"Regular\",\n      \"amount\": 28926.57,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-04-03\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 28926.57,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"UVALKA POTRAVINY A.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fakt. č. 1207/26\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches exactly (28926.57 CZK), payer account belongs to the customer Úvalka Potraviny (C015), and the message 'fakt. č. 1207/26' refers to invoice 2026-1207 in a recognizable format. VS is empty, but the message identifies the invoice number, so the match is well supported.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1207\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1885,
+      "outputTokens": 158,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6277664"
+  }
+}

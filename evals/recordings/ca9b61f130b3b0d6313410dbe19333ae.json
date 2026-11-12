@@ -1,0 +1,17 @@
+{
+  "requestHash": "ca9b61f130b3b0d6313410dbe19333ae",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Čerpaton Potraviny a.s. (C045)\",\n  \"booking_date\": \"2026-03-08\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1248\",\n      \"variable_symbol\": \"2026001248\",\n      \"customer\": \"Čerpaton Potraviny a.s. (C045)\",\n      \"kind\": \"Regular\",\n      \"amount\": 222577.25,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-09\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1249\",\n      \"variable_symbol\": \"2026001249\",\n      \"customer\": \"Čerpaton Potraviny a.s. (C045)\",\n      \"kind\": \"Regular\",\n      \"amount\": 26989.38,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-18\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1250\",\n      \"variable_symbol\": \"2026001250\",\n      \"customer\": \"Čerpaton Potraviny a.s. (C045)\",\n      \"kind\": \"Regular\",\n      \"amount\": 74546.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-10\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1249\",\n      \"2026-1248\",\n      \"2026-1250\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 324112.98,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"CERPATON POTRAVINY A.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1248, 2026-1249, 2026-1250\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The three invoices (2026-1248, 2026-1249, 2026-1250) all belong to Čerpaton Potraviny a.s., the payer account is the customer's, and the message names all three numbers. Their CZK totals sum exactly to the 324,112.98 CZK payment. The VS is empty, but the message identifies the invoices.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1248\",\"2026-1249\",\"2026-1250\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2250,
+      "outputTokens": 267,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.8370105"
+  }
+}

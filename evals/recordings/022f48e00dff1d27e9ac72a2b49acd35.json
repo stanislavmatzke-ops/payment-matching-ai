@@ -1,0 +1,17 @@
+{
+  "requestHash": "022f48e00dff1d27e9ac72a2b49acd35",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lunexa Tiskárna s.r.o. (C018)\",\n  \"booking_date\": \"2026-03-17\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1258\",\n      \"variable_symbol\": \"2026001258\",\n      \"customer\": \"Lunexa Tiskárna s.r.o. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 77088.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-01-30\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1259\",\n      \"variable_symbol\": \"2026001259\",\n      \"customer\": \"Lunexa Tiskárna s.r.o. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 158743.92,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-06\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1260\",\n      \"variable_symbol\": \"2026001260\",\n      \"customer\": \"Lunexa Tiskárna s.r.o. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 57365.51,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-13\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1261\",\n      \"variable_symbol\": \"2026001261\",\n      \"customer\": \"Lunexa Tiskárna s.r.o. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 86677.36,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-24\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1258\",\n      \"2026-1260\",\n      \"2026-1261\",\n      \"2026-1259\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 379875.14,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"LUNEXA TISKARNA S.R.O.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1258, 2026-1259, 2026-1260, 2026-1261\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The four invoices from Lunexa (C018) sum exactly to the payment amount of 379875.14 CZK, and the message names all four invoice numbers. The payer account belongs to the customer, so there is no third-party payer issue.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1258\",\"2026-1259\",\"2026-1260\",\"2026-1261\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2431,
+      "outputTokens": 261,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6784718"
+  }
+}

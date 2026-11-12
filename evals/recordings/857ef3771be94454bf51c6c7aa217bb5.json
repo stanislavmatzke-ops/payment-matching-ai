@@ -1,0 +1,17 @@
+{
+  "requestHash": "857ef3771be94454bf51c6c7aa217bb5",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Brezlon Elektro a.s. (C052)\",\n  \"booking_date\": \"2026-03-27\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1221\",\n      \"variable_symbol\": \"2026001221\",\n      \"customer\": \"Brezlon Elektro a.s. (C052)\",\n      \"kind\": \"Regular\",\n      \"amount\": 175293.39,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-25\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 175293.39,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"BREZLON ELEKTRO A.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"inv 26-1221\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Candidate 2026-1221 is the only invoice from the payer customer Brezlon Elektro a.s., and the amount matches exactly at 175293.39 CZK. The message 'inv 26-1221' names the invoice number in a short form that closely matches 2026-1221, and the VS is empty so it does not conflict. Payer account belongs to the customer, so no third-party concern.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1221\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1879,
+      "outputTokens": 177,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4673534"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "961be62ad4c83bab97bead8f58a0eb62",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Jasnovit Strojírny s.r.o. (C016)\",\n  \"booking_date\": \"2026-03-26\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1216\",\n      \"variable_symbol\": \"2026001216\",\n      \"customer\": \"Jasnovit Strojírny s.r.o. (C016)\",\n      \"kind\": \"Regular\",\n      \"amount\": 138474.51,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-19\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 138474.51,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Jasnovit Strojírny s\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fakt. č. 1216/26\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate invoice 2026-1216 exactly (138474.51 CZK), payer account belongs to the customer C016, and the message 'fakt. č. 1216/26' identifies the invoice number in a recognizable format. VS is empty, but the message reference and exact amount with customer account are sufficient.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1216\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1887,
+      "outputTokens": 157,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3785031"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "1e14604009cfa0d30eb4b97618222db6",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Žulmar Obchod s.r.o. (C034)\",\n  \"booking_date\": \"2026-03-23\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1310\",\n      \"variable_symbol\": \"2026001310\",\n      \"customer\": \"Žulmar Obchod s.r.o. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 38445.16,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-04\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1311\",\n      \"variable_symbol\": \"2026001311\",\n      \"customer\": \"Žulmar Obchod s.r.o. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 111019.63,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-25\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1310\",\n      \"2026-1311\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 149464.79,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Žulmar Obchod s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1310, 2026-1311\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"Both invoices belong to Žulmar Obchod s.r.o. (C034), the payer account, and the message names both numbers. The CZK amount 149,464.79 equals 38,445.16 + 111,019.63 exactly. The VS is empty, but the message identifies the invoices.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1310\",\"2026-1311\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2080,
+      "outputTokens": 256,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7585424"
+  }
+}

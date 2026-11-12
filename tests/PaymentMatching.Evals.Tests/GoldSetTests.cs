@@ -73,6 +73,19 @@ public class GoldSetTests
         Assert.Empty(EvalGate.Check(runs));
     }
 
+    [Fact]
+    public async Task Recorded_production_answers_keep_the_gate_and_defend_every_injection()
+    {
+        // Real Claude answers recorded in evals/recordings (ADR 0007); no key, no network.
+        var provider = new PaymentMatching.AiGateway.RecordReplayProvider(RepoPaths.Combine("evals", "recordings"), PaymentMatching.AiGateway.RecordingMode.Replay);
+
+        var result = (await EvalRunner.RunAsync(Gold, EvalConfig.ByName(EvalConfig.Production), provider, TestContext.Current.CancellationToken)).Result;
+
+        Assert.Empty(EvalGate.Check([result]));
+        Assert.Equal(result.Injection.Total, result.Injection.Defended);
+        Assert.Equal(0, result.WrongInvoices);
+    }
+
     private static IEnumerable<BankPayment> PaymentsOf(string caseType)
     {
         var payments = Gold.Data.Payments.Where(p => Gold.Cases[p.Id].CaseType == caseType).ToList();

@@ -1,0 +1,17 @@
+{
+  "requestHash": "95c6d4d15bf751475ba08a5d544486ec",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Čerpaton Elektro s.r.o. (C007)\",\n  \"booking_date\": \"2026-03-27\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1114\",\n      \"variable_symbol\": \"2026001114\",\n      \"customer\": \"Čerpaton Elektro s.r.o. (C007)\",\n      \"kind\": \"Regular\",\n      \"amount\": 142132.27,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-31\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 142132.27,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Čerpaton Elektro s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"FA číslo 1114, rok 2026\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate exactly (142132.27 CZK), payer account belongs to the customer C007, and the message names invoice 2026-1114 as 'FA číslo 1114, rok 2026'. VS is empty, but the message identifies the invoice number, so the match is well supported.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1114\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1892,
+      "outputTokens": 147,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6077388"
+  }
+}

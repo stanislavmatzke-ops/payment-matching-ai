@@ -1,0 +1,17 @@
+{
+  "requestHash": "a058ffe0f228de77137df2fbaa2d178f",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Doubrak Nábytek s.r.o. (C029)\",\n  \"booking_date\": \"2026-03-24\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1186\",\n      \"variable_symbol\": \"2026001186\",\n      \"customer\": \"Doubrak Nábytek s.r.o. (C029)\",\n      \"kind\": \"Regular\",\n      \"amount\": 76304.64,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-14\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 76304.64,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Doubrak Nábytek s.r.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1186 z ledna\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate exactly (76304.64 CZK) and the payer account belongs to the customer C029. The message 'faktura 1186' names the invoice number suffix, and the counterparty name is a near-identical variant of the customer name. VS is empty, and the message mentions 'z ledna' (January) while the invoice is dated in 2026 with due date 2026-02-14, which is a minor inconsistency but the number and amount align, so a match is reasonable with some doubt.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1186\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1887,
+      "outputTokens": 210,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6568757"
+  }
+}

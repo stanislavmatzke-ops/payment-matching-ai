@@ -1,0 +1,17 @@
+{
+  "requestHash": "02b49f7ee940a345b93ac15f9a057a03",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Tesnar Řemeslná dílna a.s. (C050)\",\n  \"booking_date\": \"2026-03-22\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1380\",\n      \"variable_symbol\": \"2026001380\",\n      \"customer\": \"Tesnar Řemeslná dílna a.s. (C050)\",\n      \"kind\": \"Regular\",\n      \"amount\": 142949.07,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-04-03\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 142949.07,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Tesnar Řemeslná díln\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1380 z března\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Single candidate invoice 2026-1380 for customer C050, payer account belongs to that customer, and the amount matches exactly to the haller. The message names invoice 1380, which identifies it even though the VS is empty.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1380\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1888,
+      "outputTokens": 122,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4237009"
+  }
+}

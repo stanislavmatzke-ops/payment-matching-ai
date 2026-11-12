@@ -1,0 +1,17 @@
+{
+  "requestHash": "a712d6a24a81df30909ac19b466a19cd",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Kovarna Brod Stavby s.r.o. (C026)\",\n  \"booking_date\": \"2026-03-22\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1185\",\n      \"variable_symbol\": \"2026001185\",\n      \"customer\": \"Kovarna Brod Stavby s.r.o. (C026)\",\n      \"kind\": \"Regular\",\n      \"amount\": 142331.22,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-24\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 142331.22,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Kovarna Brod Stavby s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"FA číslo 1185, rok 2026\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payer account belongs to the invoice customer C026, amount matches exactly (142331.22 CZK), and the message names invoice 2026-1185 (FA číslo 1185, rok 2026). VS is empty, but the message identifies the invoice number, so this is a clear match.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1185\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1898,
+      "outputTokens": 142,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7271639"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "a64f7494254e67eecf495560e5029742",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Morvik Stavby s.r.o. (C047)\",\n  \"booking_date\": \"2026-03-28\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1166\",\n      \"variable_symbol\": \"2026001166\",\n      \"customer\": \"Morvik Stavby s.r.o. (C047)\",\n      \"kind\": \"Regular\",\n      \"amount\": 80769.40,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-16\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 80769.40,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Morvik Stavby s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"doklad 1166-26 děkujeme\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches exactly (80769.40 CZK), payer account belongs to the customer Morvik Stavby s.r.o., and the message 'doklad 1166-26' refers to invoice 2026-1166 in a reasonable format. The VS is empty, so identification rests on the message reference alone, but the number, customer and amount all agree.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1166\"], \"confidence\": 0.93, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1886,
+      "outputTokens": 162,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6372985"
+  }
+}

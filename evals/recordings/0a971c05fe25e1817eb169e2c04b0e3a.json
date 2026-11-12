@@ -1,0 +1,17 @@
+{
+  "requestHash": "0a971c05fe25e1817eb169e2c04b0e3a",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Žulmar Obchod a.s. (C057)\",\n  \"booking_date\": \"2026-03-18\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1347\",\n      \"variable_symbol\": \"2026001347\",\n      \"customer\": \"Žulmar Obchod a.s. (C057)\",\n      \"kind\": \"Regular\",\n      \"amount\": 191546.41,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-08\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1348\",\n      \"variable_symbol\": \"2026001348\",\n      \"customer\": \"Žulmar Obchod a.s. (C057)\",\n      \"kind\": \"Regular\",\n      \"amount\": 92118.85,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-13\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1347\",\n      \"2026-1348\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 283665.26,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Žulmar Obchod a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1347, 2026-1348\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoices 2026-1347 and 2026-1348, which are from the same customer Žulmar Obchod a.s. (payer account belongs to C057). Their CZK total of 283665.26 equals the payment amount exactly. The VS is empty, but the invoice numbers in the message identify the payment.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1347\",\"2026-1348\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2072,
+      "outputTokens": 254,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7444798"
+  }
+}

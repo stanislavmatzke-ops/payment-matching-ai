@@ -1,0 +1,17 @@
+{
+  "requestHash": "cdd0873c609197198742260bd936e98d",
+  "model": "claude-opus-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Vostrex Řemeslná dílna s.r.o. (C036)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1307\",\n      \"variable_symbol\": \"2026001307\",\n      \"customer\": \"Vostrex Řemeslná dílna s.r.o. (C036)\",\n      \"kind\": \"Regular\",\n      \"amount\": 33592.70,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-04\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 33592.70,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Vostrex Řemeslná díl\",\n  \"variable_symbol\": \"2026003107\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-opus-5-5",
+    "json": "{\"reasoning\":\"The VS differs from invoice 2026-1307's VS only by two swapped adjacent digits (13 vs 31). The amount matches exactly and the payer account belongs to the customer, so nothing else conflicts.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1307\"],\"confidence\":0.92,\"flags\":[\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1898,
+      "outputTokens": 267,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:03.6429569"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "a7c7b68ea27d6005ba3a898fa99beb9b",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Software s.r.o. (C021)\",\n  \"booking_date\": \"2026-03-06\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1327\",\n      \"variable_symbol\": \"2026001327\",\n      \"customer\": \"Úvalka Software s.r.o. (C021)\",\n      \"kind\": \"Regular\",\n      \"amount\": 210052.58,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-15\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 210052.58,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Uvalka Software s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1327 z února\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment amount 210052.58 CZK exactly equals invoice 2026-1327 total, payer account belongs to the customer C021, and the message 'faktura 1327 z února' names invoice number 1327 (February invoice matches due date 2026-02-15). VS is empty but the message identifies the invoice and the amount is exact.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1327\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1878,
+      "outputTokens": 160,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4976156"
+  }
+}

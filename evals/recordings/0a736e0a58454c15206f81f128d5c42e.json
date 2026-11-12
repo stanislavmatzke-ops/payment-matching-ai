@@ -1,0 +1,17 @@
+{
+  "requestHash": "0a736e0a58454c15206f81f128d5c42e",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Žulmar Účetní služby a.s. (C037)\",\n  \"booking_date\": \"2026-03-27\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1352\",\n      \"variable_symbol\": \"2026001352\",\n      \"customer\": \"Žulmar Účetní služby a.s. (C037)\",\n      \"kind\": \"Regular\",\n      \"amount\": 104757.32,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-19\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 104757.32,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Žulmar Účetní služby a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"inv 26-1352\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate invoice 2026-1352 exactly (104757.32 CZK), the payer is the customer account, and the message 'inv 26-1352' names the invoice number in a short form. The VS is empty, so identification relies on the message alone, which is a reasonable but not airtight link.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1352\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1882,
+      "outputTokens": 150,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.2791926"
+  }
+}

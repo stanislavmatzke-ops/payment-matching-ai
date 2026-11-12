@@ -1,0 +1,17 @@
+{
+  "requestHash": "6226e544537bcd8735b49018261ea8ec",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Čerpaton Elektro s.r.o. (C007)\",\n  \"booking_date\": \"2026-03-14\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1086\",\n      \"variable_symbol\": \"2026001086\",\n      \"customer\": \"Čerpaton Elektro s.r.o. (C007)\",\n      \"kind\": \"Regular\",\n      \"amount\": 54128.15,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-05\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 54128.15,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Čerpaton Elektro s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"faktura 1086 z ledna\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate exactly (54128.15 CZK), and the payer account belongs to the same customer C007. The message names invoice 1086, which corresponds to 2026-1086, though it says 'z ledna' (from January) while the invoice is dated later, and the VS is empty; the reference is reasonably clear but the missing VS and the date hint leave some doubt.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1086\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1889,
+      "outputTokens": 174,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.9476134"
+  }
+}

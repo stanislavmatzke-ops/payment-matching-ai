@@ -21,6 +21,12 @@ if (options is null)
     return 2;
 }
 
+if (options.Repeat > 1 && options.Mode != "live")
+{
+    Console.Error.WriteLine("--repeat measures run-to-run variance and needs --mode live (recorded answers never vary).");
+    return 2;
+}
+
 var manifestProblems = GoldSet.VerifyManifest(options.Dataset);
 if (manifestProblems.Count > 0)
 {

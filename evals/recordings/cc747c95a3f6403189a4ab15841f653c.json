@@ -1,0 +1,17 @@
+{
+  "requestHash": "cc747c95a3f6403189a4ab15841f653c",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Jasnovit Stavby a.s. (C031)\",\n  \"booking_date\": \"2026-03-22\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1299\",\n      \"variable_symbol\": \"2026001299\",\n      \"customer\": \"Jasnovit Stavby a.s. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 104246.05,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-09\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1300\",\n      \"variable_symbol\": \"2026001300\",\n      \"customer\": \"Jasnovit Stavby a.s. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 96955.94,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-17\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1301\",\n      \"variable_symbol\": \"2026001301\",\n      \"customer\": \"Jasnovit Stavby a.s. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 87577.72,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-01-30\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1301\",\n      \"2026-1299\",\n      \"2026-1300\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 288779.71,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Jasnovit Stavby a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1299, 2026-1300, 2026-1301\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names all three invoices (2026-1299, 2026-1300, 2026-1301), and their amounts sum exactly to the 288779.71 CZK payment. The payer account belongs to the customer, and all invoices are from the same customer.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1299\",\"2026-1300\",\"2026-1301\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2244,
+      "outputTokens": 242,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6621035"
+  }
+}

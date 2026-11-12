@@ -1,0 +1,17 @@
+{
+  "requestHash": "4c819332e478f350728cca4104ca65a2",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Tesnar Software a.s. (C041)\",\n  \"booking_date\": \"2026-03-07\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1244\",\n      \"variable_symbol\": \"2026001244\",\n      \"customer\": \"Tesnar Software a.s. (C041)\",\n      \"kind\": \"Regular\",\n      \"amount\": 227375.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-22\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 227375.35,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Tesnar Software a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"inv 26-1244\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"Message 'inv 26-1244' names invoice 2026-1244 in a recognizable format, the amount matches exactly in CZK, and the payer account belongs to the customer Tesnar Software a.s. (C041). The VS is empty, but the message reference and exact amount are sufficient.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1244\"],\"confidence\":0.95,\"flags\":[]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1870,
+      "outputTokens": 143,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3379394"
+  }
+}

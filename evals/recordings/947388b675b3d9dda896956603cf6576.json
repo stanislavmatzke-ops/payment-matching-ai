@@ -1,0 +1,17 @@
+{
+  "requestHash": "947388b675b3d9dda896956603cf6576",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Vostrex Obchod v.o.s. (C035)\",\n  \"booking_date\": \"2026-03-26\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1247\",\n      \"variable_symbol\": \"2026001247\",\n      \"customer\": \"Vostrex Obchod v.o.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 33519.41,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-18\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1027\",\n      \"variable_symbol\": \"2026001027\",\n      \"customer\": \"Lunexa Strojírny a.s. (C039)\",\n      \"kind\": \"Regular\",\n      \"amount\": 204966.95,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-07\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1327\",\n      \"variable_symbol\": \"2026001327\",\n      \"customer\": \"Úvalka Software s.r.o. (C021)\",\n      \"kind\": \"Regular\",\n      \"amount\": 210052.58,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-15\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 33519.41,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Vostrex Obchod v.o.s\",\n  \"variable_symbol\": \"2026001427\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 2026001427 is one digit-swap away from invoice 2026-1247 (VS 2026001247), and the amount matches exactly (33519.41 CZK). The payer account belongs to the customer Vostrex Obchod (C035), so this is the only candidate that fits on amount, payer and VS. The other candidates belong to different customers with different amounts, so they do not fit.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1247\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2158,
+      "outputTokens": 187,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.3465415"
+  }
+}

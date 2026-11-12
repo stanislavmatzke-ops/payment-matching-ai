@@ -1,0 +1,17 @@
+{
+  "requestHash": "a397d3ef8aa180d6d51e9b300be12a55",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Doubrak Nábytek s.r.o. (C029)\",\n  \"booking_date\": \"2026-03-15\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1138\",\n      \"variable_symbol\": \"2026001138\",\n      \"customer\": \"Doubrak Nábytek s.r.o. (C029)\",\n      \"kind\": \"Regular\",\n      \"amount\": 61969.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-02\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1139\",\n      \"variable_symbol\": \"2026001139\",\n      \"customer\": \"Doubrak Nábytek s.r.o. (C029)\",\n      \"kind\": \"Regular\",\n      \"amount\": 69908.55,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-26\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1140\",\n      \"variable_symbol\": \"2026001140\",\n      \"customer\": \"Doubrak Nábytek s.r.o. (C029)\",\n      \"kind\": \"Regular\",\n      \"amount\": 226605.11,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-02\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1138\",\n      \"2026-1140\",\n      \"2026-1139\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 358483.01,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"DOUBRAK NABYTEK S.R.O.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1138, 2026-1139, 2026-1140\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The three candidate invoices from the same customer sum exactly to the payment amount of 358,483.01 CZK, and the message names all three invoice numbers. The payer account belongs to the customer, and the currency is CZK, so no conversion applies.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1138\",\"2026-1139\",\"2026-1140\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2257,
+      "outputTokens": 229,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6871096"
+  }
+}

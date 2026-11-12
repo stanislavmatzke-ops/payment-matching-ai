@@ -1,0 +1,17 @@
+{
+  "requestHash": "1a8c34e2620dd86fd96ed537d22e0c13",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Software s.r.o. (C021)\",\n  \"booking_date\": \"2026-02-27\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1344\",\n      \"variable_symbol\": \"2026001344\",\n      \"customer\": \"Úvalka Software s.r.o. (C021)\",\n      \"kind\": \"Regular\",\n      \"amount\": 67459.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-17\",\n      \"signals\": [\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 67459.35,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Úvalka Software s.r.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fakt. č. 1344/26\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches the single candidate invoice 2026-1344 exactly (67459.35 CZK), and the payer account belongs to the customer C021. The message 'fakt. č. 1344/26' references the invoice number in a loose format, and the VS is empty, so identification rests on the message and amount alone; the counterparty name is a near-match to the customer name. This is reasonably strong evidence, but the empty VS and the abbreviated reference leave some doubt.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1344\"], \"confidence\": 0.9, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1878,
+      "outputTokens": 201,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7972150"
+  }
+}

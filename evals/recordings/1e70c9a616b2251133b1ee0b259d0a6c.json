@@ -1,0 +1,17 @@
+{
+  "requestHash": "1e70c9a616b2251133b1ee0b259d0a6c",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Morvik Stavby s.r.o. (C047)\",\n  \"booking_date\": \"2026-03-03\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1196\",\n      \"variable_symbol\": \"2026001196\",\n      \"customer\": \"Morvik Stavby s.r.o. (C047)\",\n      \"kind\": \"Regular\",\n      \"amount\": 103542.94,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-12\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1296\",\n      \"variable_symbol\": \"2026001296\",\n      \"customer\": \"Lunexa Software s.r.o. (C059)\",\n      \"kind\": \"Regular\",\n      \"amount\": 10568.62,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-06\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 103542.94,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Morvik Stavby s.r.o.\",\n  \"variable_symbol\": \"202600196\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 202600196 is a one-digit-missing variant of invoice 2026-1196 VS 2026001196 (missing '1'... actually compare: 2026001196 vs 202600196 differs by one digit removed), and the amount matches exactly to 103542.94 CZK from the customer's own account. The other candidate (Lunexa, VS 2026001296) has a different amount and customer, so it is not a fit.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1196\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2020,
+      "outputTokens": 198,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.3556205"
+  }
+}
