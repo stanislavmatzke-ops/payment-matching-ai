@@ -2,6 +2,15 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  <ItemGroup Label="AI">
+    <!-- Official Anthropic C# SDK: structured output, typed errors, retries and timeouts (ADR 0005). -->
+    <PackageVersion Include="Anthropic" Version="13.8.0" />
+  </ItemGroup>
+  <ItemGroup Label="Configuration">
+    <!-- Match.Cli only: read the API key from dotnet user-secrets or the environment. -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.0" />
+  </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
