@@ -17,5 +17,17 @@ services:
       timeout: 3s
       retries: 10
 
+  # Local traces and metrics (phase 10, ADR 0015): docker compose --profile observability up -d
+  # UI http://localhost:18888; apps export with OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317.
+  # No sign-in: bound to loopback only, for local development. Data lives in memory only.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5.2
+    profiles: ["observability"]
+    environment:
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "127.0.0.1:18888:18888"
+      - "127.0.0.1:4317:18889"
+
 volumes:
   postgres-data:
