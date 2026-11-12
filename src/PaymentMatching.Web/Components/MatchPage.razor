@@ -1,5 +1,5 @@
-<Shell Title="@($"Match {Payment.Id} manually")" Page="Page">
-    <p><a href="/payments/@Payment.Id">← Payment @Payment.Id</a></p>
+<Shell Title="@($"Match {Payment.Id} manually")" Page="Page" Active="payments">
+    <p class="crumbs"><a href="/payments/@Payment.Id">← Payment @Payment.Id</a></p>
     <h1>Match @Payment.Id manually</h1>
     <ResultNotice Result="Result" />
     <PaymentFacts Item="Payment" />
@@ -18,7 +18,7 @@
                     <input type="hidden" name="invoice" value="@number">
                 }
                 <AcknowledgeFields Warnings="preview.Failures" />
-                <button>Match to @string.Join(" + ", Selected)</button>
+                <button class="primary">Match to @string.Join(" + ", Selected)</button>
             </form>
         }
         else
@@ -35,7 +35,7 @@
     else
     {
         <form method="get" action="/payments/@Payment.Id/match">
-            <table>
+            <div class="table-wrap"><table class="data">
                 <thead><tr><th></th><th>Invoice</th><th>VS</th><th>Customer</th><th>Due</th><th>Amount</th></tr></thead>
                 <tbody>
                     @foreach (var invoice in Invoices)
@@ -50,8 +50,8 @@
                         </tr>
                     }
                 </tbody>
-            </table>
-            <button>Check</button>
+            </table></div>
+            <button class="secondary">Check</button>
         </form>
     }
 </Shell>

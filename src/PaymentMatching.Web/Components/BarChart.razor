@@ -1,0 +1,41 @@
+@* A small column chart in SVG: one bar per item, labels below. Values are scaled to the largest. *@
+@if (Bars.Count == 0)
+{
+    <p class="muted">@Empty</p>
+}
+else
+{
+    <svg class="bars" viewBox="0 0 @ViewWidth 70" width="100%" height="140" role="img" aria-label="@Label">
+        <line class="bars-axis" x1="0" y1="54" x2="@ViewWidth" y2="54" />
+        @for (var i = 0; i < Bars.Count; i++)
+        {
+            var bar = Bars[i];
+            var height = Max == 0 ? 0 : Math.Max(1.5, bar.Value / Max * 46);
+            var x = (i * Step) + 4;
+            <rect class="bars-bar" x="@Num(x)" y="@Num(54 - height)" width="@Num(Step - 8)" height="@Num(height)" rx="1.5"><title>@bar.Label: @bar.Text</title></rect>
+            <!text class="bars-value" x="@Num(x + ((Step - 8) / 2))" y="@Num(52 - height)" text-anchor="middle">@bar.Text</!text>
+            <!text class="bars-label" x="@Num(x + ((Step - 8) / 2))" y="64" text-anchor="middle">@bar.Label</!text>
+        }
+    </svg>
+}
+
+@code {
+    public sealed record Bar(string Label, double Value, string Text);
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<Bar> Bars { get; set; } = [];
+
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public string Empty { get; set; } = "No data yet.";
+
+    private const double Step = 28;
+
+    private double Max => Bars.Count == 0 ? 0 : Bars.Max(b => b.Value);
+
+    private string ViewWidth => Num(Math.Max(Bars.Count, 7) * Step);
+
+    private static string Num(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+}

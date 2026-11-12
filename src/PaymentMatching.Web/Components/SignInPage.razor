@@ -1,36 +1,50 @@
 <Shell Title="Sign in">
-    <h1>Payment matching with AI</h1>
-    <p>
-        Sign in to get your own sandbox: a fictional company with invoices and bank payments
-        (synthetic data, Demo Bank). Nobody else sees your sandbox.
-    </p>
-    @if (DemoAvailable)
-    {
-        <p>Or <a href="/demo">look at the demo sandbox</a> first: read-only, no sign-in.</p>
-    }
-    @if (SandboxesFull)
-    {
-        <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
-    }
-    @if (Providers.Count == 0 && !DevLogin)
-    {
-        <p>No sign-in method is configured. See README: "Sign-in (local)".</p>
-    }
-    <ul>
-        @foreach (var provider in Providers)
-        {
-            <li><a href="/login/@provider">Sign in with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a></li>
-        }
-        @if (DevLogin)
-        {
-            <li>
-                <form method="get" action="/dev-login">
+    <section class="hero">
+        <div class="hero-text">
+            <span class="eyebrow"><Icon Name="ai" />From legacy rules to AI, safely</span>
+            <h1>Bank payments matched to invoices, with AI where it helps and a person where it matters.</h1>
+            <p class="lead">
+                A working reference app on synthetic data (fictional Demo Bank). Rules settle the easy cases, a model
+                reads the messy ones, code checks every answer, and anything uncertain goes to you.
+            </p>
+            <div class="hero-actions">
+                @if (DemoAvailable)
+                {
+                    <a class="button big" href="/demo"><Icon Name="eye" />Take a look at the demo sandbox</a>
+                }
+                @foreach (var provider in Providers)
+                {
+                    <a class="button big secondary" href="/login/@provider">Sign in with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a>
+                }
+            </div>
+            @if (DevLogin)
+            {
+                <form method="get" action="/dev-login" class="dev-login">
                     <label>Development sign-in as <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
-                    <button>Sign in</button>
+                    <button class="secondary">Sign in</button>
                 </form>
-            </li>
-        }
-    </ul>
+            }
+            @if (SandboxesFull)
+            {
+                <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
+            }
+            @if (Providers.Count == 0 && !DevLogin)
+            {
+                <p class="muted">No sign-in method is configured. See README: "Sign-in (local)".</p>
+            }
+            <p class="muted small">
+                Sign in to get your own sandbox: a fictional company with invoices and bank payments. Nobody else sees
+                your sandbox; it is deleted after 30 days without use.@(DemoAvailable ? " The demo is read-only and needs no sign-in." : "")
+            </p>
+        </div>
+        <ol class="flow">
+            <li><span class="flow-icon"><Icon Name="bank" Size="20" /></span><div><strong>Bank statement</strong><span>untrusted text from the payer</span></div></li>
+            <li><span class="flow-icon"><Icon Name="rule" Size="20" /></span><div><strong>Rules</strong><span>ported from the legacy system, settle most payments</span></div></li>
+            <li><span class="flow-icon ai"><Icon Name="ai" Size="20" /></span><div><strong>AI model</strong><span>reads what the rules cannot; small model first</span></div></li>
+            <li><span class="flow-icon"><Icon Name="shield" Size="20" /></span><div><strong>Validation by code</strong><span>a model's answer is never trusted on its own</span></div></li>
+            <li><span class="flow-icon warn"><Icon Name="person" Size="20" /></span><div><strong>You</strong><span>confirm, reject or match what is uncertain</span></div></li>
+        </ol>
+    </section>
 </Shell>
 
 @code {

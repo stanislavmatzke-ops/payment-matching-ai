@@ -10,9 +10,12 @@ namespace PaymentMatching.Web;
 /// <summary>The hidden form field that carries the anti-forgery token.</summary>
 public sealed record FormToken(string Name, string Token);
 
-/// <summary>What every signed-in page needs: who is signed in and the token for its forms.</summary>
+/// <summary>What every signed-in page needs: who is signed in, the token for its forms and how many payments wait.</summary>
 public sealed record PageContext(string UserName, FormToken Form)
 {
+    /// <summary>Payments waiting for the person (badge in the navigation).</summary>
+    public int Waiting { get; init; }
+
     public static PageContext For(HttpContext http, string userName)
     {
         var tokens = http.RequestServices.GetRequiredService<IAntiforgery>().GetAndStoreTokens(http);
@@ -63,7 +66,7 @@ public static class Format
     };
 
     /// <summary>A flag as a label; the budget flag is set by code, never by a model.</summary>
-    public static string Flag(string flag) => flag == Flags.AiBudgetUsedUp ? "AI budget used up" : flag;
+    public static string Flag(string flag) => flag == Flags.AiBudgetUsedUp ? "AI budget used up" : flag.Replace('_', ' ');
 
     public static string Budget(BudgetLimit limit) => limit switch
     {

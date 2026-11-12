@@ -4,38 +4,55 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title>@Title – Payment matching</title>
     <link rel="stylesheet" href="/app.css">
 </head>
 <body>
-    <header>
-        <a class="brand" href="/">Payment matching</a>
-        @if (Demo)
-        {
-            <nav>
-                <a href="/demo">Demo (read-only)</a>
-                <a href="/">Sign in for your own sandbox</a>
-            </nav>
-        }
-        else if (Page is not null)
-        {
-            <nav>
-                <a href="/">Dashboard</a>
-                <a href="/queue">Queue</a>
-                <a href="/payments">Payments</a>
-            </nav>
-            <form method="post" action="/logout" class="inline">
-                <AntiforgeryField Field="Page.Form" />
-                <span class="muted">@Page.UserName</span>
-                <button>Sign out</button>
-            </form>
-        }
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="@(Demo ? "/demo" : "/")"><Icon Name="logo" Size="22" Class="brand-mark" /><span>Payment matching</span><span class="brand-tag">AI</span></a>
+            @if (Demo)
+            {
+                <nav class="nav">
+                    <a href="/demo" class="active"><Icon Name="eye" />Demo</a>
+                </nav>
+                <a class="button small" href="/">Sign in for your own sandbox</a>
+            }
+            else if (Page is not null)
+            {
+                <nav class="nav">
+                    <a href="/" class="@(Active == "dashboard" ? "active" : null)"><Icon Name="chart" />Dashboard</a>
+                    <a href="/queue" class="@(Active == "queue" ? "active" : null)">
+                        <Icon Name="queue" />Queue
+                        @if (Page.Waiting > 0)
+                        {
+                            <span class="count">@Page.Waiting</span>
+                        }
+                    </a>
+                    <a href="/payments" class="@(Active == "payments" ? "active" : null)"><Icon Name="list" />Payments</a>
+                </nav>
+                <form method="post" action="/logout" class="user">
+                    <AntiforgeryField Field="Page.Form" />
+                    <span class="avatar" aria-hidden="true">@Initial</span>
+                    <span class="user-name">@Page.UserName</span>
+                    <button class="ghost small">Sign out</button>
+                </form>
+            }
+        </div>
     </header>
+    @if (Demo)
+    {
+        <div class="ribbon">
+            <Icon Name="eye" /> <strong>Read-only demo.</strong> A shared sandbox, processed every morning by the scheduled job. Nothing here can be changed.
+        </div>
+    }
     <main>
         @ChildContent
     </main>
     <footer>
-        Synthetic data only (fictional Demo Bank). <a href="/privacy">Privacy</a>
+        <span><Icon Name="shield" /> Synthetic data only (fictional Demo Bank). Visitors never start a model.</span>
+        <a href="/privacy">Privacy</a>
     </footer>
 </body>
 </html>
@@ -52,6 +69,12 @@
     [Parameter]
     public bool Demo { get; set; }
 
+    /// <summary>Highlighted navigation item: dashboard, queue or payments.</summary>
+    [Parameter]
+    public string? Active { get; set; }
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    private string Initial => Page?.UserName is { Length: > 0 } name ? char.ToUpperInvariant(name[0]).ToString() : "?";
 }

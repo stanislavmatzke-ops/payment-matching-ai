@@ -1,0 +1,73 @@
+@* The person's queue as cards: the payment, what the pipeline or an agent proposes, and one way in to decide. *@
+<Shell Title="Queue" Page="Page" Active="queue">
+    <div class="page-head">
+        <div>
+            <h1>Waiting for you</h1>
+            <p class="muted">Payments the pipeline would not match on its own. A wrong match is worse than none, so these are yours.</p>
+        </div>
+        <span class="big-count">@Items.Count</span>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <div class="empty">
+            <Icon Name="check" Size="40" />
+            <p><strong>Nothing waits for you.</strong></p>
+            <p class="muted">New payments arrive with the daily run.</p>
+        </div>
+    }
+    else
+    {
+        <div class="cards">
+            @foreach (var item in Items)
+            {
+                var p = item.Payment;
+                var proposal = item.Queue.FirstOrDefault();
+                <article class="card queue-card@(p.InjectionSuspected ? " danger" : "")">
+                    <div class="queue-top">
+                        <div>
+                            <a class="pay-id" href="/payments/@p.Id">@p.Id</a>
+                            <span class="muted"> · @Format.Date(p.BookingDate)</span>
+                        </div>
+                        <span class="amount">@Format.Amount(p.Amount, p.Currency)</span>
+                    </div>
+                    <div class="bank-quote">
+                        <span class="from-bank"><Icon Name="bank" Size="12" />from bank</span>
+                        <div class="untrusted"><strong>@p.CounterpartyName</strong></div>
+                        <div class="untrusted">@(string.IsNullOrEmpty(p.VariableSymbol) ? "no VS" : "VS " + p.VariableSymbol) · @p.Message</div>
+                    </div>
+                    <FlagList Item="p" />
+                    @if (proposal is not null)
+                    {
+                        var source = proposal.Sources[0];
+                        <div class="proposal-line">
+                            <DecidedByChip Value="@source.ProposedBy" />
+                            proposes <strong>@string.Join(" + ", proposal.InvoiceNumbers)</strong>
+                            @if (source.Confidence is { } c)
+                            {
+                                <span class="muted"> · confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                            }
+                        </div>
+                        @if (proposal.Checks.Count > 0)
+                        {
+                            <p class="muted small"><Icon Name="alert" Size="12" /> @proposal.Checks.Count check(s) to look at before confirming</p>
+                        }
+                    }
+                    else
+                    {
+                        <div class="proposal-line muted"><DecidedByChip Value="@p.DecidedBy" /> no proposal: match manually or reject</div>
+                    }
+                    <a class="button" href="/payments/@p.Id">Review and decide <Icon Name="arrow" /></a>
+                </article>
+            }
+        </div>
+    }
+</Shell>
+
+@code {
+    [Parameter, EditorRequired]
+    public PageContext Page { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<PaymentDetailView> Items { get; set; } = [];
+}

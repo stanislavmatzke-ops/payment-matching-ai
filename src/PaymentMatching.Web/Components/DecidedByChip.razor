@@ -1,0 +1,41 @@
+@* Who decided a payment: a rule, a model, a person, an agent or the policy, as a chip with an icon. *@
+@if (Value is null)
+{
+    <span class="chip chip-none"><Icon Name="clock" />not yet</span>
+}
+else
+{
+    <span class="chip chip-@Kind" title="@Value"><Icon Name="@IconName" />@Label</span>
+}
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    private string Kind => Value switch
+    {
+        null => "none",
+        var v when v.StartsWith("rule:", StringComparison.Ordinal) => "rule",
+        var v when v.StartsWith("ai:", StringComparison.Ordinal) => "ai",
+        var v when v.StartsWith("agent:", StringComparison.Ordinal) => "agent",
+        var v when v.StartsWith("person", StringComparison.Ordinal) => "person",
+        _ => "policy",
+    };
+
+    private string IconName => Kind switch
+    {
+        "rule" => "rule",
+        "ai" => "ai",
+        "agent" => "agent",
+        "person" => "person",
+        _ => "shield",
+    };
+
+    private string Label => Kind switch
+    {
+        "rule" => "rule " + Value![5..],
+        "ai" => Value![3..].Replace("claude-", "", StringComparison.Ordinal),
+        "person" => Value!.Length > 7 ? Value[7..].Trim() : "person",
+        _ => Value!,
+    };
+}

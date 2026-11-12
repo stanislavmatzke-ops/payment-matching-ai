@@ -1,5 +1,5 @@
-<Shell Title="@Title" Page="Page">
-    <h1>@Title</h1>
+<Shell Title="@Title" Page="Page" Active="payments">
+    <div class="page-head"><h1>@Title</h1></div>
     @if (ShowFilter)
     {
         <form method="get" action="/payments" class="filter">
@@ -16,8 +16,10 @@
             <button>Filter</button>
         </form>
     }
-    <p class="muted">Payer, VS and message are written by the payer and shown as plain text.</p>
-    <PaymentTable Items="Items" Empty="@Empty" />
+    <section class="card">
+        <p class="muted small">Payer, VS and message are written by the payer and shown as plain text.</p>
+        <PaymentTable Items="Items" Empty="@Empty" />
+    </section>
 </Shell>
 
 @code {

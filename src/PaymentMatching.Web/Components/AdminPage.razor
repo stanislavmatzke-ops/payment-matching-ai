@@ -1,9 +1,11 @@
 @* Admin overview (ADR 0013): aggregates across sandboxes only. No ids, names, e-mails or payments. *@
 <Shell Title="Admin">
-    <h1>Operations overview</h1>
+    <div class="page-head"><div><h1>Operations overview</h1><p class="muted">Aggregates across all sandboxes. No ids, names, e-mails or payments.</p></div></div>
+    <section class="two-col">
 
-    <h2>AI budget</h2>
-    <table class="narrow">
+    <div class="card">
+    <h2 class="card-title">AI budget</h2>
+    <table class="data compact">
         <tr><th scope="row">State</th><td>@Format.Budget(View.App)</td></tr>
         <tr><th scope="row">Model calls today</th><td class="num">@View.Today.AiCalls / @View.Budget.CallsPerDay (@View.CallsLeftToday left)</td></tr>
         <tr><th scope="row">Cost today</th><td class="num">@Format.Usd(View.Today.AiCostUsd)</td></tr>
@@ -12,9 +14,11 @@
         <tr><th scope="row">Cache hit rate this month</th><td class="num">@Format.Percent(View.Month.CacheHitRate) (@View.Month.CacheHits answers reused)</td></tr>
         <tr><th scope="row">Per sandbox and day</th><td class="num">@View.Budget.CallsPerSandboxPerDay calls@(View.Budget.SmallModelOnly ? ", small model only" : "")</td></tr>
     </table>
+    </div>
 
-    <h2>Sandboxes</h2>
-    <table class="narrow">
+    <div class="card">
+    <h2 class="card-title">Sandboxes</h2>
+    <table class="data compact">
         <tr><th scope="row">All (without the demo)</th><td class="num">@View.Sandboxes.Total</td></tr>
         <tr><th scope="row">Active in the last 7 days</th><td class="num">@View.Sandboxes.ActiveLast7Days</td></tr>
         <tr><th scope="row">New in the last 24 hours</th><td class="num">@View.Sandboxes.CreatedLast24Hours</td></tr>
@@ -22,9 +26,13 @@
         <tr><th scope="row">Sign-ins turned away today (waiting list)</th><td class="num">@View.Today.SignInsTurnedAway</td></tr>
         <tr><th scope="row">Demo sandbox</th><td>@(View.Sandboxes.DemoExists ? "exists" : "not created yet")</td></tr>
     </table>
+    </div>
 
-    <h2>Last 7 days</h2>
-    <table class="narrow">
+    </section>
+
+    <div class="card">
+    <h2 class="card-title">Last 7 days</h2>
+    <table class="data compact">
         <thead><tr><th>Day</th><th>Calls</th><th>Cached</th><th>Cost</th><th>Refilled</th><th>Deleted</th><th>Turned away</th></tr></thead>
         <tbody>
             @foreach (var day in View.LastDays)
@@ -41,6 +49,7 @@
             }
         </tbody>
     </table>
+    </div>
 </Shell>
 
 @code {

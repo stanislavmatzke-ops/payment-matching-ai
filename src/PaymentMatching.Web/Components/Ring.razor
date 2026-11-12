@@ -1,0 +1,35 @@
+@* A progress ring in SVG (attributes only, no inline style: the CSP forbids it). *@
+<svg class="ring @Class" viewBox="0 0 120 120" width="@Size" height="@Size" role="img" aria-label="@Label">
+    <circle class="ring-track" cx="60" cy="60" r="50" />
+    <circle class="ring-value" cx="60" cy="60" r="50" stroke-dasharray="@Dash" transform="rotate(-90 60 60)" />
+    <text class="ring-text" x="60" y="60" text-anchor="middle" dominant-baseline="central">@Text</text>
+</svg>
+
+@code {
+    private const double Circumference = 2 * Math.PI * 50;
+
+    /// <summary>0..1; null draws an empty ring.</summary>
+    [Parameter]
+    public double? Value { get; set; }
+
+    [Parameter]
+    public string Text { get; set; } = "";
+
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public int Size { get; set; } = 120;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string Dash
+    {
+        get
+        {
+            var filled = Math.Clamp(Value ?? 0, 0, 1) * Circumference;
+            return FormattableString.Invariant($"{filled:0.##} {Circumference:0.##}");
+        }
+    }
+}

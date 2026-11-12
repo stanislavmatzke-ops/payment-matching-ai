@@ -1,22 +1,38 @@
 @* The public read-only demo (SPEC 9b): a shared sandbox processed by the daily job. No forms, no actions. *@
 <Shell Title="Demo" Demo="true">
-    <h1>Demo sandbox (read-only)</h1>
-    <p>
-        A fictional company with invoices and bank payments (synthetic data, Demo Bank). Every morning a
-        scheduled job adds a few new payments and runs rules → AI → validation by code over them.
-        <a href="/">Sign in</a> to get your own sandbox, where you confirm, reject or match payments yourself.
-    </p>
+    <div class="page-head">
+        <div>
+            <h1>Demo sandbox (read-only)</h1>
+            <p class="muted">
+                A fictional company with invoices and bank payments (synthetic data, Demo Bank). Every morning a
+                scheduled job adds a few new payments and runs rules → AI → validation by code over them.
+                <a href="/">Sign in</a> to get your own sandbox, where you confirm, reject or match payments yourself.
+            </p>
+        </div>
+    </div>
 
-    <section class="tiles">
-        <div class="tile"><span class="big">@Format.Percent(Board.AutomationRate)</span>automation (@Board.AutoMatched of @Board.Processed processed)</div>
-        <div class="tile"><span class="big">@Board.NeedsReview</span>waiting for a person</div>
-        <div class="tile"><span class="big">@Board.InjectionsCaught</span>prompt injection attempts caught</div>
-        <div class="tile"><span class="big">@Format.Usd(Board.AiCostUsd)</span>AI cost (@Board.AiCalls calls, @Board.CachedAnswers from cache)</div>
+    <section class="hero-grid">
+        <div class="card ring-card">
+            <Ring Value="Board.AutomationRate" Text="@Format.Percent(Board.AutomationRate)" Label="Automation rate" Size="132" />
+            <div>
+                <h2 class="card-title">Automation</h2>
+                <p>@Board.AutoMatched of @Board.Processed processed payments matched without a person.</p>
+                <p class="muted small">Open any payment to see who decided it and the full audit trail.</p>
+            </div>
+        </div>
+        <div class="kpis">
+            <div class="kpi"><span class="kpi-icon warn"><Icon Name="queue" Size="18" /></span><span class="kpi-value">@Board.NeedsReview</span><span class="kpi-label">waiting for a person</span></div>
+            <div class="kpi"><span class="kpi-icon danger"><Icon Name="shield" Size="18" /></span><span class="kpi-value">@Board.InjectionsCaught</span><span class="kpi-label">prompt injection attempts caught</span></div>
+            <div class="kpi"><span class="kpi-icon ai"><Icon Name="ai" Size="18" /></span><span class="kpi-value">@Format.Usd(Board.AiCostUsd)</span><span class="kpi-label">AI cost (@Board.AiCalls calls, @Board.CachedAnswers from cache)</span></div>
+            <div class="kpi"><span class="kpi-icon"><Icon Name="clock" Size="18" /></span><span class="kpi-value">@Board.WaitingForAi</span><span class="kpi-label">waiting for the next AI run</span></div>
+        </div>
     </section>
 
-    <h2>Payments</h2>
-    <p class="muted">Payer, VS and message are written by the payer and shown as plain text.</p>
-    <PaymentTable Items="Items" LinkBase="/demo/payments" Empty="No payments yet: the daily run fills the demo." />
+    <section class="card">
+        <h2 class="card-title"><Icon Name="list" />Payments</h2>
+        <p class="muted small">Payer, VS and message are written by the payer and shown as plain text.</p>
+        <PaymentTable Items="Items" LinkBase="/demo/payments" Empty="No payments yet: the daily run fills the demo." />
+    </section>
 </Shell>
 
 @code {

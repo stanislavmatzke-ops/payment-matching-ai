@@ -67,7 +67,7 @@ public static class UiEndpoints
             var state = await SandboxState.LoadAsync(db, null, http.RequestAborted);
             var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
             var ai = await Operations.BudgetAsync(state, ledger, budget, today, http.RequestAborted);
-            return Html.Page<DashboardPage>(new { Page = PageContext.For(http, me.Name), Me = me, Board = SandboxQueries.Dashboard(state), Budget = ai });
+            return Html.Page<DashboardPage>(new { Page = PageContext.For(http, me.Name) with { Waiting = SandboxQueries.Queue(state).Count }, Me = me, Board = SandboxQueries.Dashboard(state), Budget = ai });
         });
 
         app.MapGet("/privacy", () => Html.Page<PrivacyPage>(new { }));
@@ -80,13 +80,10 @@ public static class UiEndpoints
         }));
 
         app.MapGet("/queue", (HttpContext http, PaymentsDbContext db) => SignedInAsync(http, db, (page, sandbox) =>
-            Html.Page<PaymentsPage>(new
+            Html.Page<QueuePage>(new
             {
                 Page = page,
-                Items = SandboxQueries.Queue(sandbox),
-                Title = "Waiting for a person",
-                ShowFilter = false,
-                Empty = "Nothing waits for you. New payments arrive with the daily run.",
+                Items = SandboxQueries.Queue(sandbox).Select(p => SandboxQueries.Detail(sandbox, p.Id, page.UserName)!).ToList(),
             })));
 
         app.MapGet("/payments/{id}", (HttpContext http, PaymentsDbContext db, string id, string? result) => SignedInAsync(http, db, (page, sandbox) =>
@@ -184,7 +181,7 @@ public static class UiEndpoints
 
         var name = await db.Users.AsNoTracking().Select(u => u.Name).SingleAsync(http.RequestAborted);
         var sandbox = await SandboxState.LoadAsync(db, null, http.RequestAborted);
-        return await render(PageContext.For(http, name), sandbox);
+        return await render(PageContext.For(http, name) with { Waiting = SandboxQueries.Queue(sandbox).Count }, sandbox);
     }
 
     /// <summary>

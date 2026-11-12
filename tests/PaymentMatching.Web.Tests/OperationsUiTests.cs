@@ -153,6 +153,42 @@ public class OperationsUiTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task No_page_has_an_inline_style_or_a_script_the_csp_would_block()
+    {
+        var connectionString = await postgres.NewDatabaseAsync(Ct);
+        await CreateDemoAsync(connectionString);
+        await using var app = new WebApp(connectionString, settings: new Dictionary<string, string?>
+        {
+            ["Demo:TenantId"] = DemoId.ToString(),
+            ["Admin:Accounts:0"] = "dev:alice",
+        });
+        var alice = await app.SignedInAsAsync("alice");
+        var tenant = (await WebApp.MeAsync(alice)).TenantId;
+        var waiting = await DecideWaitingPaymentAsync(connectionString, tenant);
+        var anonymous = app.NewClient();
+
+        var pages = new List<string>
+        {
+            await anonymous.GetStringAsync("/", Ct),
+            await anonymous.GetStringAsync("/privacy", Ct),
+            await anonymous.GetStringAsync("/demo", Ct),
+            await anonymous.GetStringAsync("/demo/payments/P0001", Ct),
+        };
+        foreach (var path in new[] { "/", "/queue", "/payments", "/payments/P0001", $"/payments/{waiting}", $"/payments/{waiting}/match", "/admin" })
+        {
+            pages.Add(await alice.GetStringAsync(path, Ct));
+        }
+
+        Assert.All(pages, page =>
+        {
+            Assert.DoesNotContain("<script", page, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(" style=", page, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("<style", page, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("<img", page, StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
+    [Fact]
     public async Task Turned_away_sign_ins_are_counted_for_the_waiting_list()
     {
         var connectionString = await postgres.NewDatabaseAsync(Ct);

@@ -1,137 +1,178 @@
-<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page" Demo="Demo">
+<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page" Demo="Demo" Active="@(Demo ? null : "payments")">
     @if (Demo)
     {
-        <p><a href="/demo">← Demo sandbox</a> · <span class="muted">read-only: sign in to decide payments in your own sandbox</span></p>
+        <p class="crumbs"><a href="/demo">← Demo sandbox</a> · <span class="muted">read-only: sign in to decide payments in your own sandbox</span></p>
     }
     else
     {
-        <p><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
+        <p class="crumbs"><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
     }
-    <h1>Payment @Detail.Payment.Id</h1>
+    <div class="page-head">
+        <div>
+            <h1>Payment @Detail.Payment.Id</h1>
+            <p class="muted">Booked @Format.Date(Detail.Payment.BookingDate)</p>
+        </div>
+        <div class="head-right">
+            <span class="amount big">@Format.Amount(Detail.Payment.Amount, Detail.Payment.Currency)</span>
+            <StateBadge State="@Detail.Payment.State" />
+        </div>
+    </div>
     <ResultNotice Result="Result" />
-    <PaymentFacts Item="Detail.Payment" />
 
-    <h2>Who decided</h2>
-    @if (Detail.Decision is { } d)
-    {
-        <dl class="facts">
-            <dt>Pipeline</dt><dd>@d.DecidedBy (@d.Layer layer): @Format.Status(d.Status)</dd>
-            @if (d.RuleCode is not null)
-            {
-                <dt>Rule</dt><dd>@d.RuleCode</dd>
-            }
-            @if (d.PromptVersion is not null)
-            {
-                <dt>Prompt</dt><dd>@d.PromptVersion</dd>
-            }
-            @if (d.Confidence is { } confidence)
-            {
-                <dt>Confidence</dt><dd>@confidence.ToString("0.00", CultureInfo.InvariantCulture)</dd>
-            }
-            @if (d.InvoiceNumbers.Count > 0)
-            {
-                <dt>@(d.Status == PaymentStatus.AutoMatched ? "Matched to" : "Proposed")</dt><dd>@string.Join(", ", d.InvoiceNumbers)</dd>
-            }
-            <dt>Reasoning</dt><dd class="untrusted">@d.Reason</dd>
-            @if (d.ValidationFailures.Count > 0)
-            {
-                <dt>Validation</dt><dd>@string.Join(", ", d.ValidationFailures)</dd>
-            }
-        </dl>
-    }
-    else
-    {
-        <p class="muted">Not processed yet: this payment needs the AI layer and waits for the scheduled daily run.</p>
-    }
-    @if (Detail.Review is { } r)
-    {
-        <dl class="facts">
-            <dt>Person</dt><dd>@r.DecidedBy, @Format.Time(r.At): @SandboxQueries.ActionText(r.Action)</dd>
-            @if (r.InvoiceNumbers.Count > 0)
-            {
-                <dt>Invoices</dt><dd>@string.Join(", ", r.InvoiceNumbers)</dd>
-            }
-            @if (r.Acknowledged.Count > 0)
-            {
-                <dt>Accepted warnings</dt><dd>@string.Join(", ", r.Acknowledged)</dd>
-            }
-        </dl>
-    }
+    <div class="detail-grid">
+        <div class="detail-main">
+            <section class="card">
+                <h2 class="card-title"><Icon Name="bank" />Bank statement line</h2>
+                <PaymentFacts Item="Detail.Payment" />
+            </section>
 
-    @if (Detail.Actionable)
-    {
-        <h2>Your decision</h2>
-        @if (Detail.Queue.Count == 0)
-        {
-            <p class="muted">Nobody proposed a match. Match it manually or reject it.</p>
-        }
-        @foreach (var proposal in Detail.Queue)
-        {
-            var warnings = proposal.Checks.Where(c => !ProposalChecks.Blocking.Contains(c)).ToList();
-            var blocked = proposal.Checks.Any(ProposalChecks.Blocking.Contains);
-            <section class="proposal">
-                <h3>Proposal: @string.Join(" + ", proposal.InvoiceNumbers)</h3>
-                <ul>
-                    @foreach (var source in proposal.Sources)
-                    {
-                        <li>
-                            Proposed by <strong>@source.ProposedBy</strong>
-                            @if (source.Confidence is { } c)
-                            {
-                                <span>, confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
-                            }
-                            @if (source.PromptVersion is not null)
-                            {
-                                <span>, prompt @source.PromptVersion</span>
-                            }
-                            <div class="untrusted">@(source.ByAgent ? "Agent's reason (untrusted): " : "Reasoning: ")@source.Reason</div>
-                        </li>
-                    }
-                </ul>
-                <CheckList Failures="proposal.Checks" />
-                @if (!blocked)
+            <section class="card decided">
+                <h2 class="card-title"><Icon Name="check" />Who decided</h2>
+                @if (Detail.Decision is { } d)
                 {
-                    <form method="post" action="/payments/@Detail.Payment.Id/confirm">
-                        <AntiforgeryField Field="Page!.Form" />
-                        <input type="hidden" name="proposal" value="@proposal.Id">
-                        <AcknowledgeFields Warnings="warnings" />
-                        <button>Confirm</button>
-                    </form>
+                    <div class="decider">
+                        <DecidedByChip Value="@d.DecidedBy" />
+                        <span>@Format.Status(d.Status)</span>
+                    </div>
+                    @if (d.Confidence is { } confidence)
+                    {
+                        <div class="meter-row">
+                            <span>Confidence</span>
+                            <strong>@confidence.ToString("0.00", CultureInfo.InvariantCulture)</strong>
+                        </div>
+                        <Meter Value="confidence" Marker="MatchingOptions.Default.AutoMatchConfidence" Label="Confidence" Class="@(confidence >= MatchingOptions.Default.AutoMatchConfidence ? "good" : "low")" />
+                        <p class="muted small">
+                            The line marks @MatchingOptions.Default.AutoMatchConfidence.ToString("0.00", CultureInfo.InvariantCulture): below it, or when a check fails, the payment comes to a person.
+                        </p>
+                    }
+                    <dl class="facts">
+                        <dt>Pipeline</dt><dd>@d.DecidedBy (@d.Layer layer)</dd>
+                        @if (d.RuleCode is not null)
+                        {
+                            <dt>Rule</dt><dd><code>@d.RuleCode</code></dd>
+                        }
+                        @if (d.PromptVersion is not null)
+                        {
+                            <dt>Prompt</dt><dd><code>@d.PromptVersion</code></dd>
+                        }
+                        @if (d.InvoiceNumbers.Count > 0)
+                        {
+                            <dt>@(d.Status == PaymentStatus.AutoMatched ? "Matched to" : "Proposed")</dt><dd><strong>@string.Join(", ", d.InvoiceNumbers)</strong></dd>
+                        }
+                        @if (d.ValidationFailures.Count > 0)
+                        {
+                            <dt>Validation</dt><dd>@string.Join(", ", d.ValidationFailures)</dd>
+                        }
+                    </dl>
+                    <blockquote class="reasoning untrusted">@d.Reason</blockquote>
+                }
+                else
+                {
+                    <p class="muted"><Icon Name="clock" /> Not processed yet: this payment needs the AI layer and waits for the scheduled daily run.</p>
+                }
+                @if (Detail.Review is { } r)
+                {
+                    <div class="decider person">
+                        <DecidedByChip Value="@("person: " + r.DecidedBy)" />
+                        <span>@Format.Time(r.At): @SandboxQueries.ActionText(r.Action)</span>
+                    </div>
+                    <dl class="facts">
+                        @if (r.InvoiceNumbers.Count > 0)
+                        {
+                            <dt>Invoices</dt><dd>@string.Join(", ", r.InvoiceNumbers)</dd>
+                        }
+                        @if (r.Acknowledged.Count > 0)
+                        {
+                            <dt>Accepted warnings</dt><dd>@string.Join(", ", r.Acknowledged)</dd>
+                        }
+                    </dl>
                 }
             </section>
-        }
-        <div class="actions">
-            <a class="button" href="/payments/@Detail.Payment.Id/match">Match manually…</a>
-            <form method="post" action="/payments/@Detail.Payment.Id/reject" class="inline">
-                <AntiforgeryField Field="Page!.Form" />
-                <button class="secondary">Reject (do not match)</button>
-            </form>
-        </div>
-    }
 
-    <h2>Audit trail</h2>
-    <ol class="timeline">
-        @foreach (var e in Detail.Timeline)
-        {
-            <li>
-                <span class="when">@Format.Time(e.At)</span>
-                <strong>@e.Actor</strong>: @e.Summary
-                @if (e.InvoiceNumbers.Count > 0)
+            @if (Detail.Actionable)
+            {
+                <section class="card decide">
+                    <h2 class="card-title"><Icon Name="person" />Your decision</h2>
+                    @if (Detail.Queue.Count == 0)
+                    {
+                        <p class="muted">Nobody proposed a match. Match it manually or reject it.</p>
+                    }
+                    @foreach (var proposal in Detail.Queue)
+                    {
+                        var warnings = proposal.Checks.Where(c => !ProposalChecks.Blocking.Contains(c)).ToList();
+                        var blocked = proposal.Checks.Any(ProposalChecks.Blocking.Contains);
+                        <div class="proposal">
+                            <h3>Proposal: @string.Join(" + ", proposal.InvoiceNumbers)</h3>
+                            <ul class="sources">
+                                @foreach (var source in proposal.Sources)
+                                {
+                                    <li>
+                                        <DecidedByChip Value="@source.ProposedBy" />
+                                        <span class="muted">Proposed by <strong>@source.ProposedBy</strong></span>
+                                        @if (source.Confidence is { } c)
+                                        {
+                                            <span class="muted">, confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                                        }
+                                        @if (source.PromptVersion is not null)
+                                        {
+                                            <span class="muted">, prompt @source.PromptVersion</span>
+                                        }
+                                        <div class="untrusted reason">@(source.ByAgent ? "Agent's reason (untrusted): " : "Reasoning: ")@source.Reason</div>
+                                    </li>
+                                }
+                            </ul>
+                            <CheckList Failures="proposal.Checks" />
+                            @if (!blocked)
+                            {
+                                <form method="post" action="/payments/@Detail.Payment.Id/confirm">
+                                    <AntiforgeryField Field="Page!.Form" />
+                                    <input type="hidden" name="proposal" value="@proposal.Id">
+                                    <AcknowledgeFields Warnings="warnings" />
+                                    <button class="primary"><Icon Name="check" />Confirm</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    <div class="actions">
+                        <a class="button secondary" href="/payments/@Detail.Payment.Id/match">Match manually…</a>
+                        <form method="post" action="/payments/@Detail.Payment.Id/reject" class="inline">
+                            <AntiforgeryField Field="Page!.Form" />
+                            <button class="danger-outline">Reject (do not match)</button>
+                        </form>
+                    </div>
+                </section>
+            }
+        </div>
+
+        <aside class="card timeline-card">
+            <h2 class="card-title"><Icon Name="clock" />Audit trail</h2>
+            <ol class="timeline">
+                @foreach (var e in Detail.Timeline)
                 {
-                    <span> Invoices: @string.Join(", ", e.InvoiceNumbers).</span>
+                    <li class="tl tl-@e.Kind">
+                        <span class="tl-dot"><Icon Name="@TimelineIcon(e)" Size="14" /></span>
+                        <div class="tl-body">
+                            <div class="tl-head"><strong>@e.Actor</strong><span class="when">@Format.Time(e.At)</span></div>
+                            <div>@e.Summary</div>
+                            @if (e.InvoiceNumbers.Count > 0)
+                            {
+                                <div class="muted small">Invoices: @string.Join(", ", e.InvoiceNumbers).</div>
+                            }
+                            @if (e.Details.Count > 0)
+                            {
+                                <ul class="tl-details">
+                                    @foreach (var detail in e.Details)
+                                    {
+                                        <li class="untrusted">@detail</li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </li>
                 }
-                @if (e.Details.Count > 0)
-                {
-                    <ul>
-                        @foreach (var detail in e.Details)
-                        {
-                            <li class="untrusted">@detail</li>
-                        }
-                    </ul>
-                }
-            </li>
-        }
-    </ol>
+            </ol>
+        </aside>
+    </div>
 </Shell>
 
 @code {
@@ -147,4 +188,13 @@
 
     [Parameter]
     public ReviewOutcome? Result { get; set; }
+
+    private static string TimelineIcon(TimelineEvent e) => e.Kind switch
+    {
+        TimelineKind.Received => "bank",
+        TimelineKind.ModelCall => e.Summary.StartsWith("Answer reused", StringComparison.Ordinal) ? "cache" : "ai",
+        TimelineKind.Proposed => "agent",
+        TimelineKind.Reviewed => "person",
+        _ => e.Actor.StartsWith("rule:", StringComparison.Ordinal) ? "rule" : e.Actor.StartsWith("ai:", StringComparison.Ordinal) ? "ai" : "shield",
+    };
 }

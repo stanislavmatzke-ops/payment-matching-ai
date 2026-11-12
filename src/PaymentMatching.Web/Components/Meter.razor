@@ -1,0 +1,29 @@
+@* A horizontal meter in SVG, optionally with a marker (e.g. the auto-match threshold). *@
+<svg class="meter @Class" viewBox="0 0 100 8" preserveAspectRatio="none" width="100%" height="8" role="img" aria-label="@Label">
+    <rect class="meter-track" x="0" y="0" width="100" height="8" rx="4" />
+    <rect class="meter-value" x="0" y="0" width="@Width" height="8" rx="4" />
+    @if (Marker is { } marker)
+    {
+        <rect class="meter-marker" x="@Pct(marker - 0.004)" y="0" width="0.8" height="8" />
+    }
+</svg>
+
+@code {
+    /// <summary>0..1.</summary>
+    [Parameter]
+    public double Value { get; set; }
+
+    /// <summary>0..1, drawn as a thin line.</summary>
+    [Parameter]
+    public double? Marker { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string Width => Pct(Value);
+
+    private static string Pct(double value) => (Math.Clamp(value, 0, 1) * 100).ToString("0.##", CultureInfo.InvariantCulture);
+}
