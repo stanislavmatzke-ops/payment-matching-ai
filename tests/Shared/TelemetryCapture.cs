@@ -84,11 +84,19 @@ internal sealed class TelemetryCapture : IDisposable
 
     /// <summary>Every tag value of every span and measurement, as text (for leak checks).</summary>
     public IEnumerable<(string Key, string Value)> AllTags =>
-        Spans.SelectMany(s => s.TagObjects.Select(t => (t.Key, Convert.ToString(t.Value, System.Globalization.CultureInfo.InvariantCulture) ?? ""))
+        Spans.SelectMany(s => s.TagObjects.Select(t => (t.Key, Text(t.Value)))
                 .Append(("span.name", s.DisplayName))
                 .Append(("span.status", s.StatusDescription ?? ""))
-                .Concat(s.Events.SelectMany(e => e.Tags.Select(t => (t.Key, Convert.ToString(t.Value, System.Globalization.CultureInfo.InvariantCulture) ?? "")).Append(("event.name", e.Name)))))
-            .Concat(Measurements.SelectMany(m => m.Tags.Select(t => (t.Key, Convert.ToString(t.Value, System.Globalization.CultureInfo.InvariantCulture) ?? ""))));
+                .Concat(s.Events.SelectMany(e => e.Tags.Select(t => (t.Key, Text(t.Value))).Append(("event.name", e.Name)))))
+            .Concat(Measurements.SelectMany(m => m.Tags.Select(t => (t.Key, Text(t.Value)))));
+
+    private static string Text(object? value) => value switch
+    {
+        null => "",
+        string s => s,
+        System.Collections.IEnumerable items => string.Join(",", items.Cast<object?>().Select(Text)),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
+    };
 
     public static TelemetryCapture Start(params string[] sources) => new(sources.Length == 0 ? ["PaymentMatching"] : sources);
 

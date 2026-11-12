@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using PaymentMatching.AiGateway;
 
 namespace PaymentMatching.Matching;
@@ -28,6 +29,7 @@ public sealed class MatchingPipeline(
 
     public async Task<RunReport> RunAsync(CancellationToken cancellationToken = default)
     {
+        using var run = Telemetry.Source.StartActivity("matching.run");
         var rules = RulesLayer.Run(data);
         var policy = new RuleOutcomePolicy(data, options);
         var records = new List<AuditRecord>();
@@ -53,13 +55,15 @@ public sealed class MatchingPipeline(
                 continue;
             }
 
+            using var span = Telemetry.Source.StartActivity("matching.payment");
+
             var decision = step.Decision!;
             if (decision.Outcome == Outcome.AutoMatched && decision.InvoiceNumbers.Any(log.MatchedInvoices.Contains))
             {
                 decision = decision with { Outcome = Outcome.HumanReview, Reason = "Invoice is already matched to another payment." };
             }
 
-            records.Add(Append(new AuditRecord(key, payment.Id, _time.GetUtcNow(), AuditRecord.RuleLayer, rule.Rule, null, decision, [], [], [])));
+            records.Add(Append(Traced(span, new AuditRecord(key, payment.Id, _time.GetUtcNow(), AuditRecord.RuleLayer, rule.Rule, null, decision, [], [], []))));
         }
 
         // Layer 2: AI over what the rules left, in statement order.
@@ -70,11 +74,21 @@ public sealed class MatchingPipeline(
 
         foreach (var payment in forAi)
         {
+            using var span = Telemetry.Source.StartActivity("matching.payment");
             if (await DecideWithAiAsync(payment, rules[payment.Id].Rule, cancellationToken) is { } record)
             {
-                records.Add(Append(record));
+                records.Add(Append(Traced(span, record)));
+            }
+            else
+            {
+                span?.SetTag(Tags.PaymentId, payment.Id).SetTag(Tags.Deferred, true);
             }
         }
+
+        run?.SetTag(Tags.Payments, data.Payments.Count)
+            .SetTag(Tags.Reused, reused)
+            .SetTag(Tags.ForAi, forAi.Count)
+            .SetTag(Tags.Decided, records.Count - reused);
 
         var order = data.Payments.Select((p, i) => (p.Id, i)).ToDictionary(x => x.Id, x => x.i);
         return new RunReport(records.OrderBy(r => order[r.PaymentId]).ToList(), reused);
@@ -124,6 +138,40 @@ public sealed class MatchingPipeline(
             : null;
         var aiDecision = _decisions.Decide(payment, result, validation, payerKnown, injection);
         return Record(aiDecision, AuditRecord.AiLayer, validation?.Failures ?? [], result.Calls);
+    }
+
+    /// <summary>Tag names of the pipeline spans: synthetic ids, codes and counts only (ADR 0015).</summary>
+    public static class Tags
+    {
+        public const string PaymentId = "payments.payment.id";
+        public const string Layer = "payments.layer";
+        public const string Rule = "payments.rule";
+        public const string Outcome = "payments.outcome";
+        public const string DecidedBy = "payments.decided_by";
+        public const string Flags = "payments.flags";
+        public const string Failures = "payments.failures";
+        public const string Candidates = "payments.candidates";
+        public const string Deferred = "payments.deferred";
+        public const string Payments = "payments.count";
+        public const string Reused = "payments.reused";
+        public const string ForAi = "payments.for_ai";
+        public const string Decided = "payments.decided";
+    }
+
+    private static AuditRecord Traced(Activity? span, AuditRecord record)
+    {
+        var decision = record.Decision;
+        var outcome = decision.Outcome.ToString();
+        span?.SetTag(Tags.PaymentId, record.PaymentId)
+            .SetTag(Tags.Layer, record.Layer)
+            .SetTag(Tags.Rule, record.RuleCode)
+            .SetTag(Tags.Outcome, outcome)
+            .SetTag(Tags.DecidedBy, decision.DecidedBy)
+            .SetTag(Tags.Flags, decision.Flags.Count == 0 ? null : decision.Flags.ToArray())
+            .SetTag(Tags.Failures, record.ValidationFailures.Count == 0 ? null : record.ValidationFailures.ToArray())
+            .SetTag(Tags.Candidates, record.Candidates.Count);
+        Telemetry.MatchingDecisions.Add(1, new(Tags.Layer, record.Layer), new(Tags.Outcome, outcome), new(Tags.DecidedBy, decision.DecidedBy));
+        return record;
     }
 
     private AuditRecord Append(AuditRecord record)
