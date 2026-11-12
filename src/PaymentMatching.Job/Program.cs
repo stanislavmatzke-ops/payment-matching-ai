@@ -79,8 +79,7 @@ var job = new DailyJob(
     Console.Out);
 var report = await job.RunAsync();
 
-Console.WriteLine(
-    $"Daily job {report.Day:yyyy-MM-dd} ({mode}): {report.Sandboxes.Count} sandboxes, {report.Sandboxes.Count(s => s.Refilled)} refilled, " +
-    $"{report.ModelCalls} model calls, {report.CacheHits} cached answers, ${report.CostUsd:0.0000}, {report.Deleted} inactive deleted, " +
-    $"demo {(demo is null ? "off" : report.DemoCreated ? "created" : "kept")}, {report.Failed} failed.");
+var demoState = demo is null ? "off" : report.DemoCreated ? "created" : "kept";
+Console.WriteLine(FormattableString.Invariant(
+    $"Daily job {report.Day:yyyy-MM-dd} ({mode}): {report.Sandboxes.Count} sandboxes, {report.Sandboxes.Count(s => s.Refilled)} refilled, {report.ModelCalls} model calls, {report.CacheHits} cached answers, ${report.CostUsd:0.0000}, {report.Deleted} inactive deleted, demo {demoState}, {report.Failed} failed."));
 return report.Failed == 0 ? 0 : 1;

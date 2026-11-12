@@ -74,7 +74,7 @@ public sealed class DailyJob(
             {
                 var run = await RunSandboxAsync(tenantId, batch, cache, now, cancellationToken);
                 runs.Add(run);
-                _log.WriteLine($"{tenantId}: refilled={run.Refilled} decided={run.Decided} calls={run.ModelCalls} cached={run.CacheHits} cost=${run.CostUsd:0.0000} waiting={run.WaitingForAi} limit={run.LimitedBy}");
+                _log.WriteLine(FormattableString.Invariant($"{tenantId}: refilled={run.Refilled} decided={run.Decided} calls={run.ModelCalls} cached={run.CacheHits} cost=${run.CostUsd:0.0000} waiting={run.WaitingForAi} limit={run.LimitedBy}"));
             }
             catch (Exception ex) when (ex is DbUpdateException or TenantIsolationException or InvalidOperationException)
             {
