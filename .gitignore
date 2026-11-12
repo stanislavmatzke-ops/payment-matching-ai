@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 
 # Local environment
 .env
+
+# Legacy build output
+legacy/delphi/bin/
