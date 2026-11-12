@@ -1,0 +1,17 @@
+{
+  "requestHash": "bb071cd3e56652bd28a6bf61cba20271",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n  \"booking_date\": \"2026-03-18\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1079\",\n      \"variable_symbol\": \"2026001079\",\n      \"customer\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 90584.97,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-03\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1080\",\n      \"variable_symbol\": \"2026001080\",\n      \"customer\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 241293.00,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-21\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1079\",\n      \"2026-1080\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 331877.97,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Doubrak Remeslna dilna v.o.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1079, 2026-1080\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Both invoices belong to customer C034, the payer account belongs to that customer, and the message names both invoice numbers. The sum 90584.97 + 241293.00 = 331877.97 matches the payment amount exactly, in CZK.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1079\", \"2026-1080\"], \"confidence\": 0.96, \"flags\": [\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2099,
+      "outputTokens": 144,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3574748"
+  }
+}

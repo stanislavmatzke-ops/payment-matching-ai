@@ -1,0 +1,17 @@
+{
+  "requestHash": "31b56363655d94c2e18b770e798f2a90",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Tesnar Logistika a.s. (C018)\",\n  \"booking_date\": \"2026-03-16\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1096\",\n      \"variable_symbol\": \"2026001096\",\n      \"customer\": \"Tesnar Logistika a.s. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 57320.65,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-26\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1097\",\n      \"variable_symbol\": \"2026001097\",\n      \"customer\": \"Tesnar Logistika a.s. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 207695.24,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-22\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1098\",\n      \"variable_symbol\": \"2026001098\",\n      \"customer\": \"Tesnar Logistika a.s. (C018)\",\n      \"kind\": \"Regular\",\n      \"amount\": 187934.62,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-22\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1098\",\n      \"2026-1097\",\n      \"2026-1096\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 452950.51,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Tesnar Logistika a.s\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1096, 2026-1097, 2026-1098\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The three candidate invoices from the same customer sum exactly to the payment amount of 452950.51 CZK, and the message names all three invoice numbers. The payer account belongs to the customer, so there is no third-party payer issue.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1096\",\"2026-1097\",\"2026-1098\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2238,
+      "outputTokens": 247,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7164614"
+  }
+}

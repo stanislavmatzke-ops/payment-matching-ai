@@ -1,0 +1,17 @@
+{
+  "requestHash": "7f49fa7b23f4c56c9b4a190140bebea0",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Elektro a.s. (C035)\",\n  \"booking_date\": \"2026-03-10\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1236\",\n      \"variable_symbol\": \"2026001236\",\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 226036.29,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-06\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 226036.29,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Úvalka Elektro a.s.\",\n  \"variable_symbol\": \"202600236\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Candidate 2026-1236 has VS 2026001236; payment VS 202600236 is missing one digit (001236 vs 00236 after 2026), which is a one-digit-missing typo. Amount matches exactly in CZK, payer account belongs to the customer, and the invoice is the only candidate. Typo in VS plus no message makes this a reasonable but not certain match, so I flag it for review.\", \"decision\": \"uncertain\", \"invoice_numbers\": [\"2026-1236\"], \"confidence\": 0.7, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1883,
+      "outputTokens": 194,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.8036848"
+  }
+}

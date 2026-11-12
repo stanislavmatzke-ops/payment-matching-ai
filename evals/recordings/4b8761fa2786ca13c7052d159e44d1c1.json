@@ -1,0 +1,17 @@
+{
+  "requestHash": "4b8761fa2786ca13c7052d159e44d1c1",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Kalmira Doprava v.o.s. (C005)\",\n  \"booking_date\": \"2026-03-01\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1314\",\n      \"variable_symbol\": \"2026001314\",\n      \"customer\": \"Kalmira Doprava v.o.s. (C005)\",\n      \"kind\": \"Regular\",\n      \"amount\": 79104.97,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-01-31\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1315\",\n      \"variable_symbol\": \"2026001315\",\n      \"customer\": \"Kalmira Doprava v.o.s. (C005)\",\n      \"kind\": \"Regular\",\n      \"amount\": 37392.99,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-25\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1314\",\n      \"2026-1315\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 116497.96,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"KALMIRA DOPRAVA V.O.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1314, 2026-1315\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoices (2026-1314 and 2026-1315), and their CZK totals sum exactly to the payment amount of 116497.96. The payer account belongs to the customer, C005. The VS is empty, but the invoice numbers in the message identify the payment.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1314\",\"2026-1315\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2084,
+      "outputTokens": 250,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.4698160"
+  }
+}

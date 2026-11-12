@@ -1,0 +1,17 @@
+{
+  "requestHash": "a3d440209bf665dba816dec880b5aeb8",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lipanex Obchod s.r.o. (C060)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1326\",\n      \"variable_symbol\": \"2026001326\",\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\n      \"kind\": \"Regular\",\n      \"amount\": 83191.53,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-31\",\n      \"signals\": [\n        \"vs_exact\",\n        \"number_in_message\",\n        \"amount_in_eur_rate_band\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1026\",\n      \"variable_symbol\": \"2026001026\",\n      \"customer\": \"Doubrak Řemeslná dílna s.r.o. (C030)\",\n      \"kind\": \"Regular\",\n      \"amount\": 50624.15,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-08\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1226\",\n      \"variable_symbol\": \"2026001226\",\n      \"customer\": \"Rybolan Stavby v.o.s. (C036)\",\n      \"kind\": \"Regular\",\n      \"amount\": 31175.94,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-05\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1320\",\n      \"variable_symbol\": \"2026001320\",\n      \"customer\": \"Žulmar Nábytek a.s. (C038)\",\n      \"kind\": \"Regular\",\n      \"amount\": 109098.86,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-07\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1356\",\n      \"variable_symbol\": \"2026001356\",\n      \"customer\": \"Kalmira Strojírny s.r.o. (C028)\",\n      \"kind\": \"Regular\",\n      \"amount\": 73977.23,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-13\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1386\",\n      \"variable_symbol\": \"2026001386\",\n      \"customer\": \"Trnovex Účetní služby s.r.o. (C057)\",\n      \"kind\": \"Regular\",\n      \"amount\": 69845.37,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-01-31\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 3337.00,\n  \"currency\": \"EUR\",\n  \"counterparty_name\": \"Lipanex Obchod s.r.o.\",\n  \"variable_symbol\": \"2026001326\",\n  \"message\": \"Invoice 2026-1326\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The VS matches invoice 2026-1326 exactly, the message names the same invoice, and the payer account belongs to the customer Lipanex (C060). The EUR 3337.00 payment implies a rate of about 24.93 CZK/EUR for the 83191.53 CZK total, which is within the normal band. The other candidates only match by a VS typo and are not named in the message.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1326\"],\"confidence\":0.95,\"flags\":[\"currency_conversion\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2601,
+      "outputTokens": 370,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.5908191"
+  }
+}

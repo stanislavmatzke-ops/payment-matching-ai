@@ -27,9 +27,13 @@
     - `src/PaymentMatching.AiGateway`: provider abstrakce, oficiální Anthropic SDK, routing Haiku 5.5 → Opus 5.5, timeout, strop volání, tokeny a cena, record/replay,
     - `src/PaymentMatching.Matching`: politika nad pravidly (Q-02, Q-07), výběr kandidátů kódem, prompt `prompts/match-payment.v1.md`, striktní structured output, validace kódem, rozhodování, append-only audit log s idempotencí,
     - `tools/Match.Cli`: režimy `stub|replay|record|live|rules`,
-    - 92 nahrávek reálných odpovědí v `evals/recordings/`,
+    - 91 nahrávek reálných odpovědí v `evals/recordings/`,
     - ADR 0005–0007, `modernization.md` krok 4, stav Q-02/Q-06/Q-07/Q-08/Q-11 v `business-rules.md`.
-  - _Výsledek na `data/sample` (reálný model):_ automatizace 76,0 % (strop sady), přesnost auto párování 100 % (port 82,6 %), 0 špatných faktur, 15/15 injection zachyceno, $0,68 za 1 000 plateb, p50 2,1 s / p95 5,2 s na AI platbu. 191 testů.
+  - _Výsledek na `data/sample` (reálný model):_
+    - automatizace 75,7 % (strop sady 76 %), přesnost auto párování 100 % (port 82,6 %), 0 špatných faktur,
+    - 15/15 injection zachyceno,
+    - $0,64 za 1 000 plateb, p50 2,0 s / p95 5,2 s na AI platbu,
+    - 192 testů.
   - _Rozhodnuto (schváleno v plánu fáze):_
     - Q-02: částečné úhrady a přeplatky záloh jdou vždy člověku s návrhem.
     - Q-07: auto párování vyžaduje IBAN odběratele (výjimka: přesný VS v poli + částka); třetí strany jdou člověku.
@@ -37,8 +41,9 @@
     - audit a idempotence zatím v JSONL souboru (`DecisionLog`), PostgreSQL až s tenanty ve fázi 7,
     - EUR kurz zatím pevné pásmo 24,00–26,50, ne denní kurz ČNB.
   - _Pro fázi 5:_
-    - neeskalovat odpovědi, které stejně jdou člověku (8 z 13 volání Opus = 85 % ceny),
-    - kalibrace prahů,
+    - neeskalovat odpovědi, které stejně jdou člověku (8 z 12 volání Opus, Opus = 84 % ceny),
+    - kalibrace prahů (Opus dal správné odpovědi 0,88 → člověk),
+    - měřit rozptyl mezi běhy (dva nahrávací běhy: 228 vs 227 auto),
     - srovnání pravidla / stub / model na těžších datech.
 - [ ] **Fáze 5** – **Evaly** – zlatá sada, runner, reporty, replay v CI, práh v CI.
 - [ ] **Fáze 6** – **MCP server** + návod pro Claude Desktop / Code.
@@ -111,7 +116,11 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - dvě nová pravidla validace: platba musí fakturu jmenovat (VS / číslo ve zprávě) a EUR platí jen jednu fakturu,
   - poté 0 děr.
 - Replay test nejdřív selhal: CLI a testy měly jiné `MaxTokens`, a ty jsou součástí klíče nahrávky. Oprava: jedna definice modelů (`ModelSettings`).
-- Odhad ceny nahrávání „< $0,20“ těsně nevyšel ($0,205): 85 % ceny tvoří eskalace na Opus.
+- **CI odhalilo závislost promptu na OS.** Nahrávky vznikly na Windows, v CI (Linux) replay nenašel klíč. `WriteIndented` JSON v promptu používal `Environment.NewLine`, takže modelu šel jiný text podle OS (`\r\n` vs `\n`). Oprava:
+  - pevné `\n` + test „prompt neobsahuje `\r`“,
+  - nové nahrávání (podruhé ~$0,20).
+  - Ponaučení: klíč nahrávky = otisk přesně toho, co jde do modelu, a ten musí být stejný na každé platformě. Bez CI na jiném OS by se to nezjistilo.
+- Odhad ceny nahrávání „< $0,20“: první běh $0,205, druhý $0,19. 84–85 % ceny tvoří eskalace na Opus.
 - Drobnosti, které chytil build/test: neuzavřený `sed` v heredocu (soubory se nezapsaly), `--` v XML komentáři csproj, `JsonException` místo `FormatException` z parseru, porovnání recordů se seznamy přes referenci.
 - Model (Haiku) v jednom zdůvodnění tvrdil, že zpráva jmenuje obě faktury, přitom jmenovala jednu. Rozhodnutí bylo správně, zdůvodnění ne. Proto zdůvodnění není důkaz a rozhoduje validace.
 

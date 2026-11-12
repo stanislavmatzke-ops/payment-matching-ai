@@ -1,0 +1,17 @@
+{
+  "requestHash": "4c2f6036fbfd845de333680243d81002",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Tiskárna s.r.o. (C016)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1131\",\n      \"variable_symbol\": \"2026001131\",\n      \"customer\": \"Úvalka Tiskárna s.r.o. (C016)\",\n      \"kind\": \"Advance\",\n      \"amount\": 215346.31,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-04-04\",\n      \"signals\": [\n        \"vs_exact\",\n        \"number_in_message\",\n        \"amount_in_eur_rate_band\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1136\",\n      \"variable_symbol\": \"2026001136\",\n      \"customer\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 223967.56,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-25\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_in_eur_rate_band\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1031\",\n      \"variable_symbol\": \"2026001031\",\n      \"customer\": \"Ostravel Obchod s.r.o. (C046)\",\n      \"kind\": \"Regular\",\n      \"amount\": 63303.09,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1135\",\n      \"variable_symbol\": \"2026001135\",\n      \"customer\": \"Sázavit Software s.r.o. (C020)\",\n      \"kind\": \"Regular\",\n      \"amount\": 6674.35,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-24\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1161\",\n      \"variable_symbol\": \"2026001161\",\n      \"customer\": \"Úvalka Potraviny s.r.o. (C009)\",\n      \"kind\": \"Regular\",\n      \"amount\": 154509.47,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-09\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1331\",\n      \"variable_symbol\": \"2026001331\",\n      \"customer\": \"Tesnar Doprava s.r.o. (C058)\",\n      \"kind\": \"Regular\",\n      \"amount\": 193773.88,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-23\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 8679.82,\n  \"currency\": \"EUR\",\n  \"counterparty_name\": \"Úvalka Tiskárna s.r.o.\",\n  \"variable_symbol\": \"2026001131\",\n  \"message\": \"Invoice 2026-1131\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The VS and the message both name invoice 2026-1131, and the payer account belongs to its customer Úvalka Tiskárna (C016). The EUR amount implies about 24.81 CZK/EUR, inside the normal band. The other candidates belong to other customers and only match by a VS typo.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1131\"],\"confidence\":0.93,\"flags\":[\"currency_conversion\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2620,
+      "outputTokens": 407,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.4487888"
+  }
+}

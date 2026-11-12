@@ -1,0 +1,17 @@
+{
+  "requestHash": "bca1f1f599a8764f1b1daae9a6f35b6b",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Elektro a.s. (C035)\",\n  \"booking_date\": \"2026-03-17\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1119\",\n      \"variable_symbol\": \"2026001119\",\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 122870.33,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-05\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1120\",\n      \"variable_symbol\": \"2026001120\",\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\n      \"kind\": \"Regular\",\n      \"amount\": 89301.45,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-06\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1121\",\n      \"variable_symbol\": \"2026001121\",\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\n      \"kind\": \"Advance\",\n      \"amount\": 165166.19,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-28\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1120\",\n      \"2026-1119\",\n      \"2026-1121\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 377337.97,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Úvalka Elektro a.s.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1119, 2026-1120, 2026-1121\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names all three invoice numbers (2026-1119, 2026-1120, 2026-1121), and their CZK totals sum exactly to the payment amount of 377337.97. All three belong to the same customer, Úvalka Elektro a.s., who is also the payer account owner.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1119\",\"2026-1120\",\"2026-1121\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2239,
+      "outputTokens": 285,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7204180"
+  }
+}

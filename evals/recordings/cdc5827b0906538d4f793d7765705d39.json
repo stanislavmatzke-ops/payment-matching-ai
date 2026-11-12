@@ -1,0 +1,17 @@
+{
+  "requestHash": "cdc5827b0906538d4f793d7765705d39",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Rybolan Stavby v.o.s. (C036)\",\n  \"booking_date\": \"2026-03-24\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1343\",\n      \"variable_symbol\": \"2026001343\",\n      \"customer\": \"Rybolan Stavby v.o.s. (C036)\",\n      \"kind\": \"Regular\",\n      \"amount\": 98417.43,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-13\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1033\",\n      \"variable_symbol\": \"2026001033\",\n      \"customer\": \"Sázavit Software s.r.o. (C039)\",\n      \"kind\": \"Regular\",\n      \"amount\": 18662.45,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1331\",\n      \"variable_symbol\": \"2026001331\",\n      \"customer\": \"Tesnar Doprava s.r.o. (C058)\",\n      \"kind\": \"Regular\",\n      \"amount\": 193773.88,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-23\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1333\",\n      \"variable_symbol\": \"2026001333\",\n      \"customer\": \"Brezlon Nábytek s.r.o. (C029)\",\n      \"kind\": \"Regular\",\n      \"amount\": 208538.28,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 98417.43,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Rybolan Stavby v.o.s\",\n  \"variable_symbol\": \"202600133\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payer account belongs to customer Rybolan Stavby (C036), and the amount 98417.43 CZK matches invoice 2026-1343 exactly. The VS 202600133 is one missing digit from invoice VS 2026001343, which is an allowed typing error. Other candidates have VS typos but different customers and amounts, so they do not fit.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1343\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2295,
+      "outputTokens": 174,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6573535"
+  }
+}

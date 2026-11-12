@@ -1,0 +1,17 @@
+{
+  "requestHash": "78593ab0bea37e83a173b37eb133272f",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Čerpaton Elektro a.s. (C044)\",\n  \"booking_date\": \"2026-03-04\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1227\",\n      \"variable_symbol\": \"2026001227\",\n      \"customer\": \"Čerpaton Elektro a.s. (C044)\",\n      \"kind\": \"Regular\",\n      \"amount\": 16259.71,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-14\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 16259.71,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Čerpaton Elektro a.s\",\n  \"variable_symbol\": \"2026002127\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payer account belongs to the customer Čerpaton Elektro (C044) and the amount matches exactly (16259.71 CZK). The bank VS 2026002127 differs from invoice VS 2026001227 by two adjacent digits swapped (12 vs 21), a typing error, so the VS identifies the invoice. Empty message, but amount and payer both fit.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1227\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1886,
+      "outputTokens": 180,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6305817"
+  }
+}

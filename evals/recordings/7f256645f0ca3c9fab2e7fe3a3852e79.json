@@ -1,0 +1,17 @@
+{
+  "requestHash": "7f256645f0ca3c9fab2e7fe3a3852e79",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lipanex Obchod s.r.o. (C060)\",\n  \"booking_date\": \"2026-03-25\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1316\",\n      \"variable_symbol\": \"2026001316\",\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\n      \"kind\": \"Regular\",\n      \"amount\": 117611.61,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-30\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1317\",\n      \"variable_symbol\": \"2026001317\",\n      \"customer\": \"Lipanex Obchod s.r.o. (C060)\",\n      \"kind\": \"Regular\",\n      \"amount\": 227081.03,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-06\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1317\",\n      \"2026-1316\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 344692.64,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Lipanex Obchod s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1316, 2026-1317\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"Both invoices belong to Lipanex Obchod s.r.o. (C060), the payer account is the customer's, and the message names both invoice numbers. The CZK amounts sum exactly to 344692.64 (117611.61 + 227081.03), so the payment settles both. The VS is empty, but the message identifies the invoices.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1316\",\"2026-1317\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2080,
+      "outputTokens": 268,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.8862799"
+  }
+}

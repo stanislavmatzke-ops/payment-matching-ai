@@ -1,0 +1,17 @@
+{
+  "requestHash": "d0aa1d501a86b0ae2ec302f17f56e307",
+  "model": "claude-opus-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Lipanex Potraviny s.r.o. (C025)\",\n  \"booking_date\": \"2026-03-15\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1240\",\n      \"variable_symbol\": \"2026001240\",\n      \"customer\": \"Lipanex Potraviny s.r.o. (C025)\",\n      \"kind\": \"Regular\",\n      \"amount\": 125567.11,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-10\",\n      \"signals\": [\n        \"vs_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1040\",\n      \"variable_symbol\": \"2026001040\",\n      \"customer\": \"Večerka Nova Tiskárna s.r.o. (C053)\",\n      \"kind\": \"Regular\",\n      \"amount\": 121431.79,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-04\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1210\",\n      \"variable_symbol\": \"2026001210\",\n      \"customer\": \"Řemenda Tiskárna s.r.o. (C002)\",\n      \"kind\": \"Advance\",\n      \"amount\": 65441.86,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-29\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1220\",\n      \"variable_symbol\": \"2026001220\",\n      \"customer\": \"Zelvanta Doprava s.r.o. (C054)\",\n      \"kind\": \"Advance\",\n      \"amount\": 61813.98,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-12\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1246\",\n      \"variable_symbol\": \"2026001246\",\n      \"customer\": \"Hradiva Tiskárna v.o.s. (C050)\",\n      \"kind\": \"Regular\",\n      \"amount\": 184520.44,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-19\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1290\",\n      \"variable_symbol\": \"2026001290\",\n      \"customer\": \"Sázavit Software v.o.s. (C022)\",\n      \"kind\": \"Regular\",\n      \"amount\": 233537.67,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-26\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 125657.11,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Lipanex Potraviny s.r.o.\",\n  \"variable_symbol\": \"2026001240\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-opus-5-5",
+    "json": "{\"reasoning\":\"The VS exactly matches invoice 2026-1240 and the payer is the customer, but the payment is 90.00 CZK higher than the invoice amount. This looks like two transposed digits in the amount, so the reviewer should confirm the overpayment.\",\"decision\":\"uncertain\",\"invoice_numbers\":[\"2026-1240\"],\"confidence\":0.8,\"flags\":[\"overpayment\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2569,
+      "outputTokens": 242,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:03.3559517"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "requestHash": "6b3f29d24b3f8747b617f878cb379cfb",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Hradiva Tiskárna v.o.s. (C050)\",\n  \"booking_date\": \"2026-03-17\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1246\",\n      \"variable_symbol\": \"2026001246\",\n      \"customer\": \"Hradiva Tiskárna v.o.s. (C050)\",\n      \"kind\": \"Regular\",\n      \"amount\": 184520.44,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-19\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1146\",\n      \"variable_symbol\": \"2026001146\",\n      \"customer\": \"Zelvanta Logistika v.o.s. (C033)\",\n      \"kind\": \"Regular\",\n      \"amount\": 130479.42,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-16\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 184520.44,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Hradiva Tiskárna v.o.s.\",\n  \"variable_symbol\": \"2026002146\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The payment amount 184520.44 CZK exactly equals invoice 2026-1246 (customer Hradiva, C050, payer account belongs to that customer). The VS 2026002146 is the invoice VS 2026001246 with the adjacent digits '12' swapped to '21', an allowed typing error. Invoice 2026-1146 has a different amount and a VS that differs by a substitution, not an allowed typo, so it does not fit.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1246\"],\"confidence\":0.93,\"flags\":[\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2033,
+      "outputTokens": 530,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:03.5117687"
+  }
+}

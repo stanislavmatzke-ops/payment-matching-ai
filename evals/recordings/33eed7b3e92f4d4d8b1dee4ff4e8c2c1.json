@@ -1,0 +1,17 @@
+{
+  "requestHash": "33eed7b3e92f4d4d8b1dee4ff4e8c2c1",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Žulmar Nábytek a.s. (C038)\",\n  \"booking_date\": \"2026-03-19\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1313\",\n      \"variable_symbol\": \"2026001313\",\n      \"customer\": \"Žulmar Nábytek a.s. (C038)\",\n      \"kind\": \"Regular\",\n      \"amount\": 110681.16,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-13\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 110681.16,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"ZULMAR NABYTEK A.S.\",\n  \"variable_symbol\": \"202600313\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Single candidate invoice 2026-1313 for the customer Žulmar Nábytek a.s., amount exactly matches 110681.16 CZK, payer account belongs to the customer. Bank VS 202600313 differs from invoice VS 2026001313 by one missing digit (a typing error), which the rules accept as identification. No message or other conflicting evidence.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1313\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1888,
+      "outputTokens": 179,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.5139331"
+  }
+}

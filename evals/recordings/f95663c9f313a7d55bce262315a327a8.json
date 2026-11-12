@@ -1,0 +1,17 @@
+{
+  "requestHash": "f95663c9f313a7d55bce262315a327a8",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Sázavit Software s.r.o. (C039)\",\n  \"booking_date\": \"2026-03-30\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1103\",\n      \"variable_symbol\": \"2026001103\",\n      \"customer\": \"Sázavit Software s.r.o. (C039)\",\n      \"kind\": \"Regular\",\n      \"amount\": 19693.81,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-01-30\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1104\",\n      \"variable_symbol\": \"2026001104\",\n      \"customer\": \"Sázavit Software s.r.o. (C039)\",\n      \"kind\": \"Regular\",\n      \"amount\": 169798.43,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-03\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1105\",\n      \"variable_symbol\": \"2026001105\",\n      \"customer\": \"Sázavit Software s.r.o. (C039)\",\n      \"kind\": \"Regular\",\n      \"amount\": 112915.77,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-28\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1103\",\n      \"2026-1104\",\n      \"2026-1105\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 302408.01,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"SAZAVIT SOFTWARE S.R.O.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1103, 2026-1104, 2026-1105\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The three invoices (2026-1103, 2026-1104, 2026-1105) all belong to customer C039, and their CZK totals sum exactly to the 302408.01 CZK payment. The payer account belongs to the customer and the message names all three invoice numbers.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1103\",\"2026-1104\",\"2026-1105\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2246,
+      "outputTokens": 238,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.5058034"
+  }
+}

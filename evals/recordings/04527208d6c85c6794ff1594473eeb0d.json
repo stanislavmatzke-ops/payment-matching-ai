@@ -1,0 +1,17 @@
+{
+  "requestHash": "04527208d6c85c6794ff1594473eeb0d",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Ostravel Logistika a.s. (C014)\",\n  \"booking_date\": \"2026-03-22\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1373\",\n      \"variable_symbol\": \"2026001373\",\n      \"customer\": \"Ostravel Logistika a.s. (C014)\",\n      \"kind\": \"Regular\",\n      \"amount\": 238929.15,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-31\",\n      \"signals\": [\n        \"number_in_message\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 238929.15,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"OSTRAVEL LOGISTIKA A.S.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"uhrada FA20261373\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"The message names invoice 2026-1373 (FA20261373 format), the amount matches exactly in CZK, and the payer account belongs to the customer Ostravel Logistika a.s. The VS is empty, but the invoice number in the message is sufficient identification.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1373\"], \"confidence\": 0.96, \"flags\": []}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1894,
+      "outputTokens": 136,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3162514"
+  }
+}

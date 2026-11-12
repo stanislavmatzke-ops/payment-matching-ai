@@ -1,0 +1,17 @@
+{
+  "requestHash": "be03680277ab7d9a80e6938fe983a796",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Potraviny s.r.o. (C009)\",\n  \"booking_date\": \"2026-03-19\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1299\",\n      \"variable_symbol\": \"2026001299\",\n      \"customer\": \"Úvalka Potraviny s.r.o. (C009)\",\n      \"kind\": \"Regular\",\n      \"amount\": 32237.20,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1300\",\n      \"variable_symbol\": \"2026001300\",\n      \"customer\": \"Úvalka Potraviny s.r.o. (C009)\",\n      \"kind\": \"Regular\",\n      \"amount\": 23619.84,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-29\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1299\",\n      \"2026-1300\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 55857.04,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Úvalka Potraviny s.r\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1299, 2026-1300\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The message names both invoices 2026-1299 and 2026-1300, which are both C009 invoices, and their CZK totals sum exactly to the payment amount of 55857.04. The payer account belongs to the customer; the counterparty name is only a truncated form of the company name.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1299\",\"2026-1300\"],\"confidence\":0.96,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2081,
+      "outputTokens": 259,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7760347"
+  }
+}

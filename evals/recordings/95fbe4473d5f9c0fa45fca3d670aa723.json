@@ -1,0 +1,17 @@
+{
+  "requestHash": "95fbe4473d5f9c0fa45fca3d670aa723",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n  \"booking_date\": \"2026-03-04\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1249\",\n      \"variable_symbol\": \"2026001249\",\n      \"customer\": \"Doubrak Řemeslná dílna v.o.s. (C034)\",\n      \"kind\": \"Regular\",\n      \"amount\": 74203.86,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-19\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 74203.86,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Doubrak Řemeslná díl\",\n  \"variable_symbol\": \"202600249\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Amount matches exactly (74203.86 CZK), payer account belongs to the customer C034, and the bank VS 202600249 differs from invoice VS 2026001249 by one missing digit, which fits the typo rule. No conflicting candidates or other flags apply, but the VS mismatch is a typing error rather than an exact identifier, so a reviewer should confirm.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1249\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1897,
+      "outputTokens": 181,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.6365487"
+  }
+}

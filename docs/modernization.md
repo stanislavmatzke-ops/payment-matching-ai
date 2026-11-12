@@ -140,21 +140,23 @@ How we show that AI broke nothing that worked:
 
 | | Legacy | Port (phase 3) | Rules + AI (phase 4) |
 |---|---|---|---|
-| Matched without a person | 197 (65.7 %) | 195 (65.0 %) | **228 (76.0 %)** |
+| Matched without a person | 197 (65.7 %) | 195 (65.0 %) | **227 (75.7 %)** |
 | … **wrong invoice** | 3 | 0 | **0** |
 | … correct invoice, should have gone to a person | 34 | 34 | **0** |
 | Precision of automatic matches | 81.2 % | 82.6 % | **100 %** |
 | Prompt injections matched | 0 | 0 | 0 (all 15 flagged) |
 
-76 % is the ceiling of this dataset: the other 24 % should go to a person or stay unmatched, and
-they do. By case: exact VS 135/135, VS in message 30/30, VS typo 24/24, multi-invoice 24/24, EUR
+The ceiling of this dataset is 76 %: the other 24 % should go to a person or stay unmatched, and
+they do. By case: exact VS 135/135, VS in message 30/30, VS typo 23/24, multi-invoice 24/24, EUR
 15/15 matched automatically; partial/overpayments 24/24 and third-party payers 18/18 to a person;
-unrelated 15/15 and injections 15/15 not matched.
+unrelated 15/15 and injections 15/15 not matched. The one VS typo not matched automatically went to
+a person with the correct proposal: Claude Opus 5.5 was 0.88 confident, just under the 0.90 threshold.
+A first recording run matched it (228); model answers vary between runs, which phase 5 must measure.
 
 AI cost: 79 of 300 payments reached the model (the others were decided by rules or had no
-candidate). 92 calls: 79 × Claude Haiku 5.5, 13 escalations to Claude Opus 5.5. **$0.20 for the
-run, $0.68 per 1 000 payments**; latency per AI payment p50 2.1 s, p95 5.2 s. Opus makes up 85 % of
-the cost, and 8 of its 13 calls were overpayments whose outcome is "a person" anyway. Not escalating
+candidate). 91 calls: 79 × Claude Haiku 5.5, 12 escalations to Claude Opus 5.5. **$0.19 for the
+run, $0.64 per 1 000 payments**; latency per AI payment p50 2.0 s, p95 5.2 s. Opus makes up 84 % of
+the cost, and 8 of its 12 calls were overpayments whose outcome is "a person" anyway. Not escalating
 those is the first cost optimisation for phase 5 (needs an eval run).
 
 An honest caveat: on synthetic data, the code (candidate selection + validation) does most of the

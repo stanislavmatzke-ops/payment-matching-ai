@@ -1,0 +1,17 @@
+{
+  "requestHash": "2fdfc5606bdded5dfadb84cfeffa8247",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Vostrex Strojírny s.r.o. (C004)\",\n  \"booking_date\": \"2026-03-29\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1301\",\n      \"variable_symbol\": \"2026001301\",\n      \"customer\": \"Vostrex Strojírny s.r.o. (C004)\",\n      \"kind\": \"Regular\",\n      \"amount\": 42113.15,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-04\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1031\",\n      \"variable_symbol\": \"2026001031\",\n      \"customer\": \"Ostravel Obchod s.r.o. (C046)\",\n      \"kind\": \"Regular\",\n      \"amount\": 63303.09,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-03\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1131\",\n      \"variable_symbol\": \"2026001131\",\n      \"customer\": \"Úvalka Tiskárna s.r.o. (C016)\",\n      \"kind\": \"Advance\",\n      \"amount\": 215346.31,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-04-04\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1310\",\n      \"variable_symbol\": \"2026001310\",\n      \"customer\": \"Klenovit Stavby s.r.o. (C041)\",\n      \"kind\": \"Regular\",\n      \"amount\": 158227.88,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-13\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1318\",\n      \"variable_symbol\": \"2026001318\",\n      \"customer\": \"Čerpaton Potraviny s.r.o. (C040)\",\n      \"kind\": \"Regular\",\n      \"amount\": 104424.33,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-07\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1331\",\n      \"variable_symbol\": \"2026001331\",\n      \"customer\": \"Tesnar Doprava s.r.o. (C058)\",\n      \"kind\": \"Regular\",\n      \"amount\": 193773.88,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-23\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 42113.15,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Vostrex Strojirny s.r.o.\",\n  \"variable_symbol\": \"202600131\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 202600131 is one digit missing from invoice 2026-1301's VS 2026001301, and the amount 42113.15 CZK matches exactly. The payer is the customer Vostrex (C004), and the other candidates belong to different customers with non-matching amounts.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1301\"], \"confidence\": 0.9, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2576,
+      "outputTokens": 151,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.3473443"
+  }
+}

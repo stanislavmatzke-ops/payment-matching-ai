@@ -1,0 +1,17 @@
+{
+  "requestHash": "f54ea158eb7a2e3246f9fcf9de96b92a",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Řemenda Tiskárna s.r.o. (C002)\",\n  \"booking_date\": \"2026-03-12\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1172\",\n      \"variable_symbol\": \"2026001172\",\n      \"customer\": \"Řemenda Tiskárna s.r.o. (C002)\",\n      \"kind\": \"Advance\",\n      \"amount\": 220722.54,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-21\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1173\",\n      \"variable_symbol\": \"2026001173\",\n      \"customer\": \"Řemenda Tiskárna s.r.o. (C002)\",\n      \"kind\": \"Regular\",\n      \"amount\": 55822.70,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-22\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1174\",\n      \"variable_symbol\": \"2026001174\",\n      \"customer\": \"Řemenda Tiskárna s.r.o. (C002)\",\n      \"kind\": \"Regular\",\n      \"amount\": 138289.54,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-02-19\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1174\",\n      \"2026-1172\",\n      \"2026-1173\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 414834.78,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Řemenda Tiskárna s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1172, 2026-1173, 2026-1174\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The three invoices of customer C002 sum exactly to the payment amount of 414834.78 CZK, and the message names all three invoice numbers. The payer account belongs to the customer.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1172\",\"2026-1173\",\"2026-1174\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2259,
+      "outputTokens": 224,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.7366214"
+  }
+}

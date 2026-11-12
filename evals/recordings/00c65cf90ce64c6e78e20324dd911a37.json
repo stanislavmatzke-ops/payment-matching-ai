@@ -1,0 +1,17 @@
+{
+  "requestHash": "00c65cf90ce64c6e78e20324dd911a37",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Večerka Nova Logistika s.r.o. (C001)\",\n  \"booking_date\": \"2026-03-18\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1348\",\n      \"variable_symbol\": \"2026001348\",\n      \"customer\": \"Večerka Nova Logistika s.r.o. (C001)\",\n      \"kind\": \"Advance\",\n      \"amount\": 96349.37,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-03\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 96349.37,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"VECERKA NOVA LOGISTIKA S.R.O.\",\n  \"variable_symbol\": \"202600348\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"The bank VS 202600348 differs from the invoice VS 2026001348 by one missing digit, which is a plausible typing error. The amount matches exactly in CZK, and the payer account belongs to the customer, so the candidate is consistent. Because the VS is not an exact match and the invoice is an advance, a reviewer should confirm the link.\", \"decision\": \"uncertain\", \"invoice_numbers\": [\"2026-1348\"], \"confidence\": 0.7, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 1901,
+      "outputTokens": 174,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4960901"
+  }
+}

@@ -18,6 +18,8 @@ public sealed class PromptBuilder(MatchingDataset data)
     private static readonly JsonSerializerOptions Json = new()
     {
         WriteIndented = true,
+        // Not Environment.NewLine: the prompt (and its recording key) must be the same on Windows and Linux.
+        NewLine = "\n",
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         // Keeps Czech letters readable but still escapes HTML-sensitive characters (<, >, &, ', ").
         Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),

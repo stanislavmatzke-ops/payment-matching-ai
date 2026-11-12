@@ -1,0 +1,17 @@
+{
+  "requestHash": "4db976274e822b2393178e0b630b9143",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Zelvanta Účetní služby s.r.o. (C031)\",\n  \"booking_date\": \"2026-03-25\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1183\",\n      \"variable_symbol\": \"2026001183\",\n      \"customer\": \"Zelvanta Účetní služby s.r.o. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 117730.05,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-24\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1184\",\n      \"variable_symbol\": \"2026001184\",\n      \"customer\": \"Zelvanta Účetní služby s.r.o. (C031)\",\n      \"kind\": \"Advance\",\n      \"amount\": 204535.25,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-15\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1185\",\n      \"variable_symbol\": \"2026001185\",\n      \"customer\": \"Zelvanta Účetní služby s.r.o. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 146255.16,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-04-03\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1186\",\n      \"variable_symbol\": \"2026001186\",\n      \"customer\": \"Zelvanta Účetní služby s.r.o. (C031)\",\n      \"kind\": \"Regular\",\n      \"amount\": 78875.36,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-26\",\n      \"signals\": [\n        \"number_in_message\",\n        \"in_combination\",\n        \"payer_is_customer\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": [\n    [\n      \"2026-1184\",\n      \"2026-1183\",\n      \"2026-1186\",\n      \"2026-1185\"\n    ]\n  ]\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 547395.82,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Zelvanta Účetní služby s.r.o.\",\n  \"variable_symbol\": \"\",\n  \"message\": \"fa 2026-1183, 2026-1184, 2026-1185, 2026-1186\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\":\"The four candidate invoices sum exactly to the payment amount of 547395.82 CZK, and the message names all four invoice numbers. All belong to the same customer, which is also the payer account owner. The VS is empty, but the message identifies the invoices.\",\"decision\":\"match\",\"invoice_numbers\":[\"2026-1183\",\"2026-1184\",\"2026-1185\",\"2026-1186\"],\"confidence\":0.97,\"flags\":[\"multi_invoice\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2436,
+      "outputTokens": 280,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.8250417"
+  }
+}

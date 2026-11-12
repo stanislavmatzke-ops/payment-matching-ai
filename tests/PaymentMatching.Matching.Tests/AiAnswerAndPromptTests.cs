@@ -68,6 +68,19 @@ public class AiAnswerAndPromptTests
     }
 
     [Fact]
+    public void Prompt_is_identical_on_every_os()
+    {
+        var payment = Payment("P1", 500m, vs: "2026001234");
+        var data = Dataset([Invoice("2026-1234", 500m)], payment);
+        var builder = new PromptBuilder(data);
+
+        var content = builder.UserContent(payment, new CandidateSelector(data, MatchingOptions.Default).Select(payment, new HashSet<string>()));
+
+        Assert.DoesNotContain('\r', content);
+        Assert.DoesNotContain('\r', builder.SystemPrompt);
+    }
+
+    [Fact]
     public void Versioned_prompt_is_embedded()
     {
         var prompt = new PromptBuilder(Dataset([])).SystemPrompt;

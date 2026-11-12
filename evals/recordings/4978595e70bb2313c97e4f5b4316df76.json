@@ -1,0 +1,17 @@
+{
+  "requestHash": "4978595e70bb2313c97e4f5b4316df76",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Večerka Nova Tiskárna s.r.o. (C053)\",\n  \"booking_date\": \"2026-02-28\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1251\",\n      \"variable_symbol\": \"2026001251\",\n      \"customer\": \"Večerka Nova Tiskárna s.r.o. (C053)\",\n      \"kind\": \"Regular\",\n      \"amount\": 148904.44,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-12\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1021\",\n      \"variable_symbol\": \"2026001021\",\n      \"customer\": \"Jasnovit Obchod s.r.o. (C010)\",\n      \"kind\": \"Regular\",\n      \"amount\": 17840.55,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-16\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1121\",\n      \"variable_symbol\": \"2026001121\",\n      \"customer\": \"Úvalka Elektro a.s. (C035)\",\n      \"kind\": \"Advance\",\n      \"amount\": 165166.19,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-28\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 148904.44,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"VECERKA NOVA TISKARNA S.R.O.\",\n  \"variable_symbol\": \"2026001521\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment VS 2026001521 differs from invoice 2026-1251 VS 2026001251 by swapped adjacent digits (25 vs 52 in the last digits), a typing error. Amount 148904.44 CZK matches exactly, and payer account belongs to the customer. Other candidates have VS typos too but amounts do not fit, so they are excluded.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1251\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2175,
+      "outputTokens": 178,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:02.1744465"
+  }
+}

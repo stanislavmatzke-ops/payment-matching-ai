@@ -1,0 +1,17 @@
+{
+  "requestHash": "8a4b28e863445d6e1707508733691040",
+  "model": "claude-haiku-5-5",
+  "request": "<context>\n{\n  \"payer_account_belongs_to\": \"Úvalka Doprava v.o.s. (C032)\",\n  \"booking_date\": \"2026-03-14\"\n}\n</context>\n<candidate_invoices>\n{\n  \"candidates\": [\n    {\n      \"invoice_number\": \"2026-1274\",\n      \"variable_symbol\": \"2026001274\",\n      \"customer\": \"Úvalka Doprava v.o.s. (C032)\",\n      \"kind\": \"Regular\",\n      \"amount\": 107226.93,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-20\",\n      \"signals\": [\n        \"vs_one_typo\",\n        \"amount_exact\",\n        \"payer_is_customer\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1024\",\n      \"variable_symbol\": \"2026001024\",\n      \"customer\": \"Klenovit Účetní služby v.o.s. (C051)\",\n      \"kind\": \"Regular\",\n      \"amount\": 37282.17,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-01\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    },\n    {\n      \"invoice_number\": \"2026-1124\",\n      \"variable_symbol\": \"2026001124\",\n      \"customer\": \"Lipanex Potraviny s.r.o. (C026)\",\n      \"kind\": \"Regular\",\n      \"amount\": 54152.34,\n      \"currency\": \"CZK\",\n      \"due_date\": \"2026-03-25\",\n      \"signals\": [\n        \"vs_one_typo\"\n      ]\n    }\n  ],\n  \"suggested_combinations\": []\n}\n</candidate_invoices>\n<untrusted_bank_data>\n{\n  \"amount\": 107226.93,\n  \"currency\": \"CZK\",\n  \"counterparty_name\": \"Úvalka Doprava v.o.s\",\n  \"variable_symbol\": \"2026001724\",\n  \"message\": \"\"\n}\n</untrusted_bank_data>",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "json": "{\"reasoning\": \"Payment amount 107226.93 CZK matches invoice 2026-1274 exactly, and the payer is the customer's own account (Úvalka Doprava). VS 2026001724 differs from invoice VS 2026001274 by swapping two adjacent digits (7 and 2), a typing error. The other two candidates belong to different customers and have amounts that do not fit.\", \"decision\": \"match\", \"invoice_numbers\": [\"2026-1274\"], \"confidence\": 0.93, \"flags\": [\"vs_typo\"]}",
+    "stopReason": "end_turn",
+    "usage": {
+      "inputTokens": 2164,
+      "outputTokens": 180,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "latency": "00:00:01.4620842"
+  }
+}
