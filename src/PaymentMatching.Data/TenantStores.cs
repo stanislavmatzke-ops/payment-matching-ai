@@ -20,8 +20,8 @@ public static class TenantData
         return new MatchingDataset(customers, invoices, payments);
     }
 
-    /// <summary>Adds a dataset to the current tenant (not saved yet).</summary>
-    public static void Add(PaymentsDbContext db, MatchingDataset data)
+    /// <summary>Adds a dataset to the current tenant (not saved yet). Payments continue the statement at <paramref name="firstSeq"/>.</summary>
+    public static void Add(PaymentsDbContext db, MatchingDataset data, int firstSeq = 0)
     {
         db.Customers.AddRange(data.Customers.Select(c => new CustomerRow { Id = c.Id, Name = c.Name, Iban = c.Iban }));
         db.Invoices.AddRange(data.Invoices.Select(i => new InvoiceRow
@@ -37,7 +37,7 @@ public static class TenantData
         db.Payments.AddRange(data.Payments.Select((p, seq) => new PaymentRow
         {
             Id = p.Id,
-            Seq = seq,
+            Seq = firstSeq + seq,
             BookingDate = p.BookingDate,
             Amount = p.Amount,
             Currency = p.Currency,

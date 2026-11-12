@@ -26,8 +26,7 @@ public sealed class PostgresFixture : IAsyncDisposable
         }
 
         var connectionString = new NpgsqlConnectionStringBuilder(admin) { Database = name }.ConnectionString;
-        await using var db = new PaymentsDbContext(PaymentsDb.Options(connectionString), new TenantContext());
-        await db.Database.MigrateAsync(cancellationToken);
+        await OperationsDb.MigrateAllAsync(connectionString, cancellationToken);
         return connectionString;
     }
 

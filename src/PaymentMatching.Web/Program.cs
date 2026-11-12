@@ -59,8 +59,7 @@ var app = builder.Build();
 
 if (config.GetValue<bool>("Database:MigrateOnStartup"))
 {
-    await using var db = new PaymentsDbContext(app.Services.GetRequiredService<DbContextOptions<PaymentsDbContext>>(), new TenantContext());
-    await db.Database.MigrateAsync();
+    await OperationsDb.MigrateAllAsync(connectionString);
 }
 
 if (!app.Environment.IsDevelopment())

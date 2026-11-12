@@ -9,6 +9,9 @@ public interface ITenantContext
 {
     /// <summary>The current tenant. Throws when none is set: no tenant means no data (fail closed).</summary>
     Guid TenantId { get; }
+
+    /// <summary>True for the public demo: nothing may be saved through this context.</summary>
+    bool IsReadOnly => false;
 }
 
 /// <summary>Scoped holder: set once per request or process, never switched to another tenant.</summary>
@@ -25,6 +28,11 @@ public sealed class TenantContext : ITenantContext
     public Guid TenantId => _tenantId ?? throw new TenantIsolationException("No tenant is set for this operation.");
 
     public bool IsSet => _tenantId is not null;
+
+    public bool IsReadOnly { get; private init; }
+
+    /// <summary>The demo sandbox for visitors without sign-in: reading only, saving throws.</summary>
+    public static TenantContext ReadOnlyFor(Guid tenantId) => new(tenantId) { IsReadOnly = true };
 
     public void Set(Guid tenantId)
     {

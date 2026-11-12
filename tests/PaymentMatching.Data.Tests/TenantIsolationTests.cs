@@ -163,6 +163,10 @@ public class TenantIsolationTests(PostgresFixture postgres)
 
         Assert.False(db.Database.HasPendingModelChanges(), "Run: dotnet ef migrations add <Name> --project src/PaymentMatching.Data");
         Assert.Empty(await db.Database.GetPendingMigrationsAsync(Ct));
+
+        await using var operations = new OperationsDbContext(OperationsDb.Options(tenants.ConnectionString));
+        Assert.False(operations.Database.HasPendingModelChanges(), "Run: dotnet ef migrations add <Name> --project src/PaymentMatching.Data --context OperationsDbContext --output-dir OperationsMigrations");
+        Assert.Empty(await operations.Database.GetPendingMigrationsAsync(Ct));
     }
 
     private static async Task<(List<Guid> Visible, int All)> Owners<T>(PaymentsDbContext db)

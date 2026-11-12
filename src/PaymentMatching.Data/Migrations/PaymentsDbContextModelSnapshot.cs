@@ -251,7 +251,16 @@ namespace PaymentMatching.Data.Migrations
                     b.Property<int>("DataSeed")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsDemo")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset>("LastActiveAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("LastBatchDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("LastRefillAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");

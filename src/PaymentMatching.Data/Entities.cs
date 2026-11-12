@@ -17,6 +17,15 @@ public sealed class TenantRow
 
     /// <summary>Seed of the generated starter data (reproducible sandbox).</summary>
     public int DataSeed { get; set; }
+
+    /// <summary>The shared read-only demo sandbox (SPEC 9b): no user, never deleted for inactivity.</summary>
+    public bool IsDemo { get; set; }
+
+    /// <summary>When the daily job last added the shared batch (null: never).</summary>
+    public DateTimeOffset? LastRefillAt { get; set; }
+
+    /// <summary>Date of the last shared batch added; a sandbox gets each day's batch at most once.</summary>
+    public DateOnly? LastBatchDate { get; set; }
 }
 
 /// <summary>

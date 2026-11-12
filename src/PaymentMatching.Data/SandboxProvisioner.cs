@@ -87,6 +87,33 @@ public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> optio
         return new ProvisionResult(ProvisionStatus.Created, tenantId);
     }
 
+    /// <summary>Seed of the demo's starter data: every deployment shows the same demo.</summary>
+    public const int DemoSeed = 20261112;
+
+    /// <summary>
+    /// Creates the shared read-only demo sandbox (SPEC 9b) when it does not exist: starter data and the
+    /// rules layer only, no user (so no sign-in can ever lead into it). The daily job calls this; the id
+    /// comes from server configuration. Returns true when it was created now.
+    /// </summary>
+    public async Task<bool> EnsureDemoAsync(Guid demoId, CancellationToken cancellationToken = default)
+    {
+        await using var db = new PaymentsDbContext(options, new TenantContext(demoId));
+        if (await db.Tenants.AnyAsync(cancellationToken))
+        {
+            return false;
+        }
+
+        var now = time.GetUtcNow();
+        db.Tenants.Add(new TenantRow { Id = demoId, CreatedAt = now, LastActiveAt = now, DataSeed = DemoSeed, IsDemo = true });
+        var data = StarterData(DemoSeed, DateOnly.FromDateTime(now.UtcDateTime));
+        TenantData.Add(db, data);
+        var decisions = await DbDecisionStore.LoadAsync(db, cancellationToken);
+        await new MatchingPipeline(data, gateway: null, decisions, MatchingOptions.Default with { DeferAiWithoutGateway = true }, time)
+            .RunAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     /// <summary>Synthetic starter data, parsed by the same code that reads the generator's CSV files.</summary>
     public MatchingDataset StarterData(int seed, DateOnly today)
     {

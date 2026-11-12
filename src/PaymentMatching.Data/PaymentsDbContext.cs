@@ -147,6 +147,11 @@ public sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> option
             return;
         }
 
+        if (tenant.IsReadOnly)
+        {
+            throw new TenantIsolationException("This sandbox is read-only; nothing can be saved.");
+        }
+
         var current = CurrentTenantId;
         foreach (var entry in entries)
         {
