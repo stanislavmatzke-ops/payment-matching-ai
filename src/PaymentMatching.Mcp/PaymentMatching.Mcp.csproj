@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>payments-mcp</AssemblyName>
+    <RootNamespace>PaymentMatching.Mcp</RootNamespace>
+    <!-- The Web SDK runs from the project directory; like the other CLIs, resolve relative paths from where dotnet run starts. -->
+    <RunWorkingDirectory>$(MSBuildStartupDirectory)</RunWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.Matching\PaymentMatching.Matching.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PaymentMatching.Mcp.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -6,6 +6,11 @@
     <!-- Official Anthropic C# SDK: structured output, typed errors, retries and timeouts (ADR 0005). -->
     <PackageVersion Include="Anthropic" Version="13.8.0" />
   </ItemGroup>
+  <ItemGroup Label="MCP">
+    <!-- Official C# MCP SDK: server, stdio and Streamable HTTP transports (ADR 0010). -->
+    <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
+  </ItemGroup>
   <ItemGroup Label="Configuration">
     <!-- Match.Cli only: read the API key from dotnet user-secrets or the environment. -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
