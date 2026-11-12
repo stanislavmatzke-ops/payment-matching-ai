@@ -146,7 +146,7 @@ public class OperationsUiTests(PostgresFixture postgres)
 
         var dashboard = await alice.GetStringAsync("/", Ct);
         Assert.Contains("used up for today", dashboard, StringComparison.Ordinal);
-        Assert.Contains("0 / 2", dashboard, StringComparison.Ordinal);
+        Assert.Contains("0 / 20", dashboard, StringComparison.Ordinal);
         Assert.Contains("1 waiting for you", dashboard, StringComparison.Ordinal);
         Assert.Contains("AI budget used up", await alice.GetStringAsync("/queue", Ct), StringComparison.Ordinal);
         Assert.Contains("AI budget used up", await alice.GetStringAsync($"/payments/{labelled}", Ct), StringComparison.Ordinal);

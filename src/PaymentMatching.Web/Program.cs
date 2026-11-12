@@ -33,7 +33,7 @@ builder.Services.AddScoped<PaymentsDbContext>();
 builder.Services.AddSingleton(new SandboxOptions
 {
     StarterPayments = config.GetValue("Sandboxes:StarterPayments", 20),
-    MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 50),
+    MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 5),
 });
 builder.Services.AddSingleton<SandboxProvisioner>();
 builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<PaymentsDbContext>(), sp.GetRequiredService<TimeProvider>()));

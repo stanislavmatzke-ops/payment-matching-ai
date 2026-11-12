@@ -14,7 +14,7 @@ public sealed record SandboxOptions
     public int StarterPayments { get; init; } = 20;
 
     /// <summary>New sandboxes per 24 hours; more sign-ups wait (keeps database and AI costs bounded).</summary>
-    public int MaxNewPerDay { get; init; } = 50;
+    public int MaxNewPerDay { get; init; } = 5;
 }
 
 public enum ProvisionStatus

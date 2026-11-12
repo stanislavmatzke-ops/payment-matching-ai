@@ -69,8 +69,18 @@ removes the large model from the routes.
 
 - AI cost no longer grows with the number of users: each day's batch is answered once (1–2 calls),
   every other sandbox reuses the answers. New sandboxes still have their own starter data (~5–7 AI
-  payments), at most 2 calls a day each, so their AI payments arrive over a few days.
+  payments); with 20 calls per sandbox and day (amendment below) the first run decides all of them.
 - Everyone sees the same new payments on a day; the demo grows by 3–5 payments a day.
 - Two job instances at once could overshoot a budget by a call or two; the Container Apps Job runs
   with parallelism 1 and the Anthropic console spend limit stays the hard backstop.
 - No new packages.
+
+## Amendment (2026-11-12, after the phase): 20 calls per sandbox, 5 new sandboxes a day
+
+The per-sandbox limit of 2 calls a day (ADR 0013) only slowed new sandboxes down: their ~5–7 AI
+payments arrived over several days, to save fractions of a cent. What protects the budget is the
+app-wide layer (50 calls a day, the monthly dollars) together with the number of new sandboxes. So
+`Ai:Budget:CallsPerSandboxPerDay` defaults to 20 (one run decides a new sandbox completely, about
+$0.005) and `Sandboxes:MaxNewPerDay` to 5 (the app is a demo for a few clients; mass sign-ups are the
+way to run up cost). Recommended for production: a monthly budget of $0.50 and a $5 spend limit in
+the Anthropic console.

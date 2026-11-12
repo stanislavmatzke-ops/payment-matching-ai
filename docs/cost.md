@@ -16,7 +16,7 @@ about half of that, same precision, automation 52.0 % instead of 53.3 %.
 | Source | Calls per day | Notes |
 |---|---|---|
 | Shared daily batch | 1–2 | answered once, every other sandbox reuses the cached answer ($0) |
-| Starter data of new sandboxes | up to 2 per new sandbox | own data per sandbox, ~5–7 AI payments spread over a few days |
+| Starter data of new sandboxes | ~5–7 per new sandbox, once | own data per sandbox, all decided in the first run |
 | Sandbox where a person matched by hand | occasionally | the prompt differs, so the model is asked again |
 
 Example: 20 active sandboxes, 2 new ones a day → about 1–2 + 4 = **~6 calls a day, ~$0.005 a day,
@@ -27,7 +27,7 @@ would be ~$1.5 a month and grow with every user.
 
 | Setting | Default | When used up |
 |---|---|---|
-| `Ai:Budget:CallsPerSandboxPerDay` | 2 | the sandbox's AI payments wait for the next run |
+| `Ai:Budget:CallsPerSandboxPerDay` | 20 | the sandbox's AI payments wait for the next run |
 | `Ai:Budget:CallsPerDay` | 50 | AI payments go to a person, label "AI budget used up" |
 | `Ai:Budget:MonthlyUsd` | 2 | same; a call needs `Ai:Budget:ReservePerCallUsd` ($0.05) left |
 | `Ai:SmallModelOnly` | false | no escalation to the large model |
@@ -40,4 +40,6 @@ dashboard (per sandbox) and on `/admin` (calls and cost per day and month, budge
 
 Nothing directly: visitors never start a model. Signing in creates a sandbox (database rows, rules
 only); its AI payments are handled by the job within the budgets above. New sandboxes per day are
-limited (`Sandboxes:MaxNewPerDay`); people turned away are counted on `/admin`.
+limited (`Sandboxes:MaxNewPerDay`, default 5); people turned away are counted on `/admin`. For a demo
+with a handful of clients: about $0.05–0.10 a month; recommended production settings are a monthly
+budget of $0.50 and a $5 spend limit in the Anthropic console.

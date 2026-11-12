@@ -224,7 +224,7 @@ public class CacheAndBudgetTests(PostgresFixture postgres)
     public void Allowance_is_the_tightest_layer_and_a_tie_names_the_app(int sandboxCalls, int appCalls, double monthUsd, int calls, BudgetLimit limit)
     {
         var allowance = AiAllowance.For(
-            AiBudgetOptions.Default,
+            AiBudgetOptions.Default with { CallsPerSandboxPerDay = 2 },
             sandboxCalls,
             UsageTotals.Zero with { AiCalls = appCalls },
             UsageTotals.Zero with { AiCostUsd = (decimal)monthUsd });

@@ -1,6 +1,6 @@
 # ADR 0013: AI cost model for the hosted app (demand-driven daily batch, response cache, budgets)
 
-- Status: Accepted
+- Status: Accepted (per-sandbox limit raised from 2 to 20 calls a day, see ADR 0014)
 - Date: 2026-11-12
 
 ## Context

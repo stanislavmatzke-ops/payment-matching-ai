@@ -252,3 +252,4 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - `--` v XML komentáři csproj podruhé (build),
   - test s pořadím GUID by procházel náhodou (porovnání seřazené množiny se seznamem v pevném pořadí) – opraveno před commitem,
   - spojení dvou interpolovaných řetězců přes `+` uvnitř `FormattableString.Invariant` neprojde překladem (výsledek je `string`).
+- Po fázi uživatel zpochybnil limit 2 volání na sandbox a den: na dashboardu „2 / 2“ vypadalo směšně, když jedno volání stojí zlomek centu, a nové sandboxy čekaly na AI několik dní. Ochranu proti „oškubání“ drží globální stropy a počet nových sandboxů, ne limit sandboxu. Změněno: 20 volání na sandbox a den, 5 nových sandboxů denně (dodatek v ADR 0014). Pro nasazení doporučen měsíční rozpočet $0,50 a spend limit $5 v Anthropic konzoli.

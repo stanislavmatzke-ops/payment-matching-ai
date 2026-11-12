@@ -5,8 +5,11 @@ namespace PaymentMatching.Data;
 /// <summary>The three budget layers of ADR 0013 and the small-model-only switch (configuration <c>Ai:*</c>).</summary>
 public sealed record AiBudgetOptions
 {
-    /// <summary>Model calls per sandbox and day (answers from the cache do not count).</summary>
-    public int CallsPerSandboxPerDay { get; init; } = 2;
+    /// <summary>
+    /// Model calls per sandbox and day (answers from the cache do not count). 20 lets the first run decide all
+    /// AI payments of a new sandbox (~5–7, some escalated) at about $0.005; the app-wide layers guard the spend.
+    /// </summary>
+    public int CallsPerSandboxPerDay { get; init; } = 20;
 
     /// <summary>Model calls per day across all sandboxes.</summary>
     public int CallsPerDay { get; init; } = 50;
