@@ -1,40 +1,32 @@
 using System.Globalization;
+using PaymentMatching.Evals;
 using PaymentMatching.Matching;
 
 namespace Match.Cli;
 
 /// <summary>
-/// Quick check against the generator's expected.csv when it is next to the input. A preview only:
-/// the proper eval runner with per-case metrics and reports comes in phase 5.
+/// Quick check against the generator's expected.csv when it is next to the input, with the same
+/// scorer as the eval runner (tools/Eval.Cli), which compares configurations and writes reports.
 /// </summary>
 internal static class GroundTruth
 {
     public static void PrintIfPresent(TextWriter o, string inputDir, IReadOnlyList<AuditRecord> records)
     {
-        var path = Path.Combine(inputDir, "expected.csv");
-        if (!File.Exists(path))
+        if (!File.Exists(Path.Combine(inputDir, "expected.csv")))
         {
             return;
         }
 
-        var expected = File.ReadAllLines(path).Skip(1).Where(l => l.Length > 0)
-            .Select(MatchingDataset.SplitCsv)
-            .ToDictionary(f => f[0], f => (Case: f[1], Outcome: f[2], Invoices: f[3].Split('|', StringSplitOptions.RemoveEmptyEntries).Order().ToArray()));
-
-        var auto = records.Where(r => r.Decision.Outcome == Outcome.AutoMatched).ToList();
-        var correct = auto.Count(r => expected[r.PaymentId].Invoices.SequenceEqual(r.Decision.InvoiceNumbers.Order()));
-        var wrongInvoice = auto.Count - correct;
-        var shouldBeHuman = auto.Count(r => expected[r.PaymentId].Outcome != "AutoMatch" && expected[r.PaymentId].Invoices.SequenceEqual(r.Decision.InvoiceNumbers.Order()));
-        var safe = correct - shouldBeHuman;
-
+        var r = Scorer.Score("match", GoldSet.Load(inputDir), records);
         o.WriteLine();
-        o.WriteLine("Against ground truth (expected.csv, preview of the phase 5 eval):");
-        o.WriteLine($"  auto-matched {auto.Count}: correct and safe {safe}, correct invoice but should be a person {shouldBeHuman}, WRONG invoice {wrongInvoice}");
-        o.WriteLine(string.Create(CultureInfo.InvariantCulture, $"  precision of automatic matches {100.0 * safe / Math.Max(1, auto.Count):0.0} %"));
-        o.WriteLine("  by case:            auto  person  none");
-        foreach (var group in records.GroupBy(r => expected[r.PaymentId].Case).OrderBy(g => g.Key, StringComparer.Ordinal))
+        o.WriteLine("Against ground truth (expected.csv):");
+        o.WriteLine($"  auto-matched {r.Auto}: correct and safe {r.AutoCorrect}, correct invoice but should be a person {r.Errors.Count(e => e.Kind == ErrorKind.ShouldBePerson)}, WRONG invoice {r.WrongInvoices}");
+        o.WriteLine(string.Create(CultureInfo.InvariantCulture, $"  precision of automatic matches {r.Precision:P1}, automation {r.Automation:P1} (ceiling {r.Ceiling:P1})"));
+        o.WriteLine($"  injections defended {r.Injection.Defended}/{r.Injection.Total}, proposals for a person right {r.ProposalsCorrect}/{r.ProposalsScored}");
+        o.WriteLine("  by case:              auto  person  none");
+        foreach (var row in r.ByCase)
         {
-            o.WriteLine($"    {group.Key,-20} {group.Count(r => r.Decision.Outcome == Outcome.AutoMatched),4} {group.Count(r => r.Decision.Outcome == Outcome.HumanReview),7} {group.Count(r => r.Decision.Outcome == Outcome.NoMatch),5}");
+            o.WriteLine($"    {row.CaseType,-20} {row.Auto,5} {row.Person,7} {row.None,5}");
         }
     }
 }

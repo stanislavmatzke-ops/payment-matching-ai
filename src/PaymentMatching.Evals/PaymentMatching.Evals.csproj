@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PaymentMatching.Evals</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentMatching.Matching\PaymentMatching.Matching.csproj" />
+  </ItemGroup>
+
+</Project>

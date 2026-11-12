@@ -79,15 +79,18 @@ public class PipelineTests
             && ExpectedSample[r.PaymentId].CaseType == "PromptInjection");
     }
 
+    public static TheoryData<string> ExhaustiveSets => new() { "data/sample", "legacy/golden/seed-2005/input", "evals/dataset/gold-v1" };
+
     [Theory]
-    [MemberData(nameof(GoldenSets))]
-    public async Task No_proposal_any_model_could_make_passes_validation_unless_it_is_correct(string inputDir, string goldenDir)
+    [MemberData(nameof(ExhaustiveSets))]
+    public async Task No_proposal_any_model_could_make_passes_validation_unless_it_is_correct(string inputDir)
     {
         // Exhaustive, model-free: for every payment that reaches layer 2, try every set of 1–4
         // candidate invoices as if a model proposed it with full confidence. Validation must accept
         // only the correct answer. (A random model passed an earlier version of this check by luck;
-        // the stub model then found an EUR payment matched to a wrong combination.)
-        _ = goldenDir;
+        // the stub model then found an EUR payment matched to a wrong combination. The eval gold set
+        // then found ties: two invoices or combinations that fit equally well. Now a valid proposal
+        // must be the only right one, for a payment that may be matched automatically at all.)
         var data = MatchingDataset.Load(RepoPaths.Combine(inputDir));
         var expected = LoadExpected(inputDir);
         var rulesOnly = await Run(data, model: null);
@@ -106,7 +109,8 @@ public class PipelineTests
             {
                 tried++;
                 var valid = validator.Validate(payment, proposal, candidates, claimed, injectionSuspected: false).IsValid;
-                if (valid && !expected[payment.Id].Invoices.Order().SequenceEqual(proposal.Order()))
+                var gold = expected[payment.Id];
+                if (valid && (gold.Outcome != "AutoMatch" || !gold.Invoices.Order().SequenceEqual(proposal.Order())))
                 {
                     leaks.Add($"{payment.Id} ({expected[payment.Id].CaseType}): {string.Join('|', proposal)}");
                 }

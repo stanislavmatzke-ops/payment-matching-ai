@@ -2,17 +2,20 @@
   <Folder Name="/src/">
     <Project Path="src/PaymentMatching.AiGateway/PaymentMatching.AiGateway.csproj" />
     <Project Path="src/PaymentMatching.DataGen/PaymentMatching.DataGen.csproj" />
+    <Project Path="src/PaymentMatching.Evals/PaymentMatching.Evals.csproj" />
     <Project Path="src/PaymentMatching.Matching/PaymentMatching.Matching.csproj" />
     <Project Path="src/PaymentMatching.Rules/PaymentMatching.Rules.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PaymentMatching.AiGateway.Tests/PaymentMatching.AiGateway.Tests.csproj" />
     <Project Path="tests/PaymentMatching.DataGen.Tests/PaymentMatching.DataGen.Tests.csproj" />
+    <Project Path="tests/PaymentMatching.Evals.Tests/PaymentMatching.Evals.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Matching.Tests/PaymentMatching.Matching.Tests.csproj" />
     <Project Path="tests/PaymentMatching.Rules.Tests/PaymentMatching.Rules.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/DataGen.Cli/DataGen.Cli.csproj" />
+    <Project Path="tools/Eval.Cli/Eval.Cli.csproj" />
     <Project Path="tools/Match.Cli/Match.Cli.csproj" />
     <Project Path="tools/Rules.Cli/Rules.Cli.csproj" />
   </Folder>
