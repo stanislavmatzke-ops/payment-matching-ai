@@ -28,13 +28,13 @@
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.21.0" />
     <!-- HTTP server spans with http.route; the built-in ASP.NET Core activities carry no tags of their own. -->
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.21.0" />
-    <!-- Application Insights in Azure (phase 11), on only with APPLICATIONINSIGHTS_CONNECTION_STRING. -->
+    <!-- Application Insights in Azure (ADR 0016), on only with APPLICATIONINSIGHTS_CONNECTION_STRING. -->
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.10.0" />
   </ItemGroup>
   <ItemGroup Label="Configuration">
-    <!-- Match.Cli only: read the API key from dotnet user-secrets or the environment. -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.0" />
+    <!-- Console hosts (job, Match.Cli, Eval.Cli): API key and connection string from user-secrets or the environment. -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
