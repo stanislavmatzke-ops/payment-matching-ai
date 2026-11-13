@@ -86,6 +86,7 @@ public class AiGatewayTests
         Assert.Equal(Large, result.Model);
         Assert.Equal(CallOutcome.Failed, result.Calls[0].Outcome);
         Assert.StartsWith("answer:", result.Calls[0].Error, StringComparison.Ordinal);
+        Assert.Equal(CallError.Answer, result.Calls[0].ErrorKind);
     }
 
     [Fact]
@@ -104,6 +105,7 @@ public class AiGatewayTests
         var call = Assert.Single(result.Calls);
         Assert.Equal(CallOutcome.Failed, call.Outcome);
         Assert.Contains("timeout", call.Error, StringComparison.Ordinal);
+        Assert.Equal(CallError.Timeout, call.ErrorKind);
     }
 
     [Fact]

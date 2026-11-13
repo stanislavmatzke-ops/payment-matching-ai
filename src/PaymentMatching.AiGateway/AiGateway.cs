@@ -46,6 +46,23 @@ public sealed record UsageRecord(
 {
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool Cached { get; init; }
+
+    /// <summary>Why a <see cref="CallOutcome.Failed"/> call failed; null otherwise (and in audit records written before it existed).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public CallError? ErrorKind { get; init; }
+}
+
+/// <summary>The category of a failed call: names a code, never the message (ADR 0015).</summary>
+public enum CallError
+{
+    /// <summary>No answer within <see cref="GatewayOptions.CallTimeout"/>.</summary>
+    Timeout,
+
+    /// <summary>Network or API error after the SDK's own retries; asking another model would not help.</summary>
+    Transport,
+
+    /// <summary>The provider answered, but not usably (refusal, truncated output).</summary>
+    Answer,
 }
 
 /// <summary>Usage of one gateway instance (one run): paid model calls, cached answers and the cost of the calls.</summary>
@@ -68,8 +85,6 @@ public sealed record GatewayResult<T>(T? Value, string? Model, IReadOnlyList<Usa
 /// </summary>
 public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, PriceTable prices)
 {
-    private const string TransportError = "transport: ";
-
     private readonly List<UsageRecord> _calls = [];
 
     public IReadOnlyList<UsageRecord> Calls => _calls;
@@ -143,7 +158,7 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
                 fallback = value;
                 fallbackModel = route.Model;
             }
-            else if (record.Error?.StartsWith(TransportError, StringComparison.Ordinal) == true)
+            else if (record.ErrorKind is CallError.Timeout or CallError.Transport)
             {
                 // The SDK has already retried; asking a second model during an outage only adds cost.
                 break;
@@ -170,10 +185,7 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
     /// <summary>Only names, codes and numbers: never the prompt, the answer or an error message (ADR 0015).</summary>
     private static void Record(Activity? activity, UsageRecord record)
     {
-        var errorType = record.Error is null ? null
-            : record.Error.StartsWith(TransportError + "timeout", StringComparison.Ordinal) ? "timeout"
-            : record.Error.StartsWith(TransportError, StringComparison.Ordinal) ? "transport"
-            : "answer";
+        var errorType = record.ErrorKind?.ToString().ToLowerInvariant();
         var provider = record.Model.StartsWith("claude", StringComparison.Ordinal) ? "anthropic" : null;
         var cached = record.Cached;
 
@@ -226,15 +238,15 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (null, Failure(request.Model, tier, $"{TransportError}timeout after {options.CallTimeout.TotalSeconds:0} s"));
+            return (null, Failure(request.Model, tier, CallError.Timeout, $"timeout after {options.CallTimeout.TotalSeconds:0} s"));
         }
         catch (LlmException ex)
         {
-            return (null, Failure(request.Model, tier, "answer: " + ex.Message));
+            return (null, Failure(request.Model, tier, CallError.Answer, ex.Message));
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or Anthropic.Exceptions.AnthropicException)
         {
-            return (null, Failure(request.Model, tier, TransportError + ex.Message));
+            return (null, Failure(request.Model, tier, CallError.Transport, ex.Message));
         }
 
         var cost = response.Cached ? 0m : prices.Cost(request.Model, response.Usage);
@@ -254,6 +266,10 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
         return (value, new UsageRecord(request.Model, tier, outcome, response.Usage, cost, response.Latency, response.Json, null) { Cached = response.Cached });
     }
 
-    private static UsageRecord Failure(string model, string tier, string error) =>
-        new(model, tier, CallOutcome.Failed, TokenUsage.None, 0m, TimeSpan.Zero, null, error);
+    /// <summary>The audit text keeps its readable prefix ("transport: …", "answer: …"); code reads <see cref="UsageRecord.ErrorKind"/>.</summary>
+    private static UsageRecord Failure(string model, string tier, CallError kind, string message) =>
+        new(model, tier, CallOutcome.Failed, TokenUsage.None, 0m, TimeSpan.Zero, null, (kind == CallError.Answer ? "answer: " : "transport: ") + message)
+        {
+            ErrorKind = kind,
+        };
 }
