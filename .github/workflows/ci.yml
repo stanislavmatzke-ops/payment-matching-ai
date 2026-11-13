@@ -44,6 +44,17 @@ jobs:
           path: out/eval/report.md
           if-no-files-found: ignore
 
+      # Azure is not needed here: the template is compiled and linted, the images are built into archives.
+      - name: Bicep build (infra/main.bicep)
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      - name: Container images build
+        run: |
+          for app in Web Job; do
+            dotnet publish "src/PaymentMatching.$app" --configuration Release --no-build -t:PublishContainer \
+              -p:ContainerArchiveOutputPath="$RUNNER_TEMP/images/"
+          done
+
       - name: Sample data is reproducible
         run: |
           dotnet run --project tools/DataGen.Cli --configuration Release --no-build -- --seed 42 --out data/sample

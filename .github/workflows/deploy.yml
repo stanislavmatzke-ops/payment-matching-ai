@@ -1,0 +1,109 @@
+name: Deploy
+
+# After a green CI run on main (or by hand): build the two images with the .NET SDK, push them to ghcr.io and
+# point the Azure Container App and Job at them (ADR 0016). Azure sign-in is OIDC with a user-assigned identity
+# that has Contributor on rg-payments only: no stored password, no access to Key Vault secrets or role
+# assignments. Without the repository variables AZURE_* (forks, before the infrastructure exists) only the
+# images are built and pushed.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+  REGISTRY: ghcr.io/stanislavmatzke-ops
+  RESOURCE_GROUP: rg-payments
+
+jobs:
+  images:
+    name: Build and push images
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Sign in to ghcr.io with the workflow token
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Publish images
+        run: |
+          for app in Web Job; do
+            name="payments-$(echo "$app" | tr '[:upper:]' '[:lower:]')"
+            dotnet publish "src/PaymentMatching.$app" --configuration Release -t:PublishContainer \
+              -p:ContainerRegistry=ghcr.io \
+              -p:ContainerRepository="stanislavmatzke-ops/$name" \
+              -p:ContainerImageTags='"sha-${{ env.SHA }};latest"' \
+              -p:ContainerImageLabels='"org.opencontainers.image.source=https://github.com/${{ github.repository }}"'
+          done
+
+  azure:
+    name: Update Azure Container Apps
+    needs: images
+    if: vars.AZURE_CLIENT_ID != ''
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Point the web app and the daily job at the new images
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+          az containerapp update --resource-group "$RESOURCE_GROUP" --name ca-payments-web \
+            --image "$REGISTRY/payments-web:sha-$SHA" --output none
+          if az containerapp job show --resource-group "$RESOURCE_GROUP" --name caj-payments-daily --output none 2>/dev/null; then
+            az containerapp job update --resource-group "$RESOURCE_GROUP" --name caj-payments-daily \
+              --image "$REGISTRY/payments-job:sha-$SHA" --output none
+          fi
+          fqdn="$(az containerapp show --resource-group "$RESOURCE_GROUP" --name ca-payments-web --query properties.configuration.ingress.fqdn --output tsv)"
+          echo "BASE=https://$fqdn" >> "$GITHUB_ENV"
+
+      # The app scales to zero: the first request waits for a cold start (and migrations).
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 30); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/privacy")" = 200 ] && break
+            sleep 10
+          done
+          expect() {
+            actual="$(curl -s -o /dev/null -w '%{http_code}' "$BASE$1")"
+            echo "$1 -> $actual (expected $2)"
+            [ "$actual" = "$2" ]
+          }
+          expect / 200
+          expect /privacy 200
+          expect /demo 200
+          expect "/dev-login?name=smoke" 404
+          expect /admin 404
+          expect /api/me 401
+          expect /static-does-not-exist.css 404
+          headers="$(curl -s -D - -o /dev/null "$BASE/")"
+          echo "$headers" | grep -qi '^strict-transport-security:'
+          echo "$headers" | grep -qi "^content-security-policy: default-src 'none'"
+          [ "$(curl -s -o /dev/null -w '%{http_code}' "http://${BASE#https://}/")" = 301 ] || \
+            [ "$(curl -s -o /dev/null -w '%{http_code}' "http://${BASE#https://}/")" = 308 ]
