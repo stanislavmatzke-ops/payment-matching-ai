@@ -95,7 +95,16 @@ public static class TelemetrySetup
 
         if (settings.AzureMonitor is { } connectionString)
         {
-            builder.AddAzureMonitorTraceExporter(o => o.ConnectionString = connectionString);
+            // The exporter would add a rate-limited sampler (traces per second), which drops the only trace of a
+            // short one-shot run (daily job, CLI) before its budget fills: found on the first run in Azure.
+            // Traffic is tiny, so keep every trace (ADR 0015).
+            builder.AddAzureMonitorTraceExporter(o =>
+            {
+                o.ConnectionString = connectionString;
+                o.TracesPerSecond = null;
+                o.SamplingRatio = 1.0F;
+                o.EnableLiveMetrics = false;
+            });
         }
 
         return builder;
@@ -111,7 +120,11 @@ public static class TelemetrySetup
 
         if (settings.AzureMonitor is { } connectionString)
         {
-            builder.AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString);
+            builder.AddAzureMonitorMetricExporter(o =>
+            {
+                o.ConnectionString = connectionString;
+                o.EnableLiveMetrics = false;
+            });
         }
 
         return builder;
