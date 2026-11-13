@@ -153,6 +153,14 @@
   - **Úklid osobních věcí:** z veřejných dokumentů odstranit sekci „Výstupy pro mě mimo repo“ a zmínky o hiring managerech, CV a pohovorech. Úvod SPEC přepsat neutrálně („Reference implementation showing…“). Tyto výstupy (osnova článku 04, LinkedIn text, odrážky do CV) připravit zvlášť do souboru mimo git (např. `../payment-matching-ai-private/outputs.md`) a ukázat mi je v chatu.
   - **README** v obou jazycích: problém → architektura (Mermaid) → výsledky evalů (tabulka) → odkaz na živou aplikaci → spuštění za 2 minuty → „Built spec-first with an AI coding agent – see AGENTS.md, docs/SPEC.md, docs/PLAN.md“ → licence MIT.
   - **Kontrola před zveřejněním:** gitleaks nad celou historií, žádná reálná data, žádné tajné klíče, žádné interní cesty nebo e-maily, odkazy v dokumentech fungují, `LICENSE` existuje.
+  - **Doplněno po fázi 11 (2026-11-13):**
+    - **Nestabilní test:** `McpTelemetryTests.Tool_calls_are_traced_by_name_without_arguments_or_error_text` občas padá v celé paralelní sadě, samostatně prochází. Najít příčinu (pravděpodobně globální posluchač / sdílený stav jako u webové telemetrie ve fázi 10) a opravit, ne přeskočit. Ověřit několika celými běhy sady.
+    - **Kontrola kódu před zveřejněním:** projít `src/` a `tests/` (mrtvý kód, zastaralé komentáře odkazující na „fázi N later“, TODO, nekonzistentní názvy), `dotnet format`, žádné varování; Bicep a skripty v `infra/` (komentáře, žádné osobní id kromě vědomých: jméno a kontakt správce, client id, OIDC subject, doména).
+    - **README:** odstranit „Work in progress“, odkaz na živou aplikaci https://payments.stanislavmatzke.com a demo, výsledky evalů, co je vidět v aplikaci (čeština, „What AI added“, vrácení párování AI), nasazení do Azure.
+    - **`docs/how-it-was-built.md`** (+ česká verze) z „Poznámek k průběhu“: spec-first s agentem, schvalování plánů, chyby agenta a jak je chytily testy, co odhalilo až nasazení, uživatelské testování po spuštění.
+    - **Index ADR** (0001–0018) v README nebo `docs/adr/README.md`.
+    - **Kontrola zveřejnitelnosti:** ghcr.io balíčky jsou veřejné; `.gitleaksignore` vysvětlený; v historii žádné tajné klíče ani osobní e-maily (kromě vědomého kontaktu `kontakt@stanislavmatzke.com` a jména správce v `infra/main.bicepparam`).
+    - **Ověřit, že živá aplikace po změnách funguje** (smoke testy z deploy workflow + ruční kontrola EN i CS).
   - Na konci mi dej seznam souborů ke kontrole a čekej na mé schválení. Repo zveřejním sám.
 
 Pořadí 1–6 je priorita (repo s modernizací, AI párováním, evaly a MCP musí být ukazatelné co nejdřív). Fáze 7–11 dělají z projektu živou aplikaci.
