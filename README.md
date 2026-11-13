@@ -207,6 +207,44 @@ The same variable works for the web app (`payments-web`), the daily job (`paymen
 server (`payments-mcp`). In Azure, `APPLICATIONINSIGHTS_CONNECTION_STRING` sends the same data to
 Application Insights.
 
+## Running in Azure
+
+Live (until the custom domain is set up):
+https://ca-payments-web.salmonwater-b10a8ef3.germanywestcentral.azurecontainerapps.io (`/demo` needs no
+sign-in). Container Apps (web scaling to zero, a daily Container Apps Job), a database on a shared
+PostgreSQL Flexible Server, Key Vault, Application Insights; about $0–2 a month for hosting plus AI
+within a $0.50 monthly budget ([ADR 0016](docs/adr/0016-azure-hosting-container-apps-shared-postgres-oidc.md),
+[docs/cost.md](docs/cost.md)).
+
+**Every push to `main`** deploys after a green CI (`.github/workflows/deploy.yml`): images to ghcr.io,
+then the app and the job are pointed at them through OIDC (no password in GitHub), then smoke tests.
+
+**Infrastructure changes** (Owner on the resource group, from Git Bash or Linux, after `az login`):
+
+```bash
+bash infra/deploy-infra.sh
+```
+
+It deploys `infra/main.bicep` with the settings in `infra/main.bicepparam` and keeps the running images.
+A new environment from scratch, in order:
+
+1. `bash infra/deploy-infra.sh` with `deployApps = false` – identities, Key Vault, monitoring, environment.
+2. `TARGET_VAULT=<keyVaultName> bash infra/bootstrap-db.sh` – database, role and the `db-connection` secret.
+3. Secrets from your own terminal (the value is read without echo):
+   `read -rs KEY && az keyvault secret set --vault-name <keyVaultName> --name anthropic-api-key --value "$KEY" --output none && unset KEY`
+   (likewise `microsoft-client-secret`, `google-client-secret`, `admin-accounts` = `provider:subject`).
+4. Repository variables `AZURE_CLIENT_ID` (output `deployClientId`), `AZURE_TENANT_ID`,
+   `AZURE_SUBSCRIPTION_ID` and a GitHub environment `production`; make the two ghcr.io packages public.
+5. `deployApps = true`, `jobEnabled = true` (and client ids, `adminConfigured`) in `main.bicepparam`,
+   then `bash infra/deploy-infra.sh` again.
+6. Custom domain: CNAME to the web app's FQDN and TXT `asuid.<sub>` = `environmentVerificationId`, then
+   `bash infra/bind-domain.sh <domain>` and put the printed values into `main.bicepparam`.
+
+Run the job by hand: `az containerapp job start -g rg-payments -n caj-payments-daily` (live model calls,
+within the budgets). After rotating a secret, start a new revision
+(`az containerapp update -g rg-payments -n ca-payments-web --revision-suffix <x>`); a running revision
+keeps the old value.
+
 ## What is here so far
 
 | Path | What |
@@ -227,7 +265,8 @@ Application Insights.
 | `src/PaymentMatching.Web` | web app: sign-in with Microsoft / Google, one sandbox per person, server-rendered UI (queue, audit trail, dashboard) with confirm / reject / manual match |
 | `src/PaymentMatching.Job` | `payments-job`: the scheduled daily job (shared batch, response cache, AI budgets, demo, clean-up) |
 | `src/PaymentMatching.Observability` | OpenTelemetry for the hosts: exporters chosen by configuration (OTLP, Application Insights) and redaction before export |
-| `docs/cost.md` | what the hosted app costs and why (AI budgets, cache) |
+| `infra/` | Azure: Bicep (Container Apps, Job, Key Vault, App Insights, identities, GitHub OIDC) and scripts for deployment, database bootstrap and custom domain |
+| `docs/cost.md` | what the hosted app costs and why (hosting, AI budgets, cache) |
 | `docs/adr` | architecture decision records |
 
 All data is synthetic. No real names, companies or accounts.

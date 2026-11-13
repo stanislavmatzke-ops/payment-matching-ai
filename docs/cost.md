@@ -1,8 +1,30 @@
 # What the hosted app costs
 
-This page covers the AI part, which phase 9 built. Hosting (Container Apps, PostgreSQL, Key Vault)
-is estimated in phase 11. Decisions: [ADR 0013](adr/0013-ai-cost-model-for-the-hosted-app.md),
-[ADR 0014](adr/0014-daily-job-cache-budgets-demo-and-admin.md).
+Decisions: [ADR 0013](adr/0013-ai-cost-model-for-the-hosted-app.md),
+[ADR 0014](adr/0014-daily-job-cache-budgets-demo-and-admin.md),
+[ADR 0016](adr/0016-azure-hosting-container-apps-shared-postgres-oidc.md) (hosting).
+
+## Hosting in Azure (estimate, per month)
+
+| Resource | Setting | Cost |
+|---|---|---|
+| Container Apps environment | Consumption, no VNet | $0 |
+| Web app | 0.25 vCPU / 0.5 GiB, 0–1 replica (scale to zero) | ~$0–1, billed only while awake |
+| Daily job | one run a day, a minute or two | ~$0 |
+| PostgreSQL | a database on an existing B1ms server (shared) | $0 extra (an own B1ms server: ~$16–18) |
+| Key Vault | Standard, a few thousand reads | ~$0.01 |
+| Log Analytics + Application Insights | daily cap 0.1 GB, 30 days | ~$0 (within the free 5 GB) |
+| Images | ghcr.io, public packages | $0 (Azure Container Registry Basic: ~$5) |
+| Managed certificate for the custom domain | | $0 |
+| **Hosting total** | | **~$0–2 (under 50 CZK)** |
+
+The Container Apps free grant is per subscription; another app in the same subscription may already
+use it, so the estimate counts the web app's seconds as paid. AI comes on top, within the budgets below.
+
+The first live run in Azure (2026-11-13) created the demo and decided its starter data and the day's
+batch at once: 8 model calls, **$0.031** (the estimate before the run was under $0.01; escalations
+to the large model made the difference). Later days need only the batch, 1–2 calls, answered once for
+all sandboxes.
 
 ## Measured price of one AI payment
 
@@ -41,5 +63,6 @@ dashboard (per sandbox) and on `/admin` (calls and cost per day and month, budge
 Nothing directly: visitors never start a model. Signing in creates a sandbox (database rows, rules
 only); its AI payments are handled by the job within the budgets above. New sandboxes per day are
 limited (`Sandboxes:MaxNewPerDay`, default 5); people turned away are counted on `/admin`. For a demo
-with a handful of clients: about $0.05–0.10 a month; recommended production settings are a monthly
-budget of $0.50 and a $5 spend limit in the Anthropic console.
+with a handful of clients: about $0.05–0.10 a month; production runs with a monthly budget of $0.50
+(`Ai:Budget:MonthlyUsd` in `infra/main.bicepparam`) and a $5 spend limit on a separate Anthropic
+workspace with its own key.
