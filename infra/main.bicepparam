@@ -17,8 +17,8 @@ param microsoftClientId = ''
 param googleClientId = ''
 param adminConfigured = false
 
-param customDomain = ''
-param customDomainCertificate = ''
+param customDomain = 'payments.stanislavmatzke.com'
+param customDomainCertificate = 'mc-cae-payments-payments-stanisl-7480'
 
 // Set by infra/deploy-infra.sh: operatorPrincipalId, webImage, jobImage.
 param operatorPrincipalId = ''
