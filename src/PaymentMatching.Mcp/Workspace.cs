@@ -78,7 +78,7 @@ public sealed class Workspace
     }
 
     /// <summary>
-    /// The workspace of one tenant in the app database (phase 7). <paramref name="db"/> is bound to the tenant
+    /// The workspace of one tenant in the app database (ADR 0011). <paramref name="db"/> is bound to the tenant
     /// chosen when the process started, so every read is tenant-filtered by the data layer and proposals
     /// are saved under that tenant. The context lives as long as the server (it writes proposals).
     /// </summary>

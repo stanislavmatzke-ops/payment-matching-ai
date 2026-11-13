@@ -3,7 +3,7 @@ using static PaymentMatching.Matching.Tests.TestData;
 
 namespace PaymentMatching.Matching.Tests;
 
-/// <summary>Phase 5: ties go to a person (found by the eval gold set), and escalation only when it can change the outcome.</summary>
+/// <summary>Ties go to a person (found by the eval gold set), and escalation only when it can change the outcome.</summary>
 public class AmbiguityAndEscalationTests
 {
     // A monthly fee: two invoices of one customer with the same amount, VS …1234 and …1235.

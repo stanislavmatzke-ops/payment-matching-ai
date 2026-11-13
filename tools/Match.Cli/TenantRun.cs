@@ -9,7 +9,7 @@ namespace Match.Cli;
 /// <c>match --tenant &lt;id&gt; [--mode stub]</c>: runs the pipeline over one sandbox of the app database,
 /// so the AI parts of the UI (who decided, prompt, confidence, cost, audit trail) can be seen locally.
 /// Only the deterministic stub: no model is called and nothing costs money. Real model runs over
-/// sandboxes belong to the scheduled job with its daily limits (phase 9).
+/// sandboxes belong to the scheduled job with its budgets (ADR 0014).
 /// </summary>
 internal static class TenantRun
 {

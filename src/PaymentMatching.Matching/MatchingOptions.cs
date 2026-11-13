@@ -18,8 +18,8 @@ public sealed record MatchingOptions
     /// <summary>
     /// Ask the large model only when some candidate set could still pass validation, i.e. when its answer
     /// can change the outcome. Otherwise (overpayment, third-party payer, no fitting amount) the payment
-    /// goes to a person whatever the model says, and the small model's proposal is enough. Default since
-    /// phase 5: same precision and automation on the gold set with 4 instead of 39 large-model calls (ADR 0009).
+    /// goes to a person whatever the model says, and the small model's proposal is enough. On the gold set:
+    /// same precision and automation with 4 instead of 39 large-model calls (ADR 0009).
     /// </summary>
     public bool EscalateOnlyWhenAutoMatchPossible { get; init; } = true;
 
@@ -33,8 +33,8 @@ public sealed record MatchingOptions
 
     /// <summary>
     /// Without a gateway, leave payments that need layer 2 undecided (not in the decision store) instead
-    /// of sending them to a person. The hosted app seeds a sandbox this way at sign-in, so a visitor never
-    /// triggers a model call; the scheduled job decides those payments later (phase 9).
+    /// of sending them to a person. The hosted app runs the rules layer this way first, so a visitor never
+    /// triggers a model call; the AI layer then answers from the response cache or waits for the job (ADR 0017).
     /// </summary>
     public bool DeferAiWithoutGateway { get; init; }
 

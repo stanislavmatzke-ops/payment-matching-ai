@@ -12,7 +12,7 @@ The "old system" has two parts, as such systems often did:
 
 The Delphi module was (in the story) ported from the PL/SQL batch in 2005 and then patched over
 the years. The two are *supposed* to implement the same rules. Whether they really do is a
-question for phase 3.
+question for the port ([docs/business-rules.md](../docs/business-rules.md)).
 
 ## Build and run
 
@@ -53,6 +53,6 @@ The script compiles `delphi/PayMatch.dpr` with `fpc -Mdelphi` and runs it.
 - `seed-42/legacy_matches.csv`: output for `data/sample` (300 payments),
 - `seed-2005/`: 1 000 payments (`input/`) and their output.
 
-CI rebuilds the legacy module and fails if the output changes. The .NET port (phase 3) must
+CI rebuilds the legacy module and fails if the output changes. The .NET port (`src/PaymentMatching.Rules`) must
 reproduce these files exactly before any rule is changed on purpose.
 See [docs/modernization.md](../docs/modernization.md).

@@ -1,4 +1,4 @@
-// Payment matching – hosting in Azure (phase 11, ADR 0016).
+// Payment matching – hosting in Azure (ADR 0016).
 //
 // Everything lives in one resource group: Container Apps environment, the web app (scale to zero), the daily
 // Container Apps Job, Key Vault, Log Analytics + Application Insights and two user-assigned identities

@@ -13,7 +13,7 @@ namespace PaymentMatching.Observability;
 /// and CI need no backend (ADR 0015).
 /// </summary>
 /// <param name="OtlpEndpoint"><c>OTEL_EXPORTER_OTLP_ENDPOINT</c>: the local Aspire dashboard or any collector.</param>
-/// <param name="AzureMonitor"><c>APPLICATIONINSIGHTS_CONNECTION_STRING</c>: Application Insights (phase 11).</param>
+/// <param name="AzureMonitor"><c>APPLICATIONINSIGHTS_CONNECTION_STRING</c>: Application Insights (ADR 0016).</param>
 /// <param name="Forced"><c>Telemetry:Enabled</c>: start the SDK without an exporter (tests add an in-memory one).</param>
 public sealed record TelemetrySettings(Uri? OtlpEndpoint, string? AzureMonitor, bool Forced)
 {

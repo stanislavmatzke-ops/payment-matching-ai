@@ -164,7 +164,7 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
             .Where(e => e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Any(m => m != "GET") ?? true)
             .ToList();
 
-        // Undo of an AI match (ADR 0012 amendment) is the one write added after phase 8; it takes the same form as a manual match.
+        // Undo of an AI match (ADR 0018) is the one write added after the first UI; it takes the same form as a manual match.
         Assert.Equal(["/logout", "/payments/{id}/confirm", "/payments/{id}/match", "/payments/{id}/reject", "/payments/{id}/undo"], writes.Select(e => e.RoutePattern.RawText).Order(StringComparer.Ordinal));
         var allowed = new[] { typeof(string), typeof(ConfirmForm), typeof(MatchForm), typeof(ReviewActions), typeof(Microsoft.AspNetCore.Http.HttpContext) };
         Assert.All(writes, endpoint =>

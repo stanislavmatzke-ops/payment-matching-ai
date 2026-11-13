@@ -6,7 +6,7 @@ using PaymentMatching.Matching;
 using PaymentMatching.Observability;
 
 // payments-job: the scheduled daily job of the hosted app (SPEC 9b, ADR 0013/0014). One run, then exit;
-// in Azure a Container Apps Job starts it on a cron schedule (phase 11). Configuration only from the
+// in Azure a Container Apps Job starts it on a cron schedule (ADR 0016). Configuration only from the
 // environment or user-secrets: ConnectionStrings:Payments, Anthropic:ApiKey (live), Demo:TenantId, Ai:*.
 const string Usage = "Usage: payments-job [--mode stub|live] [--migrate]   (stub: no model, no cost; live: real model calls within the AI budgets)";
 

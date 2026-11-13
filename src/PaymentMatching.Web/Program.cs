@@ -8,8 +8,8 @@ using PaymentMatching.Data;
 using PaymentMatching.Observability;
 using PaymentMatching.Web;
 
-// The hosted app: sign-in with Microsoft or Google, one sandbox per person (phase 7), server-rendered
-// pages and three actions on existing data: confirm, reject, match manually (phase 8). Visitors never
+// The hosted app: sign-in with Microsoft or Google, one sandbox per person (ADR 0011), server-rendered
+// pages and three actions on existing data: confirm, reject, match manually, undo an AI match (ADR 0012, 0018). Visitors never
 // trigger a model and never send text to one.
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

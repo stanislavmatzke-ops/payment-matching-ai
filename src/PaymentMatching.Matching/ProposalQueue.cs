@@ -7,7 +7,7 @@ using System.Text.Unicode;
 namespace PaymentMatching.Matching;
 
 /// <summary>
-/// A match proposed by an agent. It is never a match: a person confirms or rejects it (phase 8 UI).
+/// A match proposed by an agent. It is never a match: a person confirms or rejects it in the web app (ADR 0012).
 /// <see cref="Checks"/> are the code's validation failures at the time of the proposal (empty = all passed).
 /// </summary>
 public sealed record Proposal(

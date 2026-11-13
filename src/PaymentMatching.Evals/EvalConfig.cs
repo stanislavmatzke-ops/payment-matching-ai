@@ -22,14 +22,14 @@ public sealed record EvalConfig(string Name, string Description, Layer2 Layer2, 
     /// <summary>The configuration the product runs; the strictest gate applies to it.</summary>
     public const string Production = "routing";
 
-    private static readonly MatchingOptions PhaseFour = MatchingOptions.Default with { EscalateOnlyWhenAutoMatchPossible = false };
+    private static readonly MatchingOptions FirstRouting = MatchingOptions.Default with { EscalateOnlyWhenAutoMatchPossible = false };
 
     public static IReadOnlyList<EvalConfig> All { get; } =
     [
         new("rules", "Ported rules + policy (Q-02, Q-07); AI off, the rest goes to a person", Layer2.None, ModelSettings.Default, MatchingOptions.Default),
         new("stub", "Rules + stub that takes the code's first suggestion (no model)", Layer2.Stub, ModelSettings.Default, MatchingOptions.Default),
         new("small", "Rules + small model only, no escalation", Layer2.Model, ModelSettings.Default with { Large = null }, MatchingOptions.Default),
-        new("routing-v1", "Rules + small → large model, escalation on low confidence (phase 4)", Layer2.Model, ModelSettings.Default, PhaseFour),
+        new("routing-v1", "Rules + small → large model, escalation on low confidence (first version, ADR 0006)", Layer2.Model, ModelSettings.Default, FirstRouting),
         new(Production, "Rules + small → large model, escalation only when an automatic match is still possible", Layer2.Model, ModelSettings.Default, MatchingOptions.Default),
     ];
 
