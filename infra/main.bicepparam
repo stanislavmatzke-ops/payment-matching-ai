@@ -11,7 +11,7 @@ param aiMonthlyUsd = '0.50'
 // (40 payments); a call costs ~$0.0004 (small model) to ~$0.01 (escalation). The month stays capped.
 param aiReservePerCallUsd = '0.02'
 
-// Step by step (README "Deploy to Azure"): shared pieces first, then the apps once db-connection exists,
+// Step by step (README "Running in Azure"): shared pieces first, then the apps once db-connection exists,
 // then the job once anthropic-api-key exists.
 param deployApps = true
 param jobEnabled = true

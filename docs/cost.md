@@ -52,7 +52,7 @@ set with escalations ~$0.015–0.03). New sign-ins add nothing. Without the cach
 |---|---|---|
 | `Ai:Budget:CallsPerSandboxPerDay` | 20 | the sandbox's AI payments wait for the next run |
 | `Ai:Budget:CallsPerDay` | 50 | AI payments go to a person, label "AI budget used up" |
-| `Ai:Budget:MonthlyUsd` | 2 | same; a call needs `Ai:Budget:ReservePerCallUsd` ($0.05) left |
+| `Ai:Budget:MonthlyUsd` | 2 (production 0.50) | same; a call needs `Ai:Budget:ReservePerCallUsd` ($0.05; production $0.02) left |
 | `Ai:SmallModelOnly` | false | no escalation to the large model |
 
 Cached answers are not calls: they cost nothing and do not count against any budget. The hard
@@ -64,7 +64,24 @@ dashboard (per sandbox) and on `/admin` (calls and cost per day and month, budge
 Nothing: visitors never start a model. Signing in creates a sandbox (database rows) from the week's
 starter set, runs the rules and takes the AI decisions from the response cache the job filled; anything
 not cached waits for the job, within the budgets above. New sandboxes per day are
-limited (`Sandboxes:MaxNewPerDay`, default 5); people turned away are counted on `/admin`. For a demo
+limited (`Sandboxes:MaxNewPerDay`, default 5, production 30); people turned away are counted on `/admin`. For a demo
 with a handful of clients: about $0.05–0.10 a month; production runs with a monthly budget of $0.50
 (`Ai:Budget:MonthlyUsd` in `infra/main.bicepparam`) and a $5 spend limit on a separate Anthropic
 workspace with its own key.
+
+## Compared with manual work (assumptions, not measurements)
+
+What matters for a company is not the hosting of this demo but the cost per payment in its own
+operation. A rough comparison, with every assumption stated:
+
+| | Assumption | Per 1,000 payments |
+|---|---|---|
+| Matching everything by hand | 1.5 min per payment, CZK 600 per hour fully loaded (~$26) | 25 h, ~$650 |
+| Legacy rules + a person for the rest | legacy matches 66 %; a person does the other 34 % at 1.5 min; 19 wrong invoices found later at ~30 min each | ~$470 (8.5 h + 9.5 h) |
+| Rules + AI (`routing`, gold set) | 53 % matched automatically with 100 % precision; a person confirms the other 47 % from a prefilled proposal at ~1 min | ~$200 of work (7.8 h) + **$0.36** for the model |
+
+The model's cost is noise next to a person's time: the saving comes from fewer payments for a person
+and from the proposal and reasoning the person starts from, and the main benefit is that no payment
+is matched to a wrong invoice. The numbers for automation and precision are from the evals
+([evals/reports](../evals/reports/2026-11-12-claude-haiku-5-5+opus-5-5-match-payment.v1.md)); the
+minutes and the hourly rate are assumptions to replace with a company's own.

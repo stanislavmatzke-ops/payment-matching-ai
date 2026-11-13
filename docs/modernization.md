@@ -1,5 +1,7 @@
 # Modernization: Delphi + PL/SQL → .NET
 
+> 🇬🇧 English · 🇨🇿 [Česky](cs/modernization.md)
+
 How the fictional legacy module FinPro PAYMATCH ([legacy/](../legacy)) is moved to .NET safely.
 The approach: understand → pin down behaviour → port → strangle.
 
