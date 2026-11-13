@@ -140,7 +140,7 @@
     - skripty `deploy-infra.sh` (lokálně, zachová běžící image), `bootstrap-db.sh` (vlastní DB `payments` a role `payments_app` na sdíleném serveru, dočasné pravidlo firewallu), `bind-domain.sh`,
     - `deploy.yml`: po zeleném CI na `main` image na ghcr.io (veřejné balíčky), přes OIDC update aplikace a jobu, 7 smoke testů; CI navíc kompiluje Bicep a staví image bez Azure,
     - aplikace: klíče Data Protection v PostgreSQL (bez balíčku, přihlášení přežije scale-to-zero), forwarded headers za ingressem, image přes `dotnet publish` (chiseled), `/api/me` ukazuje `accountId` pro `/admin`,
-    - 4 nové testy (celkem 384), ADR 0016, `docs/cost.md` (hosting), README „Running in Azure“, AGENTS.md.
+    - 3 nové testy (celkem 383) a kontrola `accountId` v testu přihlášení, ADR 0016, `docs/cost.md` (hosting), README „Running in Azure“, AGENTS.md.
   - _Ověřeno v Azure:_ smoke testy z workflow, přihlášení Microsoft i Google (vývojář), `/admin` jen pro admin účet, živý běh jobu (demo + 10 rozhodnutí), 463 spanů v App Insights bez textu z výpisu.
   - _Odchylky od plánu:_ jeden `main.bicep` místo modulů; Data Protection přes vlastní `IXmlRepository` místo balíčku; DB na sdíleném serveru JobScoutu (rozhodnuto s vývojářem, ~$16–18/měsíc úspora); Bicep a skripty v Azure spouštěl vývojář (bezpečnostní kontrola Claude Code agentovi aplikaci infrastruktury nepovolila).
   - _Útrata:_ hosting odhad ~$0–2/měsíc; AI $0,0306 (8 volání, první běh jobu: demo + dávka; odhad byl < $0,01).
