@@ -48,6 +48,9 @@ public sealed record UsageRecord(
     public bool Cached { get; init; }
 }
 
+/// <summary>Usage of one gateway instance (one run): paid model calls, cached answers and the cost of the calls.</summary>
+public sealed record GatewayUsage(int ModelCalls, int CacheHits, decimal CostUsd);
+
 /// <summary>
 /// Result of a routed request. <see cref="Value"/> is null when no model gave a usable answer;
 /// the caller then sends the case to a human.
@@ -70,6 +73,9 @@ public sealed class AiGateway(ILlmProvider provider, GatewayOptions options, Pri
     private readonly List<UsageRecord> _calls = [];
 
     public IReadOnlyList<UsageRecord> Calls => _calls;
+
+    /// <summary>What this instance used so far: paid model calls, answers reused from the cache, and their cost.</summary>
+    public GatewayUsage Usage => new(_calls.Count(c => !c.Cached), _calls.Count(c => c.Cached), _calls.Sum(c => c.CostUsd));
 
     /// <summary>Model calls still allowed; answers reused from the cache are not model calls.</summary>
     public int CallsLeft => Math.Max(0, options.MaxCalls - _calls.Count(c => !c.Cached));

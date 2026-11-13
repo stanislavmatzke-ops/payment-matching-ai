@@ -55,6 +55,7 @@ public sealed class DailyJob(
 {
     private readonly TenantAdmin _admin = new(payments);
     private readonly UsageLedger _ledger = new(operations);
+    private readonly SandboxProvisioner _provisioner = new(payments, new SandboxOptions(), time);
     private readonly TextWriter _log = log ?? TextWriter.Null;
 
     public async Task<JobReport> RunAsync(CancellationToken cancellationToken = default)
@@ -108,7 +109,7 @@ public sealed class DailyJob(
         }
 
         var demoCreated = settings.DemoTenantId is { } demo
-            && await new SandboxProvisioner(payments, new SandboxOptions(), time).EnsureDemoAsync(demo, cancellationToken);
+            && await _provisioner.EnsureDemoAsync(demo, cancellationToken);
 
         var batch = DailyBatch.For(today);
         var cache = new CachingProvider(operations, settings.Source, model, time);
@@ -158,22 +159,19 @@ public sealed class DailyJob(
     private async Task<StarterRun> PrecomputeStarterAsync(DateOnly today, CachingProvider cache, CancellationToken cancellationToken)
     {
         var week = StarterSet.WeekOf(today);
-        var provisioner = new SandboxProvisioner(payments, new SandboxOptions(), time);
-        var data = provisioner.StarterData(StarterSet.SeedOf(week), week);
+        var data = _provisioner.StarterData(StarterSet.SeedOf(week), week);
         var allowance = AiAllowance.For(
             settings.Budget,
             sandboxCallsToday: 0,
             await _ledger.DayAsync(today, cancellationToken),
             await _ledger.MonthAsync(today, cancellationToken));
-        var gateway = new AiGateway.AiGateway(cache, StarterSet.Routes(settings.Budget.SmallModelOnly) with { MaxCalls = allowance.Calls }, PriceTable.Claude);
+        var gateway = Gateway(cache, allowance);
         var decisions = new DecisionLog();
-        await provisioner.DecideStarterAsync(data, decisions, gateway, cancellationToken);
+        await _provisioner.DecideStarterAsync(data, decisions, gateway, cancellationToken);
 
-        var modelCalls = gateway.Calls.Count(c => !c.Cached);
-        var cacheHits = gateway.Calls.Count(c => c.Cached);
-        var cost = gateway.Calls.Sum(c => c.CostUsd);
-        await _ledger.AddAsync(today, new UsageDelta(modelCalls, cost, cacheHits), cancellationToken);
-        return new StarterRun(week, modelCalls, cacheHits, cost, data.Payments.Count - decisions.Records.Count);
+        var usage = gateway.Usage;
+        await _ledger.AddAsync(today, new UsageDelta(usage.ModelCalls, usage.CostUsd, usage.CacheHits), cancellationToken);
+        return new StarterRun(week, usage.ModelCalls, usage.CacheHits, usage.CostUsd, data.Payments.Count - decisions.Records.Count);
     }
 
     private async Task<SandboxRun> RunSandboxAsync(Guid tenantId, DailyBatch batch, CachingProvider cache, DateTimeOffset now, CancellationToken cancellationToken)
@@ -206,28 +204,29 @@ public sealed class DailyJob(
             await _ledger.DayAsync(today, cancellationToken),
             await _ledger.MonthAsync(today, cancellationToken));
 
-        var routes = settings.Budget.SmallModelOnly ? ModelSettings.Default with { Large = null } : ModelSettings.Default;
-        var gateway = new AiGateway.AiGateway(cache, routes with { MaxCalls = allowance.Calls }, PriceTable.Claude);
+        var gateway = Gateway(cache, allowance);
         var options = MatchingOptions.Default with { DeferAiWhenBudgetExhausted = allowance.LimitedBy == BudgetLimit.Sandbox };
         var report = await new MatchingPipeline(data, gateway, store, options, time).RunAsync(cancellationToken);
 
         // The calls happened whether or not the save below succeeds, so they are counted first.
-        var modelCalls = gateway.Calls.Count(c => !c.Cached);
-        var cacheHits = gateway.Calls.Count(c => c.Cached);
-        var cost = gateway.Calls.Sum(c => c.CostUsd);
-        await _ledger.AddAsync(today, new UsageDelta(modelCalls, cost, cacheHits, SandboxesRefilled: refilled ? 1 : 0), cancellationToken);
+        var usage = gateway.Usage;
+        await _ledger.AddAsync(today, new UsageDelta(usage.ModelCalls, usage.CostUsd, usage.CacheHits, SandboxesRefilled: refilled ? 1 : 0), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return new SandboxRun(
             tenantId,
             refilled,
             report.Records.Count - report.Reused,
-            modelCalls,
-            cacheHits,
-            cost,
+            usage.ModelCalls,
+            usage.CacheHits,
+            usage.CostUsd,
             data.Payments.Count - report.Records.Count,
             allowance.LimitedBy);
     }
+
+    /// <summary>The same routes everywhere (the cache key contains the model), capped by today's allowance.</summary>
+    private AiGateway.AiGateway Gateway(CachingProvider cache, AiAllowance allowance) =>
+        new(cache, StarterSet.Routes(settings.Budget.SmallModelOnly) with { MaxCalls = allowance.Calls }, PriceTable.Claude);
 
     /// <summary>The demo always; others when the person resolved something since the last batch or the queue is short.</summary>
     private async Task<bool> NeedsRefillAsync(PaymentsDbContext db, TenantRow tenant, CancellationToken cancellationToken)
