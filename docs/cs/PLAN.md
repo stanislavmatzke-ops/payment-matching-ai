@@ -357,3 +357,14 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Drobnosti, co agent pokazil:
   - `python -` v Git Bashi znovu spustil interaktivní interpret a visel (posedmé tatáž past v poznámkách) → zastaveno, úpravy přes Edit,
   - první srovnání s ruční prací v `cost.md` mělo nesedící aritmetiku (legacy ~$450 místo ~$470, špatný předpoklad, která párování jsou špatně); přepočítáno z čísel modernizace před commitem.
+
+**Po fázi 12: závěrečné code review a refaktoring (2026-11-13)**
+- Vývojář chtěl kontrolu „očima principal .NET vývojáře“ (struktura, názvy, clean code, DI, závislosti, i CSS) a schválil 11 z 12 nálezů. Provedeno v malých commitech, každý s testy dotčených projektů, na konci 3 celé běhy zelené, formát čistý, eval gate prošel:
+  - `ReviewActions`: jedna cesta kontrola → uložení pro potvrzení / ruční párování / vrácení, platba už se nepředává jako nullable, `CancellationToken` na konci (`PreviewUndoAsync` místo příznaku za tokenem); dva POST endpointy výběru faktur sdílejí jeden handler,
+  - `SandboxQueries` (444 řádků) rozdělené na `SandboxViews`, `SandboxQueries` a `PaymentTimeline`,
+  - `DecidedBy` je jediné místo, které čte „rule:…“, „ai:…“, „agent:…“, „person“ a „policy“ (pět souborů mělo vlastní kontrolu prefixů); MCP server používá `ProposalChecks.MaxInvoices`,
+  - denní job: využití gateway (`AiGateway.Usage`), jeden provisioner, sdílené trasy modelů; registrace služeb webu v `AddPaymentsWeb`, `ReviewActions` přes DI,
+  - enum `CallError` u neúspěšných volání modelu místo zpětného parsování prefixu „transport: “,
+  - jeden sdílený `RepoPaths` pro testy (pět kopií), poslední natvrdo zapsané barvy v CSS jako proměnné, balíčky konfigurace sjednocené na 10.0.3, zastaralé komentáře (ADR 0012 amendment, „three actions“).
+- Vědomě neuděláno: sdílení `CandidateSelector` pipeline s validátorem (inicializátor pole nemůže použít jiné pole; explicitní konstruktor kvůli kosmetice), rozdělení `PaymentPage.razor` (vývojář nechal volitelné).
+- Drobnosti, co agent pokazil: `sed` se zpětnými lomítky v cestě csproj tiše zapsal `..SharedRepoPaths.cs` (pošesté tatáž past v poznámkách; chytil to kontrolní výpis, opraveno přes PowerShell); vlastní komentář agenta z fáze 12 v `Program.cs` říkal „three actions“ hned po přidání čtvrté.

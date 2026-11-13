@@ -359,3 +359,14 @@ _(the agent writes here continuously: decisions, problems, what it got wrong and
 - Small things the agent got wrong:
   - `python -` in Git Bash started an interactive interpreter and hung again (the seventh time this trap is in the notes) → stopped, the edits done with Edit,
   - the first manual-work comparison in `cost.md` had arithmetic that did not add up (legacy ~$450 instead of ~$470, wrong assumption about which matches are wrong); recomputed from the modernization numbers before the commit.
+
+**After phase 12: final code review and refactoring (2026-11-13)**
+- The developer asked for a review "as a principal .NET developer" (structure, naming, clean code, DI, dependencies, the CSS too) and approved 11 of 12 findings. Done in small commits, each with the affected test projects, at the end 3 full runs green, format clean, eval gate passed:
+  - `ReviewActions`: one check-and-save path for confirm / manual match / undo, the payment no longer passed around as nullable, `CancellationToken` last (`PreviewUndoAsync` instead of a flag after the token); the two picker POST endpoints share one handler,
+  - `SandboxQueries` (444 lines) split into `SandboxViews`, `SandboxQueries` and `PaymentTimeline`,
+  - `DecidedBy` is the one place that reads "rule:…", "ai:…", "agent:…", "person" and "policy" (five files had their own prefix checks); the MCP server uses `ProposalChecks.MaxInvoices`,
+  - the daily job: gateway usage (`AiGateway.Usage`), one provisioner, the shared model routes; web service registration moved to `AddPaymentsWeb`, `ReviewActions` resolved by DI,
+  - `CallError` enum on failed model calls instead of parsing the "transport: " prefix back,
+  - one shared `RepoPaths` for the tests (five copies), the last hard-coded CSS colors as tokens, configuration packages aligned to 10.0.3, stale comments (ADR 0012 amendment, "three actions").
+- Not done on purpose: reusing the pipeline's `CandidateSelector` for the validator (a field initializer cannot use another field; an explicit constructor for a cosmetic gain), splitting `PaymentPage.razor` (the developer left it optional).
+- Small things the agent got wrong: `sed` with backslashes in a csproj path silently wrote `..SharedRepoPaths.cs` (the sixth time this trap is in the notes; caught by the check listing, fixed with PowerShell); the agent's own phase-12 comment in `Program.cs` said "three actions" right after adding the fourth to the list.
