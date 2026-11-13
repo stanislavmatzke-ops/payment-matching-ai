@@ -1,5 +1,7 @@
 # PLAN – fáze a stav
 
+> **Zmrazený originál (stav k 2026-11-13, před fází 12).** Takhle plán a poznámky k průběhu vznikaly během fází 1–11; před zveřejněním z nich byly odstraněny jen osobní poznámky. Živá verze: [anglicky](../PLAN.md), [česky](../cs/PLAN.md).
+
 > Agent tento soubor aktualizuje: po dokončení fáze ji odškrtne, doplní datum a krátkou poznámku (co vzniklo, odchylky od SPEC, otevřené otázky). Nová session začíná přečtením tohoto souboru.
 
 ## Fáze (každá končí zastavením a ukázkou)
@@ -150,7 +152,7 @@
   - **Česká verze vedle:** `README.cs.md` a `docs/cs/` (SPEC, PLAN, modernization, how-it-was-built). Na začátku každého dokumentu odkaz na druhou jazykovou verzi („🇨🇿 Česky / 🇬🇧 English“).
   - **Originál zadání:** současné české `docs/SPEC.md` a `docs/PLAN.md` přesunout beze změn obsahu do `docs/spec-original-cs/` jako autentický start projektu (jen s úpravami z bodu „úklid“). Přeložené verze vycházejí z nich.
   - **AGENTS.md:** anglická verze je ta, kterou čte agent. Pravidlo „komunikace se mnou česky“ ponechat.
-  - **Úklid osobních věcí:** z veřejných dokumentů odstranit sekci „Výstupy pro mě mimo repo“ a zmínky o hiring managerech, CV a pohovorech. Úvod SPEC přepsat neutrálně („Reference implementation showing…“). Tyto výstupy (osnova článku 04, LinkedIn text, odrážky do CV) připravit zvlášť do souboru mimo git (např. `../payment-matching-ai-private/outputs.md`) a ukázat mi je v chatu.
+  - **Úklid osobních věcí:** z veřejných dokumentů odstranit osobní poznámky vývojáře. Úvod SPEC přepsat neutrálně („Reference implementation showing…“). Osobní výstupy připravit zvlášť do souboru mimo git.
   - **README** v obou jazycích: problém → architektura (Mermaid) → výsledky evalů (tabulka) → odkaz na živou aplikaci → spuštění za 2 minuty → „Built spec-first with an AI coding agent – see AGENTS.md, docs/SPEC.md, docs/PLAN.md“ → licence MIT.
   - **Kontrola před zveřejněním:** gitleaks nad celou historií, žádná reálná data, žádné tajné klíče, žádné interní cesty nebo e-maily, odkazy v dokumentech fungují, `LICENSE` existuje.
   - **Doplněno po fázi 11 (2026-11-13):**
@@ -165,13 +167,6 @@
 
 Pořadí 1–6 je priorita (repo s modernizací, AI párováním, evaly a MCP musí být ukazatelné co nejdřív). Fáze 7–11 dělají z projektu živou aplikaci.
 
-
-## Výstupy pro mě mimo repo
-
-Po dokončení připrav:
-- osnovu článku 04 na web (CZ): „Párování plateb s AI: od Delphi k evalům“ – zkušenost, čísla z evalů, co AI rozhoduje a co ne, jak dopadla modernizace,
-- 3–4 věty pro LinkedIn,
-- 5 odrážek do CV / pohovoru (co projekt ukazuje).
 
 ## Poznámky k průběhu
 

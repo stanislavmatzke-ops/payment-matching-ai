@@ -1,16 +1,18 @@
 # SPEC – Párování plateb s AI: od legacy k AI-native
 
+> **Zmrazený originál zadání (stav k 2026-11-13, před fází 12).** Takhle zadání vzniklo a rostlo během fází 1–11; před zveřejněním z něj byly odstraněny jen osobní poznámky. Živá verze: [anglicky](../SPEC.md), [česky](../cs/SPEC.md).
+
 > Co stavíme a proč. Pravidla práce jsou v AGENTS.md, postup a stav v docs/PLAN.md.
 
 ## 1. Proč projekt vzniká
 
-Veřejná ukázka mé práce jako **AI-native tech leada a solution / AI architekta**. Projekt má v jednom příběhu ukázat tři věci:
+Referenční implementace, která v jednom příběhu ukazuje tři věci:
 
 1. **Modernizaci legacy systému s AI** – převod starého modulu (Delphi + PL/SQL) do .NET bezpečně: porozumění kódu, charakterizační testy, postupná migrace (strangler fig).
 2. **AI jako součást produktu** – párování plateb, kde klasická pravidla nestačí (špatný variabilní symbol, překlepy, dělené platby), s jasnou hranicí, co rozhodne AI a co člověk.
 3. **Architekturu AI platformy** – AI gateway, MCP server, evaly v CI, guardraily proti prompt injection, sledování nákladů na transakci.
 
-Cílový čtenář: hiring manager / CTO / architekt, který za 5 minut z README pochopí, že autor umí navrhnout a dodat AI řešení do enterprise prostředí. Kód i dokumentace musí působit jako práce seniorního architekta: jednoduché, čitelné, s odůvodněnými rozhodnutími.
+Cílový čtenář: manažer, CTO nebo architekt, který za 5 minut z README pochopí, jak navrhnout a dodat AI řešení do enterprise prostředí. Kód i dokumentace mají být jednoduché, čitelné, s odůvodněnými rozhodnutími.
 
 ## 3. Doménový problém (česká realita)
 
@@ -118,14 +120,14 @@ Postup modernizace zdokumentuj v `docs/modernization.md`, je to jádro článku:
 - `docs/modernization.md` – postup Delphi/PL/SQL → .NET (viz kap. 5).
 - `docs/security.md` – hrozby (OWASP Top 10 pro LLM: prompt injection, excessive agency, únik dat, neomezená spotřeba) a jak je projekt řeší.
 - `docs/cost.md` – výpočet ceny na transakci a srovnání s ruční prací (předpoklady jasně uvedené).
-- `docs/how-it-was-built.md` – krátce: jak jsem s AI agentem projekt postavil, co jsem zadával, co kontroloval, co agent pokazil. Bude to podklad pro článek 04.
+- `docs/how-it-was-built.md` – krátce: jak jsem s AI agentem projekt postavil, co jsem zadával, co kontroloval, co agent pokazil.
 
 ## 9b. Veřejná živá aplikace (hlavní výstup vedle GitHubu)
 
-Projekt nebude jen repo. Bude to **běžící aplikace, do které se kdokoli přihlásí a pracuje v ní** – podobně jako Job Scout.
+Projekt nebude jen repo. Bude to **běžící aplikace, do které se kdokoli přihlásí a pracuje v ní**.
 
 **Přihlášení a izolace**
-- Přihlášení přes **Microsoft a Google** (OpenID Connect, stejný princip jako Job Scout). Žádná registrace s heslem.
+- Přihlášení přes **Microsoft a Google** (OpenID Connect). Žádná registrace s heslem.
 - Každý uživatel dostane **vlastní sandbox (tenant)**: vlastní firmu, faktury, bankovní výpisy a frontu. Nikdo nevidí data jiného uživatele. Izolace se vynucuje v datové vrstvě (filtr podle tenantId na každém dotazu, např. global query filter) a je pokrytá testy na únik mezi tenanty.
 - Při prvním přihlášení se sandbox naplní startovními daty (~30 faktur, ~20 plateb různých typů z kap. 3). _(Upřesněno 2026-11-13, ADR 0017: startovní data jsou pro všechny sandboxy založené v daném týdnu stejná – každý má ale vlastní kopii řádků; denní job je jednou za týden předpočítá a přihlášení vezme AI rozhodnutí z cache odpovědí bez volání modelu, takže nový uživatel vidí AI předpárování hned.)_
 - Ukládáme jen minimum z přihlášení (ID, jméno, e-mail). Stránka se zásadami ochrany údajů. Jen nezbytné cookies. Neaktivní sandboxy se po 30 dnech smažou.
