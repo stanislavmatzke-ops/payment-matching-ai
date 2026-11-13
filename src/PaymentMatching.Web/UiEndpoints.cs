@@ -51,7 +51,7 @@ public static partial class Input
     private static partial Regex IdPattern();
 }
 
-/// <summary>The pages (GET, server-rendered) and the person's three actions (POST, anti-forgery protected).</summary>
+/// <summary>The pages (GET, server-rendered) and the person's four actions (POST, anti-forgery protected).</summary>
 public static class UiEndpoints
 {
     public static void MapUi(this WebApplication app, IReadOnlyList<string> providers, bool devLogin)
@@ -96,7 +96,7 @@ public static class UiEndpoints
         app.MapGet("/payments/{id}/match", (HttpContext http, PaymentsDbContext db, ReviewActions actions, string id, string[]? invoice, string? result) =>
             PickInvoicesAsync(http, db, actions, id, invoice, result, undo: false));
 
-        // Undo a match the AI made on its own (ADR 0012 amendment): the same picker, the AI's invoices count as open.
+        // Undo a match the AI made on its own (ADR 0018): the same picker, the AI's invoices count as open.
         app.MapGet("/payments/{id}/undo", (HttpContext http, PaymentsDbContext db, ReviewActions actions, string id, string[]? invoice, string? result) =>
             PickInvoicesAsync(http, db, actions, id, invoice, result, undo: true));
 
@@ -120,42 +120,11 @@ public static class UiEndpoints
         writes.MapPost("/reject", async (string id, ReviewActions actions, HttpContext http) =>
             Input.IsId(id) ? AfterAction(id, await actions.RejectAsync(id, http.RequestAborted)) : Results.BadRequest());
 
-        writes.MapPost("/match", async (string id, [FromForm] MatchForm form, ReviewActions actions, HttpContext http) =>
-        {
-            if (!Input.IsId(id) || !Input.AreIds(form.Invoice) || !Input.AreChecks(form.Ack))
-            {
-                return Results.BadRequest();
-            }
+        writes.MapPost("/match", (string id, [FromForm] MatchForm form, ReviewActions actions, HttpContext http) =>
+            PickedInvoicesAsync(id, form, "match", http, actions.MatchManuallyAsync));
 
-            var invoices = form.Invoice ?? [];
-            var result = await actions.MatchManuallyAsync(id, invoices, form.Ack ?? [], http.RequestAborted);
-            if (result.Outcome is ReviewOutcome.Blocked or ReviewOutcome.NeedsAcknowledgement or ReviewOutcome.InvalidInvoices)
-            {
-                // Back to the preview, which shows today's checks again.
-                var query = string.Concat(invoices.Select(n => $"invoice={Uri.EscapeDataString(n)}&"));
-                return Results.Redirect($"/payments/{id}/match?{query}result={result.Outcome}");
-            }
-
-            return AfterAction(id, result);
-        });
-
-        writes.MapPost("/undo", async (string id, [FromForm] MatchForm form, ReviewActions actions, HttpContext http) =>
-        {
-            if (!Input.IsId(id) || !Input.AreIds(form.Invoice) || !Input.AreChecks(form.Ack))
-            {
-                return Results.BadRequest();
-            }
-
-            var invoices = form.Invoice ?? [];
-            var result = await actions.UndoAiMatchAsync(id, invoices, form.Ack ?? [], http.RequestAborted);
-            if (result.Outcome is ReviewOutcome.Blocked or ReviewOutcome.NeedsAcknowledgement or ReviewOutcome.InvalidInvoices)
-            {
-                var query = string.Concat(invoices.Select(n => $"invoice={Uri.EscapeDataString(n)}&"));
-                return Results.Redirect($"/payments/{id}/undo?{query}result={result.Outcome}");
-            }
-
-            return AfterAction(id, result);
-        });
+        writes.MapPost("/undo", (string id, [FromForm] MatchForm form, ReviewActions actions, HttpContext http) =>
+            PickedInvoicesAsync(id, form, "undo", http, actions.UndoAiMatchAsync));
 
         app.MapPost("/logout", async (HttpContext http) =>
             {
@@ -180,7 +149,9 @@ public static class UiEndpoints
             }
 
             var selected = invoice?.Distinct(StringComparer.Ordinal).ToList() ?? [];
-            var preview = selected.Count == 0 ? null : await actions.PreviewAsync(id, selected, http.RequestAborted, undo);
+            var preview = selected.Count == 0 ? null
+                : undo ? await actions.PreviewUndoAsync(id, selected, http.RequestAborted)
+                : await actions.PreviewAsync(id, selected, http.RequestAborted);
             return Html.Page<MatchPage>(new
             {
                 Page = page,
@@ -193,6 +164,33 @@ public static class UiEndpoints
                 Current = undo ? sandbox.Decision(id)!.Decision.InvoiceNumbers : [],
             });
         });
+
+    /// <summary>
+    /// A match or an undo with the invoices the person picked. When checks stop it, back to the picker, which
+    /// shows today's checks again with the same invoices selected.
+    /// </summary>
+    private static async Task<IResult> PickedInvoicesAsync(
+        string id,
+        MatchForm form,
+        string page,
+        HttpContext http,
+        Func<string, IReadOnlyList<string>, IReadOnlyCollection<string>, CancellationToken, Task<ReviewResult>> act)
+    {
+        if (!Input.IsId(id) || !Input.AreIds(form.Invoice) || !Input.AreChecks(form.Ack))
+        {
+            return Results.BadRequest();
+        }
+
+        var invoices = form.Invoice ?? [];
+        var result = await act(id, invoices, form.Ack ?? [], http.RequestAborted);
+        if (result.Outcome is ReviewOutcome.Blocked or ReviewOutcome.NeedsAcknowledgement or ReviewOutcome.InvalidInvoices)
+        {
+            var query = string.Concat(invoices.Select(n => $"invoice={Uri.EscapeDataString(n)}&"));
+            return Results.Redirect($"/payments/{id}/{page}?{query}result={result.Outcome}");
+        }
+
+        return AfterAction(id, result);
+    }
 
     private static IResult AfterAction(string id, ReviewResult result) => result.Outcome == ReviewOutcome.NotFound
         ? Results.NotFound()
