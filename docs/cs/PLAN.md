@@ -147,7 +147,16 @@
   - _Odchylky od plánu:_ jeden `main.bicep` místo modulů; Data Protection přes vlastní `IXmlRepository` místo balíčku; DB na sdíleném serveru JobScoutu (rozhodnuto s vývojářem, ~$16–18/měsíc úspora); Bicep a skripty v Azure spouštěl vývojář (bezpečnostní kontrola Claude Code agentovi aplikaci infrastruktury nepovolila).
   - _Útrata:_ hosting odhad ~$0–2/měsíc; AI $0,0306 (8 volání, první běh jobu: demo + dávka; odhad byl < $0,01).
   - _Otevřené / další krok:_ nový uživatel vidí AI platby jako „čeká na AI“ až do ranního jobu – vývojář to považuje za chybu produktu; návrh řešení (sdílená startovní data s cache odpovědí) ke schválení. UI: detail faktury v detailu platby, záložka Admin, přihlašovací tlačítka jako JobScout.
-- [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
+- [x] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
+  - _Hotovo 2026-11-13._ Vzniklo:
+    - anglické `docs/SPEC.md`, `docs/PLAN.md`, `AGENTS.md`, `CLAUDE.md` (čte je agent; „komunikace česky“ zůstává); české verze v `docs/cs/` (SPEC, PLAN, modernization, how-it-was-built) a `README.cs.md`; původní české SPEC a PLAN přesunuté přes `git mv` do `docs/spec-original-cs/` (zmrazené, bez osobních poznámek),
+    - nové README (problém pro manažera ve třech odstavcích, architektura v Mermaidu, tabulka evalů, živá aplikace a demo, co je v aplikaci vidět, spuštění za 2 minuty, postup spec-first, podrobnosti sbalené),
+    - nové `docs/security.md` (OWASP Top 10 pro LLM aplikace → obrana a testy za ní; SPEC ho chtěla od začátku), `docs/how-it-was-built.md` (+ česky), `docs/adr/README.md` (index 0001–0018), `docs/cost.md` s produkčními hodnotami a srovnáním s ruční prací,
+    - opravený nestabilní test (příčina v poznámkách), komentáře „phase N“ v kódu nahrazené odkazy na ADR, odebraný nepoužívaný testovací balíček, mrtvé typy nenalezeny,
+    - kontroly: gitleaks nad celou historií v CI, všech 87 dřívějších commitů s GitHub noreply adresou, v historii ani ve stromu žádné lokální cesty ani osobní e-maily, všechny relativní odkazy v Markdownu vedou na existující soubory (skript), `LICENSE` (MIT),
+    - 401 testů, pět celých běhů zelených, formát čistý, eval replay prošel gate.
+  - _Odchylky:_ zmínky o Job Scoutu odstraněny ze SPEC a README, v anglickém PLAN nahrazeny „another project“; české poznámky a ADR 0014 je ponechávají. ADR zůstávají jen anglicky.
+  - _Útrata:_ $0, žádné volání modelu, žádná změna v Azure.
   - **Hlavní jazyk repa je angličtina.** `README.md`, `AGENTS.md`, `docs/SPEC.md`, `docs/PLAN.md` a všechny dokumenty v `docs/` budou anglicky.
   - **Česká verze vedle:** `README.cs.md` a `docs/cs/` (SPEC, PLAN, modernization, how-it-was-built). Na začátku každého dokumentu odkaz na druhou jazykovou verzi („🇨🇿 Česky / 🇬🇧 English“).
   - **Originál zadání:** současné české `docs/SPEC.md` a `docs/PLAN.md` přesunout beze změn obsahu do `docs/spec-original-cs/` jako autentický start projektu (jen s úpravami z bodu „úklid“). Přeložené verze vycházejí z nich.
@@ -340,3 +349,11 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - test s návrhem agenta předpokládal, že návrh v datech ještě není; se 40 platbami už byl → test ho nezakládá dvakrát,
   - nestabilní test: `McpTelemetryTests.Tool_calls_are_traced_by_name_without_arguments_or_error_text` občas padá v celé paralelní sadě, samostatně prochází (k dořešení).
 - **Rezerva rozpočtu na volání:** první předpočítání startovní sady se 40 platbami skončilo po 8 voláních ($0,0031), 6 plateb čekalo. Příčina: měsíční rozpočet drží rezervu $0,05 na volání (ADR 0014), takže při ~$0,42 zbývajících smí běh jen 8 volání, i když skutečné volání stojí $0,0004–0,01. Rezerva je nově parametr Bicepu `aiReservePerCallUsd` = $0,02 (strop $0,50 měsíčně platí dál). Útrata za předpočítání: $0,0031 + $0,0020 po změně rezervy (8 odpovědí z cache, 6 nových volání, všech 40 plateb rozhodnuto).
+
+**Fáze 12 (2026-11-13)**
+- Plán vznikl v nové session z PLAN/SPEC/ADR, README a kódu; schválen beze změn.
+- **Nestabilní test se našel reprodukcí, ne odhadem:** samotný MCP testovací projekt ve smyčce spadl jednou z ~7 běhů na `ArgumentException: Destination array was not long enough` při kopírování seznamu spanů. Tracer provider testu poslouchá MCP SDK pro celý proces, takže in-memory exportér přidával do obyčejného `List` i spany paralelních MCP testů z jiných vláken; `lock` v testu nic nechránil, exportér ho nebral. Navíc `Assert.Contains("get_payment")` mohl projít díky spanům cizího testu. Oprava: test si založí vlastní kořenový trace, spany sbírá do souběžné fronty až po redakci a bere jen svůj trace (MCP klient ho předá serveru, test to teď ověřuje na serverovém spanu). 0 pádů z 30 běhů projektu, 5 celých běhů zelených. Potřetí stejný vzorec (posluchače pro celý proces × paralelní testy) – teď pravidlo v AGENTS.md.
+- **Kontrola SPEC proti skutečnosti na konci projektu našla dvě mezery, které žádná fáze nepokryla:** `docs/security.md` (SPEC kap. 9 ho chtěla od začátku) a srovnání s ruční prací v `docs/cost.md`.
+- Drobnosti, co agent pokazil:
+  - `python -` v Git Bashi znovu spustil interaktivní interpret a visel (posedmé tatáž past v poznámkách) → zastaveno, úpravy přes Edit,
+  - první srovnání s ruční prací v `cost.md` mělo nesedící aritmetiku (legacy ~$450 místo ~$470, špatný předpoklad, která párování jsou špatně); přepočítáno z čísel modernizace před commitem.
