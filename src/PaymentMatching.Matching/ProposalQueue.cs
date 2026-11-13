@@ -19,7 +19,7 @@ public sealed record Proposal(
     DateTimeOffset At,
     IReadOnlyList<string> Checks)
 {
-    public const string ByMcpAgent = "agent:mcp";
+    public static readonly string ByMcpAgent = DecidedBy.Agent("mcp");
 
     internal static readonly JsonSerializerOptions Json = new()
     {

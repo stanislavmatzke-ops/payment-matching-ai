@@ -1,5 +1,6 @@
 using System.Globalization;
 using PaymentMatching.Data;
+using PaymentMatching.Matching;
 
 namespace PaymentMatching.Web;
 
@@ -14,7 +15,10 @@ public sealed record PaymentQuery(string? State, string? By, string? Search, str
     public const int MaxSearch = 100;
 
     /// <summary>Who decided: the layers a person can filter on.</summary>
-    public static readonly string[] Deciders = ["ai", "rule", "person", "policy", "none"];
+    public static readonly string[] Deciders = [DecidedBy.AiKind, DecidedBy.RuleKind, DecidedBy.PersonKind, DecidedBy.PolicyKind, None];
+
+    /// <summary>Not decided yet (waiting for the AI run).</summary>
+    public const string None = "none";
 
     public static readonly string[] Sorts = ["date", "amount", "payer", "id"];
 
@@ -28,15 +32,10 @@ public sealed record PaymentQuery(string? State, string? By, string? Search, str
         dir != "asc",
         page is > 0 ? page.Value : 1);
 
-    /// <summary>The kind of decider of a list item, as in <see cref="Deciders"/>.</summary>
-    public static string DeciderOf(string? decidedBy) => decidedBy switch
-    {
-        null => "none",
-        var v when v.StartsWith("ai:", StringComparison.Ordinal) => "ai",
-        var v when v.StartsWith("rule:", StringComparison.Ordinal) => "rule",
-        var v when v.StartsWith("person", StringComparison.Ordinal) => "person",
-        _ => "policy",
-    };
+    /// <summary>The kind of decider of a list item, as in <see cref="Deciders"/> (a payment is never decided by an agent).</summary>
+    public static string DeciderOf(string? decidedBy) => decidedBy is null ? None
+        : DecidedBy.KindOf(decidedBy) is var kind && kind != DecidedBy.AgentKind ? kind
+        : DecidedBy.PolicyKind;
 
     public PaymentListPage Apply(IReadOnlyList<PaymentListItem> all)
     {

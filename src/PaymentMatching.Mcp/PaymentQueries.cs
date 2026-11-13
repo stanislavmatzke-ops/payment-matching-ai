@@ -12,7 +12,7 @@ public sealed class PaymentQueries(Workspace workspace, TimeProvider? time = nul
 {
     public const int MaxListLimit = 50;
     public const int MaxSearchResults = 20;
-    public const int MaxProposalInvoices = 4;
+    public const int MaxProposalInvoices = ProposalChecks.MaxInvoices;
     public const int MaxReasonLength = 500;
     public const decimal AmountTolerance = 1m;
 

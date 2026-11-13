@@ -270,7 +270,7 @@
     [Parameter]
     public ReviewOutcome? Result { get; set; }
 
-    private static string Model(string decidedBy) => decidedBy.StartsWith("ai:", StringComparison.Ordinal) ? decidedBy[3..] : decidedBy;
+    private static string Model(string decidedBy) => DecidedBy.IsAi(decidedBy) ? DecidedBy.Detail(decidedBy) : decidedBy;
 
     private static string AiDid(PaymentDecisionView d) => d.Status switch
     {
@@ -292,6 +292,6 @@
         TimelineKind.ModelCall => e.Icon,
         TimelineKind.Proposed => "agent",
         TimelineKind.Reviewed => "person",
-        _ => e.Actor.StartsWith("rule:", StringComparison.Ordinal) ? "rule" : e.Actor.StartsWith("ai:", StringComparison.Ordinal) ? "ai" : "shield",
+        _ => DecidedBy.KindOf(e.Actor) switch { DecidedBy.RuleKind => "rule", DecidedBy.AiKind => "ai", _ => "shield" },
     };
 }

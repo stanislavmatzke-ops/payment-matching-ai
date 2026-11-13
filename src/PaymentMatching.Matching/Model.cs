@@ -38,14 +38,53 @@ public enum Outcome
     NoMatch,
 }
 
-/// <summary>Who decided: a rule (with its code), the policy layer, or a model.</summary>
+/// <summary>
+/// Who decided or proposed: a rule (<c>rule:CODE</c>), a model (<c>ai:MODEL</c>), an agent (<c>agent:NAME</c>),
+/// the policy layer, or a person (<c>person</c>, in the app optionally <c>person: NAME</c>). The values are
+/// stored in audit records, so they never change; <see cref="KindOf"/> is the one place that reads them.
+/// </summary>
 public static class DecidedBy
 {
-    public static string Rule(string ruleCode) => "rule:" + ruleCode;
+    public const string RuleKind = "rule";
+    public const string AiKind = "ai";
+    public const string AgentKind = "agent";
+    public const string PolicyKind = "policy";
+    public const string PersonKind = "person";
 
-    public static string Ai(string model) => "ai:" + model;
+    public const string Policy = PolicyKind;
+    public const string Person = PersonKind;
 
-    public const string Policy = "policy";
+    private const string RulePrefix = RuleKind + ":";
+    private const string AiPrefix = AiKind + ":";
+    private const string AgentPrefix = AgentKind + ":";
+
+    public static string Rule(string ruleCode) => RulePrefix + ruleCode;
+
+    public static string Ai(string model) => AiPrefix + model;
+
+    public static string Agent(string name) => AgentPrefix + name;
+
+    public static bool IsAi(string decidedBy) => decidedBy.StartsWith(AiPrefix, StringComparison.Ordinal);
+
+    /// <summary>One of the <c>*Kind</c> constants; anything unknown counts as the policy.</summary>
+    public static string KindOf(string decidedBy) => decidedBy switch
+    {
+        var v when v.StartsWith(RulePrefix, StringComparison.Ordinal) => RuleKind,
+        var v when v.StartsWith(AiPrefix, StringComparison.Ordinal) => AiKind,
+        var v when v.StartsWith(AgentPrefix, StringComparison.Ordinal) => AgentKind,
+        var v when v.StartsWith(PersonKind, StringComparison.Ordinal) => PersonKind,
+        _ => PolicyKind,
+    };
+
+    /// <summary>What follows the kind: the rule code, the model, the agent's or the person's name ("" if none).</summary>
+    public static string Detail(string decidedBy) => KindOf(decidedBy) switch
+    {
+        RuleKind => decidedBy[RulePrefix.Length..],
+        AiKind => decidedBy[AiPrefix.Length..],
+        AgentKind => decidedBy[AgentPrefix.Length..],
+        PersonKind => decidedBy[PersonKind.Length..].TrimStart(':').Trim(),
+        _ => "",
+    };
 }
 
 /// <summary>Risk signals shown to the reviewer and counted on the dashboard.</summary>

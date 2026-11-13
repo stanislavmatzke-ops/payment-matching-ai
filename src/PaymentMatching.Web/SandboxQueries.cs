@@ -308,7 +308,7 @@ public static class SandboxQueries
 
     /// <summary>"rule:R3" → "rule", "ai:claude-…" → "ai", "agent:mcp" stays (each agent counts on its own).</summary>
     public static string SourceOf(string proposedBy) =>
-        proposedBy.StartsWith("agent:", StringComparison.Ordinal) ? proposedBy : proposedBy.Split(':')[0];
+        DecidedBy.KindOf(proposedBy) is DecidedBy.AgentKind ? proposedBy : DecidedBy.KindOf(proposedBy);
 
     private static IReadOnlyList<TimelineEvent> Timeline(SandboxState state, BankPayment payment, ReviewView? review)
     {
@@ -323,14 +323,14 @@ public static class SandboxQueries
             {
                 if (call.Cached)
                 {
-                    events.Add(new TimelineEvent(record.At, TimelineKind.ModelCall, "ai:" + call.Model, T("Answer reused from the response cache ({0}): {1}. The same request was answered before; no model was called and it cost nothing.", call.Tier, call.Outcome), [], [], "cache"));
+                    events.Add(new TimelineEvent(record.At, TimelineKind.ModelCall, DecidedBy.Ai(call.Model), T("Answer reused from the response cache ({0}): {1}. The same request was answered before; no model was called and it cost nothing.", call.Tier, call.Outcome), [], [], "cache"));
                     continue;
                 }
 
                 events.Add(new TimelineEvent(
                     record.At,
                     TimelineKind.ModelCall,
-                    "ai:" + call.Model,
+                    DecidedBy.Ai(call.Model),
                     T("Model call ({0}): {1}.", call.Tier, call.Outcome),
                     [],
                     [
@@ -403,7 +403,7 @@ public static class SandboxQueries
                 details.Add(T("Warnings accepted by the person: {0}", string.Join(", ", review.Acknowledged)));
             }
 
-            events.Add(new TimelineEvent(review.At, TimelineKind.Reviewed, "person: " + review.DecidedBy, ActionText(review.Action), review.InvoiceNumbers, details));
+            events.Add(new TimelineEvent(review.At, TimelineKind.Reviewed, DecidedBy.Person + ": " + review.DecidedBy, ActionText(review.Action), review.InvoiceNumbers, details));
         }
 
         return events.OrderBy(e => e.At).ToList();
@@ -436,7 +436,7 @@ public static class SandboxQueries
             p.VariableSymbol,
             p.Message,
             PaymentStatus.Of(record),
-            state.Review(p.Id) is null ? record?.Decision.DecidedBy : "person",
+            state.Review(p.Id) is null ? record?.Decision.DecidedBy : DecidedBy.Person,
             record?.Decision.Flags ?? [],
             state.StateOf(p.Id),
             state.InjectionSuspected(p));

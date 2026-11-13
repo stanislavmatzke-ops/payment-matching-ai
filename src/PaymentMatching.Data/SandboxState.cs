@@ -168,13 +168,13 @@ public sealed class SandboxState
         Review(paymentId) is null && Decision(paymentId)?.Decision.Outcome is Outcome.HumanReview or Outcome.NoMatch;
 
     /// <summary>
-    /// A person may undo a match the AI layer made on its own (ADR 0012 amendment), once: the payment's invoices
+    /// A person may undo a match the AI layer made on its own (ADR 0018), once: the payment's invoices
     /// are freed and the person picks others or none. Rule matches are not undone here.
     /// </summary>
     public bool CanUndoAi(string paymentId) =>
         Review(paymentId) is null
         && Decision(paymentId) is { Decision.Outcome: Outcome.AutoMatched } record
-        && record.Decision.DecidedBy.StartsWith("ai:", StringComparison.Ordinal);
+        && DecidedBy.IsAi(record.Decision.DecidedBy);
 
     public bool InjectionSuspected(BankPayment payment) => ProposalChecks.InjectionSuspected(payment, Decision(payment.Id));
 

@@ -12,34 +12,21 @@ else
     [Parameter]
     public string? Value { get; set; }
 
-    private string Kind => Value switch
-    {
-        null => "none",
-        var v when v.StartsWith("rule:", StringComparison.Ordinal) => "rule",
-        var v when v.StartsWith("ai:", StringComparison.Ordinal) => "ai",
-        var v when v.StartsWith("agent:", StringComparison.Ordinal) => "agent",
-        var v when v.StartsWith("person", StringComparison.Ordinal) => "person",
-        _ => "policy",
-    };
+    private string Kind => Value is null ? "none" : DecidedBy.KindOf(Value);
 
-    private string IconName => Kind switch
-    {
-        "rule" => "rule",
-        "ai" => "ai",
-        "agent" => "agent",
-        "person" => "person",
-        _ => "shield",
-    };
+    private string Detail => Value is null ? "" : DecidedBy.Detail(Value);
+
+    private string IconName => Kind is DecidedBy.PolicyKind ? "shield" : Kind;
 
     private string Label => Kind switch
     {
-        "rule" => T("rule") + " " + Value![5..],
-        "ai" => Value![3..].Replace("claude-", "", StringComparison.Ordinal),
-        "person" => Value!.Length > 7 ? Value[7..].Trim() : T("person"),
-        "policy" => T("policy"),
+        DecidedBy.RuleKind => T("rule") + " " + Detail,
+        DecidedBy.AiKind => Detail.Replace("claude-", "", StringComparison.Ordinal),
+        DecidedBy.PersonKind => Detail.Length > 0 ? Detail : T("person"),
+        DecidedBy.PolicyKind => T("policy"),
         _ => Value!,
     };
 
     /// <summary>For a rule, what the code means; otherwise the full value.</summary>
-    private string? Tooltip => Kind == "rule" ? Format.Rule(Value![5..]) : Value;
+    private string? Tooltip => Kind == DecidedBy.RuleKind ? Format.Rule(Detail) : Value;
 }

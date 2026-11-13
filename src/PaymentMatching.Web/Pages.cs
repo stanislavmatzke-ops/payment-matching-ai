@@ -78,10 +78,10 @@ public static class Format
     /// <summary>The filter's decider kinds (<see cref="PaymentQuery.Deciders"/>).</summary>
     public static string Decider(string kind) => kind switch
     {
-        "ai" => T("AI model"),
-        "rule" => T("a rule"),
-        "person" => T("a person"),
-        "policy" => T("the policy (no model)"),
+        DecidedBy.AiKind => T("AI model"),
+        DecidedBy.RuleKind => T("a rule"),
+        DecidedBy.PersonKind => T("a person"),
+        DecidedBy.PolicyKind => T("the policy (no model)"),
         _ => T("nobody yet"),
     };
 
