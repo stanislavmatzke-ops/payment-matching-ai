@@ -316,3 +316,9 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Klíčový předpoklad (stejné prompty při přihlášení i v předpočítání) drží jedna společná metoda `DecideStarterAsync` a test „po jobu má přihlášení všechny AI platby z cache a model nedostal žádný dotaz“.
 - Record/replay z fáze 4 se tak vrací potřetí: testy bez klíče → cache v provozu → okamžitý první dojem za $0.
 - Útrata: ruční běh jobu pro dva sandboxy vývojáře před změnou $0,017 (12 volání).
+
+**Po fázi 11: úpravy UI z provozu (2026-11-13)**
+- Vývojář při první práci ve frontě (`FIELD/ADV_OVERPAY`, přeplatek zálohy o 100 Kč) postrádal fakturu vedle platby: detail ukazoval jen číslo faktury, plné údaje byly až na stránce ručního párování. Nová karta „Invoices“ v detailu: všechny faktury, které jmenuje rozhodnutí, lidské rozhodnutí nebo návrh (druh, VS, odběratel, splatnost, částka, stav) a porovnání platby s každou jmenovanou sadou („+100,00 CZK paid more than invoiced“). Test: změna faktury se stejným číslem v cizím sandboxu se v panelu neprojeví.
+- Záložka Admin v horní liště jen pro účty z `Admin:Accounts`; `/admin` má teď vlastní navigaci (test: běžný uživatel odkaz nevidí).
+- Přihlašovací stránka podle Job Scoutu: karta s tlačítky přes celou šířku a logy (Continue with Microsoft / Google), oddělovač „or“ a demo bez přihlášení. Loga jako inline SVG s atributy `fill` (CSP nepovoluje inline styly).
+- Agent lokálně: `localhost` se na stroji vývojáře přeložil na IPv6, kde DB neposlouchá („connection reset“) → při ruční kontrole `127.0.0.1`. Existující test admin stránky zakazoval slovo „boss“ – po přidání navigace je tam jméno samotného admina; test upraven tak, aby dál hlídal data ostatních.
