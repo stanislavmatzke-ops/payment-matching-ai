@@ -154,13 +154,13 @@ public class SandboxTests(PostgresFixture postgres)
         Assert.Equal(new ProvisionResult(ProvisionStatus.Existing, first.TenantId), again);
 
         await using var db = PaymentsDb.ForTenant(cs, first.TenantId!.Value);
-        Assert.Equal(20, await db.Payments.CountAsync(Ct));
-        Assert.InRange(await db.Invoices.CountAsync(Ct), 25, 40);
+        Assert.Equal(40, await db.Payments.CountAsync(Ct));
+        Assert.InRange(await db.Invoices.CountAsync(Ct), 50, 80);
         var user = await db.Users.SingleAsync(Ct);
         Assert.Equal(("alice", "alice@example.test"), (user.Name, user.Email));
 
         var decisions = (await db.Decisions.Select(d => d.Record).ToListAsync(Ct)).Select(DecisionLog.Deserialize).ToList();
-        Assert.InRange(decisions.Count, 1, 19);
+        Assert.InRange(decisions.Count, 1, 39);
         Assert.All(decisions, d => Assert.Equal(AuditRecord.RuleLayer, d.Layer));
         Assert.All(decisions, d => Assert.Empty(d.Calls));
     }
@@ -172,7 +172,7 @@ public class SandboxTests(PostgresFixture postgres)
         var dataset = DataGen.DataGenerator.Generate(new DataGen.GeneratorOptions { Seed = 1, PaymentCount = 20 });
 
         Assert.True(dataset.Expected.Select(e => e.CaseType).Distinct().Count() >= 6);
-        Assert.Equal(20, provisioner.StarterData(1, new DateOnly(2026, 11, 12)).Payments.Count);
+        Assert.Equal(40, provisioner.StarterData(1, new DateOnly(2026, 11, 12)).Payments.Count);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class SandboxTests(PostgresFixture postgres)
         await using var gone = PaymentsDb.ForTenant(cs, old);
         Assert.Equal(0, await gone.Payments.CountAsync(Ct) + await gone.Decisions.CountAsync(Ct) + await gone.Users.CountAsync(Ct));
         await using var kept = PaymentsDb.ForTenant(cs, active);
-        Assert.Equal(20, await kept.Payments.CountAsync(Ct));
+        Assert.Equal(40, await kept.Payments.CountAsync(Ct));
     }
 
     [Fact]

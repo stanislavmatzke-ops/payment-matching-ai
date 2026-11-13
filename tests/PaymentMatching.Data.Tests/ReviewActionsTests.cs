@@ -208,8 +208,12 @@ public class ReviewActionsTests(PostgresFixture postgres)
         var other = (await StateAsync(db)).OpenInvoices().First(i => !pipeline.InvoiceNumbers.Contains(i.Number)).Number;
         foreach (var invoices in new[] { pipeline.InvoiceNumbers, [other] })
         {
+            // The shared test data may already hold the same agent proposal (same id); add it only once.
             var proposal = new Proposal(Proposal.IdFor(payment.Id, invoices), payment.Id, invoices, "agent reason <b>", Proposal.ByMcpAgent, TwoTenants.Now, []);
-            db.Proposals.Add(new ProposalRow { Id = proposal.Id, PaymentId = payment.Id, At = proposal.At, Record = Proposal.Serialize(proposal) });
+            if (!await db.Proposals.AnyAsync(p => p.Id == proposal.Id, Ct))
+            {
+                db.Proposals.Add(new ProposalRow { Id = proposal.Id, PaymentId = payment.Id, At = proposal.At, Record = Proposal.Serialize(proposal) });
+            }
         }
 
         await db.SaveChangesAsync(Ct);

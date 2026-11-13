@@ -11,8 +11,11 @@ public sealed record SignInIdentity(string Provider, string Subject, string Name
 
 public sealed record SandboxOptions
 {
-    /// <summary>Payments in a new sandbox; with the generator's default mix that is ~30 invoices (SPEC 9b).</summary>
-    public int StarterPayments { get; init; } = 20;
+    /// <summary>
+    /// Payments in a new sandbox (~55–60 invoices with the generator's mix). 40 since the first user test: 20 left a
+    /// queue of 2–3 and an empty-looking app. The daily job precomputes the same number (ADR 0017), so keep both in step.
+    /// </summary>
+    public int StarterPayments { get; init; } = 40;
 
     /// <summary>New sandboxes per 24 hours; more sign-ups wait (keeps database and AI costs bounded).</summary>
     public int MaxNewPerDay { get; init; } = 5;

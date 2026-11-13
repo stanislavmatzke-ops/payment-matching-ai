@@ -12,6 +12,9 @@ public static class ReviewAction
     public const string Confirmed = "confirmed";
     public const string Rejected = "rejected";
     public const string MatchedManually = "matched_manually";
+
+    /// <summary>A person undid an automatic AI match: its invoices were freed and others (or none) chosen.</summary>
+    public const string UndoneAi = "undone_ai";
 }
 
 /// <summary>Where a payment stands for the person, combining the pipeline's decision and the person's (SPEC 9b).</summary>
@@ -145,7 +148,7 @@ public sealed class SandboxState
     {
         if (Review(paymentId) is { } review)
         {
-            return review.Action == ReviewAction.Rejected ? PaymentState.Rejected : PaymentState.Matched;
+            return review.Action == ReviewAction.Rejected || review.InvoiceNumbers.Count == 0 ? PaymentState.Rejected : PaymentState.Matched;
         }
 
         return Decision(paymentId)?.Decision.Outcome switch
@@ -163,6 +166,15 @@ public sealed class SandboxState
     /// </summary>
     public bool IsActionable(string paymentId) =>
         Review(paymentId) is null && Decision(paymentId)?.Decision.Outcome is Outcome.HumanReview or Outcome.NoMatch;
+
+    /// <summary>
+    /// A person may undo a match the AI layer made on its own (ADR 0012 amendment), once: the payment's invoices
+    /// are freed and the person picks others or none. Rule matches are not undone here.
+    /// </summary>
+    public bool CanUndoAi(string paymentId) =>
+        Review(paymentId) is null
+        && Decision(paymentId) is { Decision.Outcome: Outcome.AutoMatched } record
+        && record.Decision.DecidedBy.StartsWith("ai:", StringComparison.Ordinal);
 
     public bool InjectionSuspected(BankPayment payment) => ProposalChecks.InjectionSuspected(payment, Decision(payment.Id));
 
@@ -187,10 +199,11 @@ public sealed class SandboxState
     }
 
     /// <summary>The same checks as for an agent's proposal (<see cref="ProposalChecks"/>), against today's matched invoices.</summary>
-    public IReadOnlyList<string> Check(BankPayment payment, IReadOnlyList<string> invoiceNumbers) =>
-        _checks.Check(payment, invoiceNumbers, MatchedInvoices.Keys.ToHashSet(StringComparer.Ordinal), InjectionSuspected(payment));
+    /// <param name="freeing">A payment whose own matches are being undone: its invoices count as open.</param>
+    public IReadOnlyList<string> Check(BankPayment payment, IReadOnlyList<string> invoiceNumbers, string? freeing = null) =>
+        _checks.Check(payment, invoiceNumbers, MatchedInvoices.Where(m => m.Value != freeing).Select(m => m.Key).ToHashSet(StringComparer.Ordinal), InjectionSuspected(payment));
 
-    /// <summary>Invoices a person can pick for a manual match: not matched to any payment yet.</summary>
-    public IReadOnlyList<InvoiceRecord> OpenInvoices() =>
-        Data.Invoices.Where(i => !MatchedInvoices.ContainsKey(i.Number)).OrderBy(i => i.Number, StringComparer.Ordinal).ToList();
+    /// <summary>Invoices a person can pick for a manual match: not matched to any payment yet (or only to <paramref name="freeing"/>).</summary>
+    public IReadOnlyList<InvoiceRecord> OpenInvoices(string? freeing = null) =>
+        Data.Invoices.Where(i => !MatchedInvoices.TryGetValue(i.Number, out var by) || by == freeing).OrderBy(i => i.Number, StringComparer.Ordinal).ToList();
 }

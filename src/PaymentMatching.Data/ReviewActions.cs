@@ -86,10 +86,46 @@ public sealed class ReviewActions(PaymentsDbContext db, TimeProvider time, Match
         return await SaveAsync(payment!, ReviewAction.Rejected, [], null, [], [], state.ProposalsFor(payment!), cancellationToken);
     }
 
-    /// <summary>The checks a manual match would run, without saving anything (the preview before the person decides).</summary>
-    public async Task<ReviewResult> PreviewAsync(string paymentId, IReadOnlyList<string> invoiceNumbers, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Undoes a match the AI layer made on its own: frees its invoices and matches the payment to the invoices
+    /// the person picks, or to none. The AI's decision stays in the audit trail; this is the person's decision.
+    /// </summary>
+    public async Task<ReviewResult> UndoAiMatchAsync(string paymentId, IReadOnlyList<string> invoiceNumbers, IReadOnlyCollection<string> acknowledged, CancellationToken cancellationToken = default)
     {
-        var (state, payment, refusal) = await OpenAsync(paymentId, cancellationToken);
+        var (state, payment, refusal) = await OpenAsync(paymentId, cancellationToken, undo: true);
+        if (refusal is not null)
+        {
+            return refusal;
+        }
+
+        if (invoiceNumbers.Count == 0)
+        {
+            return await SaveAsync(payment!, ReviewAction.UndoneAi, [], null, [], [], [], cancellationToken, freeing: true);
+        }
+
+        if (!ValidInvoices(state, invoiceNumbers))
+        {
+            return ReviewResult.Of(ReviewOutcome.InvalidInvoices);
+        }
+
+        var failures = state.Check(payment!, invoiceNumbers, freeing: paymentId);
+        if (failures.Any(ProposalChecks.Blocking.Contains))
+        {
+            return new ReviewResult(ReviewOutcome.Blocked, failures);
+        }
+
+        if (!failures.ToHashSet(StringComparer.Ordinal).SetEquals(acknowledged))
+        {
+            return new ReviewResult(ReviewOutcome.NeedsAcknowledgement, failures);
+        }
+
+        return await SaveAsync(payment!, ReviewAction.UndoneAi, invoiceNumbers, null, failures, acknowledged.Order(StringComparer.Ordinal).ToList(), [], cancellationToken, freeing: true);
+    }
+
+    /// <summary>The checks a manual match (or an undo with other invoices) would run, without saving anything.</summary>
+    public async Task<ReviewResult> PreviewAsync(string paymentId, IReadOnlyList<string> invoiceNumbers, CancellationToken cancellationToken = default, bool undo = false)
+    {
+        var (state, payment, refusal) = await OpenAsync(paymentId, cancellationToken, undo);
         if (refusal is not null)
         {
             return refusal;
@@ -100,7 +136,7 @@ public sealed class ReviewActions(PaymentsDbContext db, TimeProvider time, Match
             return ReviewResult.Of(ReviewOutcome.InvalidInvoices);
         }
 
-        var failures = state.Check(payment!, invoiceNumbers);
+        var failures = state.Check(payment!, invoiceNumbers, undo ? paymentId : null);
         return failures.Any(ProposalChecks.Blocking.Contains)
             ? new ReviewResult(ReviewOutcome.Blocked, failures)
             : new ReviewResult(failures.Count == 0 ? ReviewOutcome.Done : ReviewOutcome.NeedsAcknowledgement, failures);
@@ -111,13 +147,13 @@ public sealed class ReviewActions(PaymentsDbContext db, TimeProvider time, Match
         && invoiceNumbers.Distinct(StringComparer.Ordinal).Count() == invoiceNumbers.Count
         && invoiceNumbers.All(state.Data.InvoiceByNumber.ContainsKey);
 
-    private async Task<(SandboxState State, BankPayment? Payment, ReviewResult? Refusal)> OpenAsync(string paymentId, CancellationToken cancellationToken)
+    private async Task<(SandboxState State, BankPayment? Payment, ReviewResult? Refusal)> OpenAsync(string paymentId, CancellationToken cancellationToken, bool undo = false)
     {
         var state = await SandboxState.LoadAsync(db, options, cancellationToken);
         var payment = state.Payment(paymentId);
         ReviewResult? refusal = payment is null ? ReviewResult.Of(ReviewOutcome.NotFound)
             : state.Review(paymentId) is not null ? ReviewResult.Of(ReviewOutcome.AlreadyDecided)
-            : !state.IsActionable(paymentId) ? ReviewResult.Of(ReviewOutcome.NotActionable)
+            : !(undo ? state.CanUndoAi(paymentId) : state.IsActionable(paymentId)) ? ReviewResult.Of(ReviewOutcome.NotActionable)
             : null;
         return (state, payment, refusal);
     }
@@ -155,7 +191,8 @@ public sealed class ReviewActions(PaymentsDbContext db, TimeProvider time, Match
         IReadOnlyList<string> checks,
         IReadOnlyList<string> acknowledged,
         IReadOnlyList<QueueProposal> proposals,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool freeing = false)
     {
         var userId = await db.Users.Select(u => u.Id).SingleAsync(cancellationToken);
         var key = DecisionLog.KeyFor(payment);
@@ -170,7 +207,18 @@ public sealed class ReviewActions(PaymentsDbContext db, TimeProvider time, Match
             userId,
             time.GetUtcNow());
         var review = new ReviewRow { DecisionKey = key, PaymentId = payment.Id, Action = action, UserId = userId, At = decision.At, Record = HumanDecision.Serialize(decision) };
-        var matches = invoiceNumbers.Select(n => new InvoiceMatchRow { InvoiceNumber = n, PaymentId = payment.Id, DecisionKey = key }).ToList();
+        var keep = new HashSet<string>(StringComparer.Ordinal);
+        if (freeing)
+        {
+            // Undoing an AI match: its invoices become open again, in the same save as the person's decision
+            // (an invoice the person picks again simply stays matched to this payment).
+            var current = await db.InvoiceMatches.Where(m => m.PaymentId == payment.Id).ToListAsync(cancellationToken);
+            db.InvoiceMatches.RemoveRange(current.Where(m => !invoiceNumbers.Contains(m.InvoiceNumber)));
+            keep.UnionWith(current.Select(m => m.InvoiceNumber));
+        }
+
+        var matches = invoiceNumbers.Where(n => !keep.Contains(n)).Select(n => new InvoiceMatchRow { InvoiceNumber = n, PaymentId = payment.Id, DecisionKey = key }).ToList();
+
         db.Reviews.Add(review);
         db.InvoiceMatches.AddRange(matches);
         try
