@@ -3,7 +3,8 @@
 // client ids are public, secrets are Key Vault references (ADR 0016).
 using './main.bicep'
 
-param githubRepository = 'stanislavmatzke-ops/payment-matching-ai'
+// GitHub's OIDC subject carries the immutable owner and repository ids, not only the names.
+param githubOidcSubject = 'repo:stanislavmatzke-ops@231474937/payment-matching-ai@1455081591:environment:production'
 param demoTenantId = 'afb0d1ca-fc98-4d44-bab5-0d68475985f0'
 param aiMonthlyUsd = '0.50'
 

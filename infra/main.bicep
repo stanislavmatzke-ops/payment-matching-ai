@@ -15,8 +15,8 @@ param location string = resourceGroup().location
 @description('Prefix of resource names.')
 param name string = 'payments'
 
-@description('GitHub repository (owner/name) allowed to deploy through OIDC, environment "production".')
-param githubRepository string
+@description('Subject of the GitHub OIDC token allowed to deploy. GitHub puts immutable ids into it: repo:<owner>@<owner id>/<repo>@<repo id>:environment:production (the azure/login log prints it).')
+param githubOidcSubject string
 
 @description('Object id of the person who runs this deployment; gets Key Vault Secrets Officer to put secrets in.')
 param operatorPrincipalId string
@@ -85,7 +85,7 @@ resource githubFederation 'Microsoft.ManagedIdentity/userAssignedIdentities/fede
   name: 'github-production'
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${githubRepository}:environment:production'
+    subject: githubOidcSubject
     audiences: ['api://AzureADTokenExchange']
   }
 }
