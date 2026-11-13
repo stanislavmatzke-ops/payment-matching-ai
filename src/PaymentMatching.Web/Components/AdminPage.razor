@@ -1,6 +1,6 @@
-@* Admin overview (ADR 0013): aggregates across sandboxes only. No ids, names, e-mails or payments. *@
+@* Admin overview (ADR 0013, amended in ADR 0014): aggregates across sandboxes and the list of accounts (name, e-mail, dates, counts). No payments, invoices, statement text or tenant ids. *@
 <Shell Title="Admin" Page="Page" Active="admin">
-    <div class="page-head"><div><h1>Operations overview</h1><p class="muted">Aggregates across all sandboxes. No ids, names, e-mails or payments.</p></div></div>
+    <div class="page-head"><div><h1>Operations overview</h1><p class="muted">Aggregates across all sandboxes and the accounts that use them. No payments, invoices or sandbox contents.</p></div></div>
     <section class="two-col">
 
     <div class="card">
@@ -31,6 +31,48 @@
     </section>
 
     <div class="card">
+    <h2 class="card-title">Accounts</h2>
+    <p class="muted small">Who signed in and how much they decided. Their sandboxes' payments and invoices are not shown here.</p>
+    @if (View.Accounts.Count == 0)
+    {
+        <p class="muted">Nobody has signed in yet.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+        <table class="data compact">
+            <thead><tr><th>Name</th><th>E-mail</th><th>Signed in with</th><th>Sandbox created</th><th>Last active</th><th class="num">Confirmed</th><th class="num">Rejected</th><th class="num">Matched by hand</th><th>State</th></tr></thead>
+            <tbody>
+                @foreach (var account in View.Accounts)
+                {
+                    <tr>
+                        <td>@account.Name</td>
+                        <td>@account.Email</td>
+                        <td>@ProviderName(account.Provider)</td>
+                        <td>@Format.Date(DateOnly.FromDateTime(account.SandboxCreatedAt.UtcDateTime))</td>
+                        <td>@Format.Date(DateOnly.FromDateTime(account.LastActiveAt.UtcDateTime))</td>
+                        <td class="num">@account.Confirmed</td>
+                        <td class="num">@account.Rejected</td>
+                        <td class="num">@account.MatchedManually</td>
+                        <td>
+                            @if (account.ActiveWithin(View.Now))
+                            {
+                                <span class="ok-text">active</span>
+                            }
+                            else
+                            {
+                                <span class="muted">inactive, deleted in @account.DaysUntilDeletion(View.Now) days</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    }
+    </div>
+
+    <div class="card">
     <h2 class="card-title">Last 7 days</h2>
     <table class="data compact">
         <thead><tr><th>Day</th><th>Calls</th><th>Cached</th><th>Cost</th><th>Refilled</th><th>Deleted</th><th>Turned away</th></tr></thead>
@@ -55,6 +97,13 @@
 @code {
     [Parameter, EditorRequired]
     public AdminView View { get; set; } = default!;
+
+    private static string ProviderName(string provider) => provider switch
+    {
+        Authentication.Microsoft => "Microsoft",
+        Authentication.Google => "Google",
+        _ => provider,
+    };
 
     /// <summary>The admin's own navigation (sign-out, back to their sandbox).</summary>
     [Parameter]

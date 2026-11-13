@@ -156,14 +156,19 @@ public class TenantIsolationTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public void TenantAdmin_returns_only_ids_and_counts_never_rows()
+    public void TenantAdmin_returns_ids_counts_and_account_identities_never_business_rows()
     {
-        // The daily job and /admin see across tenants only through these methods (ADR 0013).
-        Type[] allowed = [typeof(Task<Guid?>), typeof(Task<int>), typeof(Task<IReadOnlyList<Guid>>), typeof(Task<SandboxSummary>)];
+        // The daily job and /admin see across tenants only through these methods (ADR 0013, ADR 0014 amendment).
+        Type[] allowed = [typeof(Task<Guid?>), typeof(Task<int>), typeof(Task<IReadOnlyList<Guid>>), typeof(Task<SandboxSummary>), typeof(Task<IReadOnlyList<AccountSummary>>)];
         var methods = typeof(TenantAdmin).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
 
         Assert.All(methods, m => Assert.Contains(m.ReturnType, allowed));
         Assert.All(typeof(SandboxSummary).GetProperties(), p => Assert.True(p.PropertyType == typeof(int) || p.PropertyType == typeof(bool), p.Name));
+
+        // An account is identity, dates and counts: a new field (a tenant id, a payment, a text) is a deliberate change here.
+        Assert.Equal(
+            ["Confirmed:Int32", "Email:String", "LastActiveAt:DateTimeOffset", "MatchedManually:Int32", "Name:String", "Provider:String", "Rejected:Int32", "SandboxCreatedAt:DateTimeOffset"],
+            typeof(AccountSummary).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}").Order());
     }
 
     [Fact]
@@ -185,6 +190,32 @@ public class TenantIsolationTests(PostgresFixture postgres)
 
         Assert.Equal(2, await admin.DeleteInactiveAsync(TwoTenants.Now.AddDays(60), Ct));
         Assert.Equal([demo], await admin.ActiveTenantIdsAsync(TwoTenants.Now.AddDays(60), Ct));
+    }
+
+    [Fact]
+    public async Task Admin_lists_the_accounts_with_their_decision_counts_but_not_the_demo()
+    {
+        var tenants = await TwoTenants.CreateAsync(postgres);
+        var admin = new TenantAdmin(tenants.Options);
+        await new SandboxProvisioner(tenants.Options, new SandboxOptions(), new FixedTime(TwoTenants.Now)).EnsureDemoAsync(Guid.NewGuid(), Ct);
+        await using (var db = tenants.For(tenants.B))
+        {
+            (await db.Tenants.SingleAsync(Ct)).LastActiveAt = TwoTenants.Now.AddDays(-10);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        var accounts = await admin.AccountsAsync(Ct);
+
+        // Most recently active first; each with its own sandbox's counts (both tenants rejected one payment).
+        Assert.Equal(2, accounts.Count);
+        var (alice, bob) = (accounts[0], accounts[1]);
+        Assert.Contains("alice", alice.Name + alice.Email, StringComparison.Ordinal);
+        Assert.Contains("bob", bob.Name + bob.Email, StringComparison.Ordinal);
+        Assert.Equal((0, 1, 0), (alice.Confirmed, alice.Rejected, alice.MatchedManually));
+        Assert.Equal((0, 1, 0), (bob.Confirmed, bob.Rejected, bob.MatchedManually));
+        Assert.True(alice.ActiveWithin(TwoTenants.Now));
+        Assert.False(bob.ActiveWithin(TwoTenants.Now));
+        Assert.Equal(20, bob.DaysUntilDeletion(TwoTenants.Now));
     }
 
     [Fact]

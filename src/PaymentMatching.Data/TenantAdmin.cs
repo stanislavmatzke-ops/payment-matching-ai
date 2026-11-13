@@ -5,7 +5,8 @@ namespace PaymentMatching.Data;
 /// <summary>
 /// The only code allowed to look across tenants (a test checks that no other file in src/ bypasses
 /// the tenant filters). It answers "which tenant is this sign-in?", counts new sandboxes for the
-/// daily limit and deletes inactive sandboxes. It never returns another tenant's business data.
+/// daily limit, deletes inactive sandboxes and lists the accounts for the operator. It never returns
+/// another tenant's business data (payments, invoices, decisions, statement text).
 /// </summary>
 public sealed class TenantAdmin(DbContextOptions<PaymentsDbContext> options)
 {
@@ -66,7 +67,46 @@ public sealed class TenantAdmin(DbContextOptions<PaymentsDbContext> options)
             await db.Tenants.IgnoreQueryFilters().AnyAsync(t => t.IsDemo, cancellationToken));
     }
 
+    /// <summary>
+    /// The accounts for the operator's overview (ADR 0014 amendment): who signed in, when, and how many payments
+    /// they decided. Identity and dates only – never a payment, invoice, text or tenant id.
+    /// </summary>
+    public async Task<IReadOnlyList<AccountSummary>> AccountsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var db = NoTenant();
+        var reviews = await db.Reviews.IgnoreQueryFilters()
+            .GroupBy(r => new { r.TenantId, r.Action })
+            .Select(g => new { g.Key.TenantId, g.Key.Action, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+        var accounts = await db.Users.IgnoreQueryFilters()
+            .Join(db.Tenants.IgnoreQueryFilters(), u => u.TenantId, t => t.Id, (u, t) => new { u.TenantId, u.Name, u.Email, u.Provider, t.CreatedAt, t.LastActiveAt })
+            .OrderByDescending(a => a.LastActiveAt)
+            .ToListAsync(cancellationToken);
+        int Count(Guid tenant, string action) => reviews.Where(r => r.TenantId == tenant && r.Action == action).Sum(r => r.Count);
+        return accounts
+            .Select(a => new AccountSummary(
+                a.Name,
+                a.Email,
+                a.Provider,
+                a.CreatedAt,
+                a.LastActiveAt,
+                Count(a.TenantId, ReviewAction.Confirmed),
+                Count(a.TenantId, ReviewAction.Rejected),
+                Count(a.TenantId, ReviewAction.MatchedManually)))
+            .ToList();
+    }
+
     private PaymentsDbContext NoTenant() => new(options, new TenantContext());
+}
+
+/// <summary>One signed-in account for the operator: identity, sandbox dates and the person's decisions (counts).</summary>
+public sealed record AccountSummary(
+    string Name, string Email, string Provider, DateTimeOffset SandboxCreatedAt, DateTimeOffset LastActiveAt, int Confirmed, int Rejected, int MatchedManually)
+{
+    public bool ActiveWithin(DateTimeOffset now) => LastActiveAt >= now - TenantAdmin.ActiveWithin;
+
+    /// <summary>Whole days until the sandbox is deleted for inactivity (0 = with the next job run).</summary>
+    public int DaysUntilDeletion(DateTimeOffset now) => Math.Max(0, (int)Math.Ceiling((LastActiveAt + TenantAdmin.InactiveAfter - now).TotalDays));
 }
 
 /// <summary>Sandboxes of people (the demo not counted) for the admin overview.</summary>

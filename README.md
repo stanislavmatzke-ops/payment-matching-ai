@@ -149,8 +149,10 @@ from `/api/me`): `dotnet run --project tools/Match.Cli -- --tenant <tenant id>`.
   `Demo:TenantId` (any GUID) for the job and the web app; the job creates it. The page shows the
   sandbox only if it is marked as the demo, and nothing can be saved through it.
 - **Admin** (`/admin`): only for accounts in `Admin:Accounts` (`provider:subject`, e.g. `dev:boss`
-  locally); everyone else gets 404. Aggregates only: calls and cost per day and month, budget left,
-  cache hit rate, sandboxes, sign-ins turned away.
+  locally); everyone else gets 404, and only these accounts see the Admin tab. Calls and cost per day
+  and month, budget left, cache hit rate, sandboxes, sign-ins turned away, and the list of accounts
+  (name, e-mail, provider, created, last active, decisions made) – never what is inside a sandbox.
+  Your own `provider:subject` is `accountId` in `/api/me`.
 
 ```bash
 dotnet user-secrets set "Demo:TenantId" "<any guid>" --id payment-matching-ai

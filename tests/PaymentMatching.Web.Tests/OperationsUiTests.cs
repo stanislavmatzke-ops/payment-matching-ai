@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using PaymentMatching.AiGateway;
 using PaymentMatching.Data;
 using PaymentMatching.Matching;
@@ -112,12 +113,13 @@ public class OperationsUiTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task Admin_is_not_found_except_for_listed_accounts_and_shows_aggregates_only()
+    public async Task Admin_is_not_found_except_for_listed_accounts_and_shows_accounts_but_no_sandbox_contents()
     {
         var connectionString = await postgres.NewDatabaseAsync(Ct);
         await using var app = new WebApp(connectionString, settings: new Dictionary<string, string?> { ["Admin:Accounts:0"] = "dev:boss" });
         var alice = await app.SignedInAsAsync("alice");
         var aliceMe = await WebApp.MeAsync(alice);
+        var alicePayments = (await alice.GetFromJsonAsync<List<PaymentListItem>>("/api/payments", Ct))!;
         var boss = await app.SignedInAsAsync("boss");
         await new UsageLedger(OperationsDb.Options(connectionString)).AddAsync(DateOnly.FromDateTime(DateTime.UtcNow), new UsageDelta(AiCalls: 3, AiCostUsd: 0.0024m, CacheHits: 9), Ct);
 
@@ -128,10 +130,18 @@ public class OperationsUiTests(PostgresFixture postgres)
         Assert.Contains("Operations overview", page, StringComparison.Ordinal);
         Assert.Contains("75.0 %", page, StringComparison.Ordinal);
         Assert.Contains("<td class=\"num\">2</td>", page, StringComparison.Ordinal);
-        // The admin's own name is in their navigation; nobody else's data may be on the page.
-        foreach (var personal in new[] { "alice", aliceMe.Email, aliceMe.TenantId.ToString(), "P0001", "2026-1001" })
+
+        // The accounts: who signed in (ADR 0014 amendment)...
+        Assert.Contains("<h2 class=\"card-title\">Accounts</h2>", page, StringComparison.Ordinal);
+        Assert.Contains($"<td>{aliceMe.Email}</td>", page, StringComparison.Ordinal);
+
+        // ...but nothing from inside their sandboxes and no tenant ids.
+        var contents = alicePayments.Where(p => p.Message.Length > 5).Select(p => p.Message).Take(3)
+            .Concat(alicePayments.Select(p => p.CounterpartyName).Where(n => n.Length > 5).Take(3))
+            .Concat([aliceMe.TenantId.ToString(), "P0001", "2026-1001"]);
+        foreach (var content in contents)
         {
-            Assert.DoesNotContain(personal, page, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(content, page, StringComparison.OrdinalIgnoreCase);
         }
     }
 

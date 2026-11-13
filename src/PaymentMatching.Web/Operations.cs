@@ -14,7 +14,7 @@ public sealed record UsageDay(DateOnly Day, UsageTotals Totals);
 /// The admin overview (ADR 0013): aggregates across sandboxes only – counts and sums, never an id,
 /// a name, an e-mail or a payment.
 /// </summary>
-public sealed record AdminView(SandboxSummary Sandboxes, UsageTotals Today, UsageTotals Month, AiBudgetOptions Budget, BudgetLimit App, IReadOnlyList<UsageDay> LastDays)
+public sealed record AdminView(SandboxSummary Sandboxes, UsageTotals Today, UsageTotals Month, AiBudgetOptions Budget, BudgetLimit App, IReadOnlyList<UsageDay> LastDays, IReadOnlyList<AccountSummary> Accounts, DateTimeOffset Now)
 {
     public decimal MonthLeftUsd => Math.Max(0m, Budget.MonthlyUsd - Month.AiCostUsd);
 
@@ -59,7 +59,7 @@ public static class Operations
             days.Add(new UsageDay(day, await ledger.DayAsync(day, cancellationToken)));
         }
 
-        return new AdminView(await admin.SummaryAsync(now, cancellationToken), todayTotals, month, budget, AiAllowance.AppState(budget, todayTotals, month), days);
+        return new AdminView(await admin.SummaryAsync(now, cancellationToken), todayTotals, month, budget, AiAllowance.AppState(budget, todayTotals, month), days, await admin.AccountsAsync(cancellationToken), now);
     }
 
     /// <summary>

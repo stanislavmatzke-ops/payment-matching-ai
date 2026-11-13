@@ -84,3 +84,20 @@ app-wide layer (50 calls a day, the monthly dollars) together with the number of
 $0.005) and `Sandboxes:MaxNewPerDay` to 5 (the app is a demo for a few clients; mass sign-ups are the
 way to run up cost). Recommended for production: a monthly budget of $0.50 and a $5 spend limit in
 the Anthropic console.
+
+## Amendment (2026-11-13): the admin overview lists the accounts
+
+In production the operator could see how many sandboxes exist but not who uses the app. Sign-ups are
+not approved by hand (unlike the developer's Job Scout): a visitor cannot start a model, new sandboxes
+are limited per day and AI spend is capped, so an unknown account costs database rows, not money. But
+the operator should know who signed in.
+
+`/admin` gets an **Accounts** card through `TenantAdmin.AccountsAsync`: name, e-mail, sign-in provider,
+when the sandbox was created and last used, how many payments the person confirmed, rejected and matched
+by hand, and whether the sandbox is active or when it will be deleted. Still out: payments, invoices,
+statement text, decisions and tenant ids – the overview shows who, not what is inside. "Who is signed in
+right now" is not tracked (sessions are cookies only); "last active" stands in for it. No actions
+(delete, block): those would be new write endpoints, a separate decision.
+
+The test that fixed "`TenantAdmin` returns only ids and counts" now allows exactly this record and lists
+its fields; a new field is a deliberate change of the test. The privacy page says what the operator sees.
