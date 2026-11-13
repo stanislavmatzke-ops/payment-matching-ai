@@ -13,18 +13,24 @@ public sealed record JobSettings(string Source, Guid? DemoTenantId, AiBudgetOpti
 {
     /// <summary>A sandbox gets the day's batch when fewer than this many payments wait for the person.</summary>
     public int QueueBelow { get; init; } = 3;
+
+    /// <summary>Decide the week's starter set first, so sign-ins get AI decisions from the cache (ADR 0017).</summary>
+    public bool PrecomputeStarter { get; init; } = true;
 }
 
 /// <summary>What one sandbox got in this run.</summary>
 public sealed record SandboxRun(Guid TenantId, bool Refilled, int Decided, int ModelCalls, int CacheHits, decimal CostUsd, int WaitingForAi, BudgetLimit LimitedBy);
 
-public sealed record JobReport(DateOnly Day, int Deleted, bool DemoCreated, IReadOnlyList<SandboxRun> Sandboxes, int Failed)
+/// <summary>The week's starter set, decided in memory to fill the response cache for sign-ins (ADR 0017).</summary>
+public sealed record StarterRun(DateOnly Week, int ModelCalls, int CacheHits, decimal CostUsd, int WaitingForAi);
+
+public sealed record JobReport(DateOnly Day, int Deleted, bool DemoCreated, IReadOnlyList<SandboxRun> Sandboxes, int Failed, StarterRun? Starter = null)
 {
-    public int ModelCalls => Sandboxes.Sum(s => s.ModelCalls);
+    public int ModelCalls => Sandboxes.Sum(s => s.ModelCalls) + (Starter?.ModelCalls ?? 0);
 
-    public int CacheHits => Sandboxes.Sum(s => s.CacheHits);
+    public int CacheHits => Sandboxes.Sum(s => s.CacheHits) + (Starter?.CacheHits ?? 0);
 
-    public decimal CostUsd => Sandboxes.Sum(s => s.CostUsd);
+    public decimal CostUsd => Sandboxes.Sum(s => s.CostUsd) + (Starter?.CostUsd ?? 0);
 }
 
 /// <summary>
@@ -106,6 +112,13 @@ public sealed class DailyJob(
 
         var batch = DailyBatch.For(today);
         var cache = new CachingProvider(operations, settings.Source, model, time);
+        StarterRun? starter = null;
+        if (settings.PrecomputeStarter)
+        {
+            starter = await PrecomputeStarterAsync(today, cache, cancellationToken);
+            _log.WriteLine(FormattableString.Invariant($"starter set {starter.Week:yyyy-MM-dd}: calls={starter.ModelCalls} cached={starter.CacheHits} cost=${starter.CostUsd:0.0000} waiting={starter.WaitingForAi}"));
+        }
+
         var runs = new List<SandboxRun>();
         var failed = 0;
         foreach (var tenantId in await _admin.ActiveTenantIdsAsync(now, cancellationToken))
@@ -134,7 +147,33 @@ public sealed class DailyJob(
             }
         }
 
-        return new JobReport(today, deleted, demoCreated, runs, failed);
+        return new JobReport(today, deleted, demoCreated, runs, failed, starter);
+    }
+
+    /// <summary>
+    /// Decides the week's starter set in memory, exactly as a sign-in does, with the model behind the cache and
+    /// within the app's day and month budgets. The first run of a week asks the model (~5–7 calls); every later
+    /// run of that week finds all answers cached and costs nothing. Sign-ins of the week then reuse them.
+    /// </summary>
+    private async Task<StarterRun> PrecomputeStarterAsync(DateOnly today, CachingProvider cache, CancellationToken cancellationToken)
+    {
+        var week = StarterSet.WeekOf(today);
+        var provisioner = new SandboxProvisioner(payments, new SandboxOptions(), time);
+        var data = provisioner.StarterData(StarterSet.SeedOf(week), week);
+        var allowance = AiAllowance.For(
+            settings.Budget,
+            sandboxCallsToday: 0,
+            await _ledger.DayAsync(today, cancellationToken),
+            await _ledger.MonthAsync(today, cancellationToken));
+        var gateway = new AiGateway.AiGateway(cache, StarterSet.Routes(settings.Budget.SmallModelOnly) with { MaxCalls = allowance.Calls }, PriceTable.Claude);
+        var decisions = new DecisionLog();
+        await provisioner.DecideStarterAsync(data, decisions, gateway, cancellationToken);
+
+        var modelCalls = gateway.Calls.Count(c => !c.Cached);
+        var cacheHits = gateway.Calls.Count(c => c.Cached);
+        var cost = gateway.Calls.Sum(c => c.CostUsd);
+        await _ledger.AddAsync(today, new UsageDelta(modelCalls, cost, cacheHits), cancellationToken);
+        return new StarterRun(week, modelCalls, cacheHits, cost, data.Payments.Count - decisions.Records.Count);
     }
 
     private async Task<SandboxRun> RunSandboxAsync(Guid tenantId, DailyBatch batch, CachingProvider cache, DateTimeOffset now, CancellationToken cancellationToken)

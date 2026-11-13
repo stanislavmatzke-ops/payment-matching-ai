@@ -56,9 +56,19 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
             Assert.Equal(own.Select(p => (p.Id, p.Message, p.Amount)), alicePayments.Select(p => (p.Id, p.Message, p.Amount)));
         }
 
+        // Both start from the week's starter set (ADR 0017): the same content, but each in its own rows.
         var bobPayments = (await bob.GetFromJsonAsync<List<PaymentListItem>>("/api/payments", Ct))!;
-        Assert.Contains(alicePayments, p => bobPayments.Any(b => b.Id == p.Id));
-        Assert.NotEqual(alicePayments.Select(p => p.Message), bobPayments.Select(p => p.Message));
+        Assert.Equal(alicePayments.Select(p => (p.Id, p.Message, p.State)), bobPayments.Select(p => (p.Id, p.Message, p.State)));
+
+        // Alice decides a payment of her queue: Bob's copy of the same payment stays in his queue.
+        var queued = alicePayments.First(p => p.State == PaymentState.NeedsReview).Id;
+        await using (var db = PaymentsDb.ForTenant(app.ConnectionString, aliceMe.TenantId))
+        {
+            Assert.Equal(ReviewOutcome.Done, (await new ReviewActions(db, TimeProvider.System).RejectAsync(queued, Ct)).Outcome);
+        }
+
+        Assert.NotEqual(PaymentState.NeedsReview, (await alice.GetFromJsonAsync<List<PaymentListItem>>("/api/payments", Ct))!.Single(p => p.Id == queued).State);
+        Assert.Equal(PaymentState.NeedsReview, (await bob.GetFromJsonAsync<List<PaymentListItem>>("/api/payments", Ct))!.Single(p => p.Id == queued).State);
 
         var sameId = alicePayments[0].Id;
         var aliceDetail = (await alice.GetFromJsonAsync<PaymentDetailView>($"/api/payments/{sameId}", Ct))!;

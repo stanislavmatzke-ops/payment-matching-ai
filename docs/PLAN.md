@@ -309,3 +309,10 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - odhad prvního živého běhu (< $0,01) byl nízký: $0,031, demo dostalo startovní data i dávku najednou a část volání eskalovala na Opus,
   - jeden běh celé sady testů měl jeden pád, opakování prošlo – nestabilní test, nedohledán.
 - **Produktový nález vývojáře po spuštění:** nový uživatel uvidí AI platby až po ranním jobu, takže první dojem je „čeká na AI“. Pravidlo „návštěvník nikdy nespustí model“ přitom platí. Návrh: sdílená startovní data a cache odpovědí, sandbox dostane AI rozhodnutí z cache při přihlášení bez volání modelu (ke schválení, změna SPEC 9b / ADR 0011).
+
+**Po fázi 11: AI hned po přihlášení (2026-11-13, ADR 0017)**
+- Vývojář po prvním přihlášení v produkci: „AI platby čekají do rána – to je k ničemu, uživatel musí AI předpárování vidět hned.“ Pravidlo „návštěvník nikdy nespustí model“ přitom zůstává.
+- Řešení schválené vývojářem: startovní data stejná pro všechny sandboxy založené v daném týdnu (seed = pondělí), job je jednou týdně předpočítá v paměti a přihlášení vezme AI rozhodnutí z cache odpovědí s rozpočtem 0 volání (za cache je poskytovatel, který vyhodí výjimku). Vývojář výslovně chtěl ověřit, že data zůstanou oddělená: test rozhodne platbu v sandboxu A a kontroluje stejnou platbu v B.
+- Klíčový předpoklad (stejné prompty při přihlášení i v předpočítání) drží jedna společná metoda `DecideStarterAsync` a test „po jobu má přihlášení všechny AI platby z cache a model nedostal žádný dotaz“.
+- Record/replay z fáze 4 se tak vrací potřetí: testy bez klíče → cache v provozu → okamžitý první dojem za $0.
+- Útrata: ruční běh jobu pro dva sandboxy vývojáře před změnou $0,017 (12 volání).

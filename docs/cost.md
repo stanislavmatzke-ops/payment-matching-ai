@@ -38,12 +38,13 @@ about half of that, same precision, automation 52.0 % instead of 53.3 %.
 | Source | Calls per day | Notes |
 |---|---|---|
 | Shared daily batch | 1–2 | answered once, every other sandbox reuses the cached answer ($0) |
-| Starter data of new sandboxes | ~5–7 per new sandbox, once | own data per sandbox, all decided in the first run |
+| Starter set of the week | ~5–8 per week, once | the same starter data for every sandbox created that week; sign-ins reuse the cached answers ($0, ADR 0017) |
 | Sandbox where a person matched by hand | occasionally | the prompt differs, so the model is asked again |
 
-Example: 20 active sandboxes, 2 new ones a day → about 1–2 + 4 = **~6 calls a day, ~$0.005 a day,
-~$0.15 a month**. Without the cache and demand-driven refill (the original plan) the same traffic
-would be ~$1.5 a month and grow with every user.
+Example: any number of active and new sandboxes → about 1–2 calls a day for the batch plus ~5–8 a
+week for the starter set, **~$0.05–0.30 a month** depending on escalations (measured in Azure: a starter
+set with escalations ~$0.015–0.03). New sign-ins add nothing. Without the cache and demand-driven refill
+(the original plan) cost would grow with every user.
 
 ## Budgets (configuration `Ai:*`)
 
@@ -60,8 +61,9 @@ dashboard (per sandbox) and on `/admin` (calls and cost per day and month, budge
 
 ## What a visitor can cost
 
-Nothing directly: visitors never start a model. Signing in creates a sandbox (database rows, rules
-only); its AI payments are handled by the job within the budgets above. New sandboxes per day are
+Nothing: visitors never start a model. Signing in creates a sandbox (database rows) from the week's
+starter set, runs the rules and takes the AI decisions from the response cache the job filled; anything
+not cached waits for the job, within the budgets above. New sandboxes per day are
 limited (`Sandboxes:MaxNewPerDay`, default 5); people turned away are counted on `/admin`. For a demo
 with a handful of clients: about $0.05–0.10 a month; production runs with a monthly budget of $0.50
 (`Ai:Budget:MonthlyUsd` in `infra/main.bicepparam`) and a $5 spend limit on a separate Anthropic

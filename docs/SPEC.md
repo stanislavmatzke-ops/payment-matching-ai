@@ -127,7 +127,7 @@ Projekt nebude jen repo. Bude to **běžící aplikace, do které se kdokoli př
 **Přihlášení a izolace**
 - Přihlášení přes **Microsoft a Google** (OpenID Connect, stejný princip jako Job Scout). Žádná registrace s heslem.
 - Každý uživatel dostane **vlastní sandbox (tenant)**: vlastní firmu, faktury, bankovní výpisy a frontu. Nikdo nevidí data jiného uživatele. Izolace se vynucuje v datové vrstvě (filtr podle tenantId na každém dotazu, např. global query filter) a je pokrytá testy na únik mezi tenanty.
-- Při prvním přihlášení se sandbox naplní startovními daty (~30 faktur, ~20 plateb různých typů z kap. 3).
+- Při prvním přihlášení se sandbox naplní startovními daty (~30 faktur, ~20 plateb různých typů z kap. 3). _(Upřesněno 2026-11-13, ADR 0017: startovní data jsou pro všechny sandboxy založené v daném týdnu stejná – každý má ale vlastní kopii řádků; denní job je jednou za týden předpočítá a přihlášení vezme AI rozhodnutí z cache odpovědí bez volání modelu, takže nový uživatel vidí AI předpárování hned.)_
 - Ukládáme jen minimum z přihlášení (ID, jméno, e-mail). Stránka se zásadami ochrany údajů. Jen nezbytné cookies. Neaktivní sandboxy se po 30 dnech smažou.
 - **Demo bez přihlášení:** jeden sdílený ukázkový sandbox jen ke čtení (dashboard, platby, detail, timeline), zpracovávaný denním jobem jako ostatní. Žádné akce; kdo chce potvrzovat a párovat, přihlásí se a dostane vlastní sandbox. _(Upřesněno 2026-11-12, ADR 0013.)_
 - **Admin přehled** (`/admin`): přístup jen pro účty vyjmenované v konfiguraci (provider + subject), jen souhrny napříč sandboxy – AI volání a cena za den a měsíc, zbývající rozpočet, cache hit rate, počet aktivních sandboxů, nové za den, pořadník. Žádný pohled do dat jiných uživatelů. _(Doplněno 2026-11-12, ADR 0013.)_

@@ -38,7 +38,16 @@ builder.Services.AddSingleton(new SandboxOptions
     StarterPayments = config.GetValue("Sandboxes:StarterPayments", 20),
     MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 5),
 });
-builder.Services.AddSingleton<SandboxProvisioner>();
+// A new sandbox takes the AI decisions for the week's starter set from the response cache the daily job
+// filled ("live" answers in production); never a model call (ADR 0017). "off" disables it.
+var instantAiSource = config["Sandboxes:InstantAiSource"] ?? "live";
+builder.Services.AddSingleton(sp => new SandboxProvisioner(
+    sp.GetRequiredService<Microsoft.EntityFrameworkCore.DbContextOptions<PaymentsDbContext>>(),
+    sp.GetRequiredService<SandboxOptions>(),
+    sp.GetRequiredService<TimeProvider>(),
+    instantAiSource is "off" or ""
+        ? null
+        : new InstantAiOptions(OperationsDb.Options(connectionString), instantAiSource, sp.GetRequiredService<AiBudgetOptions>().SmallModelOnly)));
 builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<PaymentsDbContext>(), sp.GetRequiredService<TimeProvider>()));
 builder.Services.AddPaymentsTelemetry("payments-web", config, tracing => tracing.AddAspNetCoreInstrumentation(o =>
     o.Filter = http => !Path.HasExtension(http.Request.Path.Value)));

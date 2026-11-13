@@ -76,8 +76,9 @@ internal sealed class JobTestBed
         }
     }
 
-    public DailyJob Job(ILlmProvider model, AiBudgetOptions? budget = null, Guid? demo = null, string source = "live") =>
-        new(Payments, Operations, model, new JobSettings(source, demo, budget ?? AiBudgetOptions.Default), Time);
+    /// <param name="starter">Precompute the week's starter set (off by default, so call counts are only the sandboxes').</param>
+    public DailyJob Job(ILlmProvider model, AiBudgetOptions? budget = null, Guid? demo = null, string source = "live", bool starter = false) =>
+        new(Payments, Operations, model, new JobSettings(source, demo, budget ?? AiBudgetOptions.Default) { PrecomputeStarter = starter }, Time);
 
     public PaymentsDbContext For(Guid tenant) => PaymentsDb.ForTenant(ConnectionString, tenant);
 

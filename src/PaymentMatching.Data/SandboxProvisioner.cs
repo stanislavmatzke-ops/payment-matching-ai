@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PaymentMatching.AiGateway;
 using PaymentMatching.DataGen;
 using PaymentMatching.DataGen.Csv;
 using PaymentMatching.Matching;
@@ -27,11 +28,34 @@ public enum ProvisionStatus
 public sealed record ProvisionResult(ProvisionStatus Status, Guid? TenantId);
 
 /// <summary>
-/// Gives every signed-in person their own sandbox. On the first sign-in it creates the tenant, the
-/// user and synthetic starter data, and runs only the rules layer: a sign-in never calls a model.
-/// Payments that need AI stay undecided for the scheduled job (phase 9).
+/// The week's starter set (ADR 0017): every sandbox created in the same week (Monday to Sunday, UTC) starts
+/// from the same synthetic data, so the AI answers for it are computed once by the daily job and reused from
+/// the response cache at every sign-in. Each sandbox still gets its own copy of the rows.
 /// </summary>
-public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> options, SandboxOptions settings, TimeProvider time)
+public static class StarterSet
+{
+    public static DateOnly WeekOf(DateOnly day) => day.AddDays(-(((int)day.DayOfWeek + 6) % 7));
+
+    public static int SeedOf(DateOnly monday) => (monday.Year * 10000) + (monday.Month * 100) + monday.Day;
+
+    /// <summary>The routes of the daily job: the cache key contains the model, so sign-in must ask the same way.</summary>
+    public static GatewayOptions Routes(bool smallModelOnly) =>
+        smallModelOnly ? ModelSettings.Default with { Large = null } : ModelSettings.Default;
+}
+
+/// <summary>
+/// Answers for the AI payments of a new sandbox at sign-in: the response cache of <paramref name="Source"/>
+/// only ("live" in production). The model behind it is never called (ADR 0017).
+/// </summary>
+public sealed record InstantAiOptions(DbContextOptions<OperationsDbContext> Operations, string Source, bool SmallModelOnly);
+
+/// <summary>
+/// Gives every signed-in person their own sandbox. On the first sign-in it creates the tenant, the user and
+/// the week's starter data, runs the rules layer and takes the AI decisions from the response cache: a
+/// sign-in never calls a model. Payments without a cached answer stay undecided for the scheduled job.
+/// </summary>
+public sealed class SandboxProvisioner(
+    DbContextOptions<PaymentsDbContext> options, SandboxOptions settings, TimeProvider time, InstantAiOptions? instantAi = null)
 {
     private readonly TenantAdmin _admin = new(options);
 
@@ -50,7 +74,8 @@ public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> optio
 
         var tenantId = Guid.NewGuid();
         await using var db = new PaymentsDbContext(options, new TenantContext(tenantId));
-        var seed = BitConverter.ToInt32(tenantId.ToByteArray()) & int.MaxValue;
+        var week = StarterSet.WeekOf(DateOnly.FromDateTime(now.UtcDateTime));
+        var seed = StarterSet.SeedOf(week);
         db.Tenants.Add(new TenantRow { Id = tenantId, CreatedAt = now, LastActiveAt = now, DataSeed = seed });
         db.Users.Add(new UserRow
         {
@@ -62,11 +87,16 @@ public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> optio
             CreatedAt = now,
         });
 
-        var data = StarterData(seed, DateOnly.FromDateTime(now.UtcDateTime));
+        var data = StarterData(seed, week);
         TenantData.Add(db, data);
         var decisions = await DbDecisionStore.LoadAsync(db, cancellationToken);
-        await new MatchingPipeline(data, gateway: null, decisions, MatchingOptions.Default with { DeferAiWithoutGateway = true }, time)
-            .RunAsync(cancellationToken);
+        var cacheOnly = instantAi is null
+            ? null
+            : new AiGateway.AiGateway(
+                new CachingProvider(instantAi.Operations, instantAi.Source, NoModel.Instance, time),
+                StarterSet.Routes(instantAi.SmallModelOnly) with { MaxCalls = 0 },
+                PriceTable.Claude);
+        await DecideStarterAsync(data, decisions, cacheOnly, cancellationToken);
 
         try
         {
@@ -114,6 +144,23 @@ public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> optio
         return true;
     }
 
+    /// <summary>
+    /// Decides starter data the same way everywhere – at sign-in (cache only) and in the job's precomputation
+    /// (a model within the budgets) – so the prompts and therefore the cache keys are identical: first the
+    /// rules layer over all payments, then the AI layer over the rest. Without a gateway AI payments wait;
+    /// over the gateway's call budget they wait too (a sign-in has a budget of zero calls).
+    /// </summary>
+    public async Task DecideStarterAsync(MatchingDataset data, IDecisionStore decisions, AiGateway.AiGateway? gateway, CancellationToken cancellationToken)
+    {
+        await new MatchingPipeline(data, gateway: null, decisions, MatchingOptions.Default with { DeferAiWithoutGateway = true }, time)
+            .RunAsync(cancellationToken);
+        if (gateway is not null)
+        {
+            await new MatchingPipeline(data, gateway, decisions, MatchingOptions.Default with { DeferAiWhenBudgetExhausted = true }, time)
+                .RunAsync(cancellationToken);
+        }
+    }
+
     /// <summary>Synthetic starter data, parsed by the same code that reads the generator's CSV files.</summary>
     public MatchingDataset StarterData(int seed, DateOnly today)
     {
@@ -123,6 +170,15 @@ public sealed class SandboxProvisioner(DbContextOptions<PaymentsDbContext> optio
     }
 
     private static string Truncate(string text, int max) => text.Length <= max ? text : text[..max];
+
+    /// <summary>Behind the cache at sign-in. With a budget of zero calls the gateway never reaches it; if it ever did, it fails.</summary>
+    private sealed class NoModel : ILlmProvider
+    {
+        public static readonly NoModel Instance = new();
+
+        public Task<LlmResponse> CompleteJsonAsync(LlmRequest request, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("A sign-in never calls a model.");
+    }
 }
 
 /// <summary>Keeps <see cref="TenantRow.LastActiveAt"/> current, at most one write per tenant and day.</summary>

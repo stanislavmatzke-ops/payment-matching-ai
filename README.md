@@ -124,7 +124,10 @@ What you can do there ([ADR 0012](docs/adr/0012-server-rendered-ui-and-a-persons
 for 30 days, adds one **shared daily batch** (3–5 payments, the same for everyone that day) to
 sandboxes used in the last 7 days whose person resolved something or whose queue is short, and runs
 rules → AI → validation over every undecided payment. Model answers are cached by the exact prompt,
-so the same case in the next sandbox costs nothing. Budgets: 20 model calls per sandbox and day (the
+so the same case in the next sandbox costs nothing. It also decides the **week's starter set** first:
+every sandbox created that week starts from the same data (each in its own rows), so a sign-in shows
+AI decisions at once, taken from the cache without a model call
+([ADR 0017](docs/adr/0017-instant-ai-for-new-sandboxes-from-a-weekly-starter-set.md)). Budgets: 20 model calls per sandbox and day (the
 rest waits for tomorrow), 50 per day app-wide and $2 a month (then payments go to a person with a
 label). Locally, without a key and without cost:
 
