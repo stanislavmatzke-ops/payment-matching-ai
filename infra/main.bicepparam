@@ -7,6 +7,9 @@ using './main.bicep'
 param githubOidcSubject = 'repo:stanislavmatzke-ops@231474937/payment-matching-ai@1455081591:environment:production'
 param demoTenantId = 'afb0d1ca-fc98-4d44-bab5-0d68475985f0'
 param aiMonthlyUsd = '0.50'
+// $0.05 per call allowed only ~8 calls a run with $0.50 a month, too few for the weekly starter set
+// (40 payments); a call costs ~$0.0004 (small model) to ~$0.01 (escalation). The month stays capped.
+param aiReservePerCallUsd = '0.02'
 
 // Step by step (README "Deploy to Azure"): shared pieces first, then the apps once db-connection exists,
 // then the job once anthropic-api-key exists.

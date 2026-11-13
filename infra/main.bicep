@@ -42,6 +42,9 @@ param demoTenantId string
 @description('Monthly AI budget in USD (Ai:Budget:MonthlyUsd). The Anthropic console spend limit is the hard backstop.')
 param aiMonthlyUsd string = '0.50'
 
+@description('Money kept in reserve per model call before calling (Ai:Budget:ReservePerCallUsd); remaining month / reserve = calls a run may make.')
+param aiReservePerCallUsd string = '0.05'
+
 @description('Microsoft sign-in client id; empty = off. Needs the Key Vault secret microsoft-client-secret.')
 param microsoftClientId string = ''
 
@@ -206,6 +209,7 @@ var common = [
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
   { name: 'Demo__TenantId', value: demoTenantId }
   { name: 'Ai__Budget__MonthlyUsd', value: aiMonthlyUsd }
+  { name: 'Ai__Budget__ReservePerCallUsd', value: aiReservePerCallUsd }
 ]
 
 var webSecrets = concat(
