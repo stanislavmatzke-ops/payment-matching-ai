@@ -315,7 +315,7 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
 - Řešení schválené vývojářem: startovní data stejná pro všechny sandboxy založené v daném týdnu (seed = pondělí), job je jednou týdně předpočítá v paměti a přihlášení vezme AI rozhodnutí z cache odpovědí s rozpočtem 0 volání (za cache je poskytovatel, který vyhodí výjimku). Vývojář výslovně chtěl ověřit, že data zůstanou oddělená: test rozhodne platbu v sandboxu A a kontroluje stejnou platbu v B.
 - Klíčový předpoklad (stejné prompty při přihlášení i v předpočítání) drží jedna společná metoda `DecideStarterAsync` a test „po jobu má přihlášení všechny AI platby z cache a model nedostal žádný dotaz“.
 - Record/replay z fáze 4 se tak vrací potřetí: testy bez klíče → cache v provozu → okamžitý první dojem za $0.
-- Útrata: ruční běh jobu pro dva sandboxy vývojáře před změnou $0,017 (12 volání).
+- Útrata: ruční běh jobu pro dva sandboxy vývojáře před změnou $0,017 (12 volání); první předpočítání startovní sady (týden od 2026-11-09) se souhlasem vývojáře $0,029 (9 volání, všech 20 plateb rozhodnuto). AI za fázi 11 a úpravy celkem $0,077.
 
 **Po fázi 11: úpravy UI z provozu (2026-11-13)**
 - Vývojář při první práci ve frontě (`FIELD/ADV_OVERPAY`, přeplatek zálohy o 100 Kč) postrádal fakturu vedle platby: detail ukazoval jen číslo faktury, plné údaje byly až na stránce ručního párování. Nová karta „Invoices“ v detailu: všechny faktury, které jmenuje rozhodnutí, lidské rozhodnutí nebo návrh (druh, VS, odběratel, splatnost, částka, stav) a porovnání platby s každou jmenovanou sadou („+100,00 CZK paid more than invoiced“). Test: změna faktury se stejným číslem v cizím sandboxu se v panelu neprojeví.
