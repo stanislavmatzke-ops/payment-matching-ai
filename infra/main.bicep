@@ -51,6 +51,20 @@ param googleClientId string = ''
 @description('true when the Key Vault secret admin-accounts (provider:subject) exists.')
 param adminConfigured bool = false
 
+@description('New sandboxes per day (Sandboxes:MaxNewPerDay); more sign-ups are turned away. With the weekly starter set they cost no AI.')
+param maxNewSandboxesPerDay int = 5
+
+@description('Web replicas kept running: 0 = scale to zero (cold start ~10–20 s), 1 = always warm (~$3–5 a month).')
+@minValue(0)
+@maxValue(1)
+param webMinReplicas int = 0
+
+@description('Data controller shown on /privacy (Operator:Name).')
+param operatorName string = ''
+
+@description('Contact e-mail shown on /privacy for data requests (Operator:Email).')
+param operatorEmail string = ''
+
 @description('Custom domain of the web app, e.g. payments.example.com; empty = only the azurecontainerapps.io name.')
 param customDomain string = ''
 
@@ -203,6 +217,9 @@ var webEnv = concat(
     { name: 'Database__MigrateOnStartup', value: 'true' }
     // TLS ends at the ingress: trust X-Forwarded-Proto/-For so callbacks are https and rate limits see the client.
     { name: 'ASPNETCORE_FORWARDEDHEADERS_ENABLED', value: 'true' }
+    { name: 'Sandboxes__MaxNewPerDay', value: string(maxNewSandboxesPerDay) }
+    { name: 'Operator__Name', value: operatorName }
+    { name: 'Operator__Email', value: operatorEmail }
   ],
   empty(microsoftClientId) ? [] : [
     { name: 'Auth__Microsoft__ClientId', value: microsoftClientId }
@@ -251,7 +268,7 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = if (deployApps) {
           env: webEnv
         }
       ]
-      scale: { minReplicas: 0, maxReplicas: 1 }
+      scale: { minReplicas: webMinReplicas, maxReplicas: 1 }
     }
   }
   dependsOn: [runtimeSecretsUser]

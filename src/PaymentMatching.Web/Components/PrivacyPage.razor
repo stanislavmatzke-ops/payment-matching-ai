@@ -25,4 +25,31 @@
     <p>A sandbox that nobody used for 30 days is deleted with everything in it, including your name and e-mail.</p>
     <h2>AI</h2>
     <p>You never send text to an AI model. A scheduled job processes only generated data.</p>
+    <h2>Who runs this application</h2>
+    @if (Operator.Length > 0 || Contact.Length > 0)
+    {
+        <p>The data controller is @(Operator.Length > 0 ? Operator : "the operator of this application").</p>
+        @if (Contact.Length > 0)
+        {
+            <p>
+                Contact: <a href="mailto:@Contact">@Contact</a>. Write to this address to see what is kept about you
+                or to have your account and sandbox deleted right away; otherwise they are deleted after 30 days
+                without use.
+            </p>
+        }
+    }
+    else
+    {
+        <p class="muted">The operator's contact is not configured (<code>Operator:Name</code>, <code>Operator:Email</code>).</p>
+    }
 </Shell>
+
+@code {
+    /// <summary>The data controller (configuration <c>Operator:Name</c>).</summary>
+    [Parameter]
+    public string Operator { get; set; } = "";
+
+    /// <summary>Where to ask about or delete your data (configuration <c>Operator:Email</c>).</summary>
+    [Parameter]
+    public string Contact { get; set; } = "";
+}

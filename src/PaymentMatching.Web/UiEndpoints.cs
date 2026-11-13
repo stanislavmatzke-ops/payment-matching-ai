@@ -70,7 +70,7 @@ public static class UiEndpoints
             return Html.Page<DashboardPage>(new { Page = PageContext.For(http, me.Name) with { Waiting = SandboxQueries.Queue(state).Count }, Me = me, Board = SandboxQueries.Dashboard(state), Budget = ai });
         });
 
-        app.MapGet("/privacy", () => Html.Page<PrivacyPage>(new { }));
+        app.MapGet("/privacy", (IConfiguration config) => Html.Page<PrivacyPage>(new { Operator = config["Operator:Name"] ?? "", Contact = config["Operator:Email"] ?? "" }));
 
         app.MapGet("/payments", (HttpContext http, PaymentsDbContext db, string? state) => SignedInAsync(http, db, (page, sandbox) =>
         {

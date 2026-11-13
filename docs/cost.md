@@ -9,14 +9,14 @@ Decisions: [ADR 0013](adr/0013-ai-cost-model-for-the-hosted-app.md),
 | Resource | Setting | Cost |
 |---|---|---|
 | Container Apps environment | Consumption, no VNet | $0 |
-| Web app | 0.25 vCPU / 0.5 GiB, 0–1 replica (scale to zero) | ~$0–1, billed only while awake |
+| Web app | 0.25 vCPU / 0.5 GiB, one replica always running (`webMinReplicas = 1`; 0 = scale to zero) | ~$3–5 (scale to zero: ~$0–1) |
 | Daily job | one run a day, a minute or two | ~$0 |
 | PostgreSQL | a database on an existing B1ms server (shared) | $0 extra (an own B1ms server: ~$16–18) |
 | Key Vault | Standard, a few thousand reads | ~$0.01 |
 | Log Analytics + Application Insights | daily cap 0.1 GB, 30 days | ~$0 (within the free 5 GB) |
 | Images | ghcr.io, public packages | $0 (Azure Container Registry Basic: ~$5) |
 | Managed certificate for the custom domain | | $0 |
-| **Hosting total** | | **~$0–2 (under 50 CZK)** |
+| **Hosting total** | | **~$3–7 (under ~170 CZK); with scale to zero ~$0–2** |
 
 The Container Apps free grant is per subscription; another app in the same subscription may already
 use it, so the estimate counts the web app's seconds as paid. AI comes on top, within the budgets below.

@@ -217,7 +217,7 @@ Application Insights.
 Live (until the custom domain is set up):
 https://ca-payments-web.salmonwater-b10a8ef3.germanywestcentral.azurecontainerapps.io (`/demo` needs no
 sign-in). Container Apps (web scaling to zero, a daily Container Apps Job), a database on a shared
-PostgreSQL Flexible Server, Key Vault, Application Insights; about $0–2 a month for hosting plus AI
+PostgreSQL Flexible Server, Key Vault, Application Insights; about $3–7 a month for hosting (one always-warm web replica; ~$0–2 with scale to zero) plus AI
 within a $0.50 monthly budget ([ADR 0016](docs/adr/0016-azure-hosting-container-apps-shared-postgres-oidc.md),
 [docs/cost.md](docs/cost.md)).
 

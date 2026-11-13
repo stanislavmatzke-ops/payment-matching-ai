@@ -65,6 +65,20 @@ public class UiAdditionsTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Privacy_page_names_the_data_controller_and_where_to_ask_for_deletion()
+    {
+        await using var app = new WebApp(
+            await postgres.NewDatabaseAsync(Ct),
+            settings: new Dictionary<string, string?> { ["Operator:Name"] = "Example Operator", ["Operator:Email"] = "privacy@example.test" });
+
+        var page = await app.NewClient().GetStringAsync("/privacy", Ct);
+
+        Assert.Contains("The data controller is Example Operator.", page, StringComparison.Ordinal);
+        Assert.Contains("<a href=\"mailto:privacy@example.test\">privacy@example.test</a>", page, StringComparison.Ordinal);
+        Assert.Contains("deleted right away", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Sign_in_page_offers_the_providers_as_buttons_and_the_demo()
     {
         await using var app = new WebApp(
