@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="PaymentMatching.Tests.Shared" />
+    <Compile Include="..\Shared\RepoPaths.cs" Link="Shared\RepoPaths.cs" />
     <Compile Include="..\Shared\PostgresFixture.cs" Link="Shared\PostgresFixture.cs" />
   </ItemGroup>
 

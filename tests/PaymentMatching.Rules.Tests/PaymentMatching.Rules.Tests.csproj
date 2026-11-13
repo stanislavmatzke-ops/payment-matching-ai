@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="PaymentMatching.Tests.Shared" />
+    <Compile Include="..\Shared\RepoPaths.cs" Link="Shared\RepoPaths.cs" />
   </ItemGroup>
 
   <ItemGroup>
