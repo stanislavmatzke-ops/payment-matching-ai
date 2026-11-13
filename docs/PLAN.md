@@ -134,7 +134,17 @@
     - Azure Monitor jen jako exportér, ne celá „distro“ (ta zapíná i logy a live metrics); skutečné napojení na App Insights až ve fázi 11,
     - job nad lokální DB jsem se stubem nepouštěl (stub počítá volání do denního limitu sandboxu); spany jobu kryjí testy nad Testcontainers.
   - _Útrata:_ $0, žádný `record`/`live` běh.
-- [ ] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
+- [x] **Fáze 11** – **Azure** – Bicep/azd, Container Apps + Job, PostgreSQL, Key Vault, nasazení z GitHub Actions přes OIDC, vlastní doména (subdoména stanislavmatzke.com).
+  - _Hotovo 2026-11-13._ Běží na **https://payments.stanislavmatzke.com** (managed certifikát). Vzniklo:
+    - `infra/main.bicep` + `main.bicepparam` (stav aplikace commitnutý): `rg-payments` – Container Apps prostředí, web `ca-payments-web` (0,25 vCPU, 0–1 replika, scale-to-zero), job `caj-payments-daily` (05:00 UTC, parallelism 1, bez retry, `--mode live --migrate`), Key Vault (RBAC), Log Analytics (strop 0,1 GB/den) + App Insights, identity `id-payments` (běh, Key Vault Secrets User) a `id-payments-deploy` (GitHub OIDC, Contributor jen na RG),
+    - skripty `deploy-infra.sh` (lokálně, zachová běžící image), `bootstrap-db.sh` (vlastní DB `payments` a role `payments_app` na sdíleném serveru, dočasné pravidlo firewallu), `bind-domain.sh`,
+    - `deploy.yml`: po zeleném CI na `main` image na ghcr.io (veřejné balíčky), přes OIDC update aplikace a jobu, 7 smoke testů; CI navíc kompiluje Bicep a staví image bez Azure,
+    - aplikace: klíče Data Protection v PostgreSQL (bez balíčku, přihlášení přežije scale-to-zero), forwarded headers za ingressem, image přes `dotnet publish` (chiseled), `/api/me` ukazuje `accountId` pro `/admin`,
+    - 4 nové testy (celkem 384), ADR 0016, `docs/cost.md` (hosting), README „Running in Azure“, AGENTS.md.
+  - _Ověřeno v Azure:_ smoke testy z workflow, přihlášení Microsoft i Google (vývojář), `/admin` jen pro admin účet, živý běh jobu (demo + 10 rozhodnutí), 463 spanů v App Insights bez textu z výpisu.
+  - _Odchylky od plánu:_ jeden `main.bicep` místo modulů; Data Protection přes vlastní `IXmlRepository` místo balíčku; DB na sdíleném serveru JobScoutu (rozhodnuto s vývojářem, ~$16–18/měsíc úspora); Bicep a skripty v Azure spouštěl vývojář (bezpečnostní kontrola Claude Code agentovi aplikaci infrastruktury nepovolila).
+  - _Útrata:_ hosting odhad ~$0–2/měsíc; AI $0,0306 (8 volání, první běh jobu: demo + dávka; odhad byl < $0,01).
+  - _Otevřené / další krok:_ nový uživatel vidí AI platby jako „čeká na AI“ až do ranního jobu – vývojář to považuje za chybu produktu; návrh řešení (sdílená startovní data s cache odpovědí) ke schválení. UI: detail faktury v detailu platby, záložka Admin, přihlašovací tlačítka jako JobScout.
 - [ ] **Fáze 12** – **Dokumentace a příprava na zveřejnění** – README, ADR, security, cost, modernization, how-it-was-built + dvojjazyčnost a úklid před zveřejněním repa:
   - **Hlavní jazyk repa je angličtina.** `README.md`, `AGENTS.md`, `docs/SPEC.md`, `docs/PLAN.md` a všechny dokumenty v `docs/` budou anglicky.
   - **Česká verze vedle:** `README.cs.md` a `docs/cs/` (SPEC, PLAN, modernization, how-it-was-built). Na začátku každého dokumentu odkaz na druhou jazykovou verzi („🇨🇿 Česky / 🇬🇧 English“).
@@ -281,3 +291,21 @@ _(agent sem zapisuje průběžně: rozhodnutí, problémy, co pokazil a jak se t
   - analyzátory (IDE0062 statická lokální funkce, xUnit2029 `Assert.Empty` nad filtrem) – build.
 - Během fáze vývojář doplnil do AGENTS.md pravidlo pro sdílené soubory (case-study-notes jen přidávat na konec, před úpravou znovu načíst). Agent tu změnu nechal necommitnutou (není jeho) a do indexu přidal jen svůj řádek s příkazy telemetrie.
 
+
+**Fáze 11 (2026-11-12/13)**
+- Plán vznikl v nové session z PLAN/SPEC/ADR, kódu a jen čtení existujících prostředků v Azure. Dvě rozhodnutí vývojáře: sdílený PostgreSQL server JobScoutu (vlastní DB a role bez admin práv) a image na ghcr.io jako veřejné balíčky. Hosting tak vyšel ~$0–2 měsíčně místo ~$20.
+- **Bezpečnostní kontrola Claude Code agentovi nepovolila aplikovat infrastrukturu** (`az deployment`), i když vývojář krok schválil. Bicep proto spouštěl vývojář sám; bootstrap DB, ruční běh jobu a nastavení GitHubu agent provedl. V praxi dobré rozdělení: změny prostředků dělá člověk, agent píše kód a ověřuje.
+- **Čtyři chyby, které ukázalo až první nasazení (žádný test je nemohl chytit):**
+  1. Azure Flexible Server zakládá schéma `public` nové databáze s vlastníkem `azure_pg_admin` → první migrace „permission denied“. Bootstrap teď schéma předá roli aplikace.
+  2. Druhý běh bootstrapu vygeneroval nové heslo, ale Container Apps drží načtenou hodnotu tajemství z Key Vaultu až do nové revize (restart nestačí) → web i první běh jobu spadly na přihlášení do DB (job před voláním modelu, $0). Skript heslo bez `RESET_PASSWORD=1` nemění.
+  3. Exporter Azure Monitor si sám přidá vzorkování s limitem za sekundu; krátký proces (job, CLI) má jediný trace a ten zahodil. Metriky chodily, spany ne. Diagnostika SDK („Sampler added = RateLimitedSampler“) → pevný poměr 1,0.
+  4. GitHub posílá v OIDC tokenu `subject` s neměnnými id vlastníka a repa (`repo:owner@id/repo@id:…`); federated credential podle starého formátu nic nenašel. Subject je parametr.
+- `/api/me` neukazoval `provider:subject`, který `/admin` potřebuje – vývojář by své id neměl jak zjistit. Doplněno.
+- Drobnosti, co agent pokazil:
+  - šestkrát stejná past s Windows shellem: sonda „je tu python?“ s heredocem a `cat` bez vstupu visela 2 minuty → zastaveno, dál Edit/Write,
+  - argumenty `az … firewall-rule` (`--server-name` vs `--name`) – opraveno před spuštěním podle nápovědy,
+  - gitleaks označil veřejná id vestavěných rolí Azure v Bicepu jako klíče (CI červené) → přejmenování proměnných a `.gitleaksignore` pro první commit,
+  - vývojáři v PowerShellu `bash` spouští WSL (chyba 0x8007274c) → návod přes Git Bash,
+  - odhad prvního živého běhu (< $0,01) byl nízký: $0,031, demo dostalo startovní data i dávku najednou a část volání eskalovala na Opus,
+  - jeden běh celé sady testů měl jeden pád, opakování prošlo – nestabilní test, nedohledán.
+- **Produktový nález vývojáře po spuštění:** nový uživatel uvidí AI platby až po ranním jobu, takže první dojem je „čeká na AI“. Pravidlo „návštěvník nikdy nespustí model“ přitom platí. Návrh: sdílená startovní data a cache odpovědí, sandbox dostane AI rozhodnutí z cache při přihlášení bez volání modelu (ke schválení, změna SPEC 9b / ADR 0011).
