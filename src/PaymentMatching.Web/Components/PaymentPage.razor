@@ -94,7 +94,7 @@
                 {
                     <div class="decider person">
                         <DecidedByChip Value="@("person: " + r.DecidedBy)" />
-                        <span>@Format.Time(r.At): @SandboxQueries.ActionText(r.Action)</span>
+                        <span>@Format.Time(r.At): @PaymentTimeline.ActionText(r.Action)</span>
                     </div>
                     <dl class="facts">
                         @if (r.InvoiceNumbers.Count > 0)
