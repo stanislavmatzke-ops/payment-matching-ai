@@ -1,0 +1,38 @@
+@* What the AI layer did in this sandbox. Every payment counted here is one the rules could not settle on their own. *@
+<div class="card ai-card">
+    <h2 class="card-title"><Icon Name="ai" />@T("What AI added")</h2>
+    <p class="muted small">@T("The AI layer only sees payments the rules could not settle. Without it, every one of these would wait for a person.")</p>
+    <div class="ai-stats">
+        <div><strong>@Board.AiDecided</strong><span>@T("decided by AI")</span></div>
+        <div><strong class="ok-text">@Board.AiAutoMatched</strong><span>@T("matched on its own, checked by code")</span></div>
+        <div><strong class="warn-text">@Board.AiProposed</strong><span>@T("sent to a person with a proposal")</span></div>
+        <div><strong class="danger-text">@Board.InjectionsCaught</strong><span>@T("prompt injection attempts stopped")</span></div>
+    </div>
+    <dl class="facts compact">
+        <dt>@T("Model calls")</dt>
+        <dd>@T("{0} paid calls, {1} answers reused from the cache, {2}", Board.AiCalls, Board.CachedAnswers, Format.Usd(Board.AiCostUsd))</dd>
+        <dt>@T("AI precision as seen by people")</dt>
+        <dd>
+            @if (Board.AiPrecisionSeenByPeople is { } precision)
+            {
+                @T("{0} ({1} of {2} AI matches not undone)", Format.Percent(precision), Board.AiAutoMatched - Board.AiUndone, Board.AiAutoMatched)
+            }
+            else
+            {
+                <span class="muted">@T("no AI match yet")</span>
+            }
+        </dd>
+    </dl>
+    @if (!Demo && Board.AiDecided > 0)
+    {
+        <p><a href="/payments?by=ai">@T("Show the payments the AI decided")</a> · <span class="muted small">@T("an AI match that is wrong can be undone in its detail")</span></p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public DashboardView Board { get; set; } = default!;
+
+    [Parameter]
+    public bool Demo { get; set; }
+}

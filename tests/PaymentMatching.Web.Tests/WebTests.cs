@@ -44,7 +44,7 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
         var aliceMe = await WebApp.MeAsync(alice);
         var bobMe = await WebApp.MeAsync(bob);
         Assert.NotEqual(aliceMe.TenantId, bobMe.TenantId);
-        Assert.Equal(("alice", 20), (aliceMe.Name, aliceMe.Counts.Payments));
+        Assert.Equal(("alice", 40), (aliceMe.Name, aliceMe.Counts.Payments));
         Assert.Equal("dev:alice", aliceMe.AccountId);
         Assert.Equal(0, aliceMe.Counts.Payments - aliceMe.Counts.AutoMatched - aliceMe.Counts.HumanReview - aliceMe.Counts.NoMatch - aliceMe.Counts.WaitingForAi);
 
@@ -164,7 +164,8 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
             .Where(e => e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Any(m => m != "GET") ?? true)
             .ToList();
 
-        Assert.Equal(["/logout", "/payments/{id}/confirm", "/payments/{id}/match", "/payments/{id}/reject"], writes.Select(e => e.RoutePattern.RawText).Order(StringComparer.Ordinal));
+        // Undo of an AI match (ADR 0012 amendment) is the one write added after phase 8; it takes the same form as a manual match.
+        Assert.Equal(["/logout", "/payments/{id}/confirm", "/payments/{id}/match", "/payments/{id}/reject", "/payments/{id}/undo"], writes.Select(e => e.RoutePattern.RawText).Order(StringComparer.Ordinal));
         var allowed = new[] { typeof(string), typeof(ConfirmForm), typeof(MatchForm), typeof(ReviewActions), typeof(Microsoft.AspNetCore.Http.HttpContext) };
         Assert.All(writes, endpoint =>
         {

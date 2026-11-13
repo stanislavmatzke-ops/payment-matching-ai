@@ -1,0 +1,19 @@
+@* EN / CS links. /lang/{code} sets the language cookie and returns to this page (a local path only). *@
+<span class="lang" aria-label="@T("Language")">
+    @foreach (var language in Text.Languages)
+    {
+        if (language == Text.Language)
+        {
+            <span aria-current="true">@language.ToUpperInvariant()</span>
+        }
+        else
+        {
+            <a href="/lang/@language?return=@Uri.EscapeDataString(ReturnTo)" lang="@language" hreflang="@language">@language.ToUpperInvariant()</a>
+        }
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string ReturnTo { get; set; } = "/";
+}

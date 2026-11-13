@@ -265,7 +265,7 @@ tr.row-danger td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
 .flow { list-style: none; margin: 0; padding: 1.2rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); position: relative; }
 .flow li { display: grid; grid-template-columns: 2.5rem 1fr; gap: .8rem; align-items: center; padding: .55rem 0; position: relative; }
 .flow li:not(:last-child)::after { content: ""; position: absolute; left: 1.2rem; top: 2.9rem; height: 1.1rem; width: 2px; background: var(--line); }
-.flow strong, .flow span { display: block; }
+.flow div strong, .flow div span { display: block; }
 .flow div span { color: var(--muted); font-size: .85rem; }
 .flow-icon { width: 2.5rem; height: 2.5rem; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
 .flow-icon.ai { background: var(--ai-soft); color: var(--ai); }
@@ -285,7 +285,9 @@ tr.row-danger td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
 .ack { display: flex; gap: .5rem; align-items: flex-start; margin: .4rem 0; padding: .45rem .6rem; border-radius: 8px; background: var(--warn-soft); }
 .ack input { margin-top: .25rem; }
 form button { margin-top: .4rem; }
-.filter { display: flex; gap: .6rem; align-items: center; margin-bottom: 1rem; }
+.filter { display: flex; flex-wrap: wrap; gap: .6rem; align-items: flex-end; margin-bottom: 1rem; }
+.filter label { display: grid; gap: .2rem; font-size: .85rem; color: var(--muted); }
+.filter input[type=search] { min-width: 16rem; font: inherit; padding: .4rem .5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
 .filter select { font: inherit; padding: .4rem .5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
 .filter button { margin: 0; }
 
@@ -303,3 +305,26 @@ form button { margin-top: .4rem; }
   .state-row .meter { display: none; }
   .user-name { display: none; }
 }
+
+.sort { color: inherit; white-space: nowrap; }
+.pager { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: center; margin-top: 1rem; }
+.pager a, .pager .current { padding: .3rem .65rem; border-radius: 8px; border: 1px solid var(--line); }
+.pager .current { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* AI made visible (what AI added, AI decision banner) */
+.danger-text { color: var(--danger); }
+.ai-card { border-color: var(--ai-soft); }
+.ai-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .8rem; margin: .8rem 0; }
+.ai-stats div { display: grid; gap: .15rem; padding: .7rem .8rem; border-radius: 10px; background: var(--surface-2); }
+.ai-stats strong { font-size: 1.6rem; line-height: 1; }
+.ai-stats span { color: var(--muted); font-size: .85rem; }
+.ai-banner { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem .9rem; margin-bottom: .9rem; border-radius: 10px; background: var(--ai-soft); }
+.ai-banner > .icon { color: var(--ai); flex: none; margin-top: .1rem; }
+.ai-banner p { margin: .2rem 0 0; }
+.chip-ai { font-weight: 700; }
+.footer-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+.lang { display: inline-flex; gap: .15rem; align-items: center; margin-right: .6rem; }
+.lang a, .lang span { padding: .15rem .45rem; border-radius: 6px; font-size: .8rem; font-weight: 700; color: var(--topbar-fg); }
+.lang span { background: rgba(255, 255, 255, .15); }
+.legend td:first-child { white-space: nowrap; }
+.flow.plain { padding: 0; border: 0; box-shadow: none; background: transparent; }

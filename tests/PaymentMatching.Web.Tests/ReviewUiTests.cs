@@ -103,7 +103,8 @@ public partial class ReviewUiTests(PostgresFixture postgres)
         Assert.DoesNotContain("<script", dashboard, StringComparison.OrdinalIgnoreCase);
 
         var list = await alice.GetStringAsync("/payments", Ct);
-        Assert.Equal(21, Regex.Count(list, "<a href=\"/payments/P"));
+        // One page of the list: 25 payments (the sandbox has more).
+        Assert.Equal(PaymentQuery.PageSize, Regex.Count(list, "<a href=\"/payments/P"));
         Assert.Contains(CaseId, await alice.GetStringAsync("/queue", Ct), StringComparison.Ordinal);
         Assert.Equal(1, Regex.Count(await alice.GetStringAsync("/payments?state=waiting_for_ai&x=1", Ct), "<option value=\"waiting_for_ai\" selected"));
 

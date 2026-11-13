@@ -1,7 +1,7 @@
 @* Validation failures with what they mean. Codes come from ProposalValidator, never from the request. *@
 @if (Failures.Count == 0)
 {
-    <p class="ok">All checks passed.</p>
+    <p class="ok">@T("All checks passed.")</p>
 }
 else
 {
@@ -12,7 +12,7 @@ else
                 <code>@check</code> – @Format.Check(check)
                 @if (ProposalChecks.Blocking.Contains(check))
                 {
-                    <strong> (blocks the match)</strong>
+                    <strong> @T("(blocks the match)")</strong>
                 }
             </li>
         }

@@ -25,7 +25,7 @@ public static class OperationsEndpoints
             Input.IsId(id)
             && await Operations.DemoAsync(options, demoId, http.RequestAborted) is { } state
             && SandboxQueries.Detail(state, id, "") is { } detail
-                ? Html.Page<PaymentPage>(new { Detail = detail with { Actionable = false }, Demo = true })
+                ? Html.Page<PaymentPage>(new { Detail = detail with { Actionable = false, CanUndoAi = false }, Demo = true })
                 : Results.NotFound());
 
         // Not found, not forbidden, for everyone outside the allow-list: the page does not advertise itself.

@@ -1,11 +1,11 @@
 @* Who decided a payment: a rule, a model, a person, an agent or the policy, as a chip with an icon. *@
 @if (Value is null)
 {
-    <span class="chip chip-none"><Icon Name="clock" />not yet</span>
+    <span class="chip chip-none"><Icon Name="clock" />@T("not yet")</span>
 }
 else
 {
-    <span class="chip chip-@Kind" title="@Value"><Icon Name="@IconName" />@Label</span>
+    <span class="chip chip-@Kind" title="@Tooltip"><Icon Name="@IconName" />@Label</span>
 }
 
 @code {
@@ -33,9 +33,13 @@ else
 
     private string Label => Kind switch
     {
-        "rule" => "rule " + Value![5..],
+        "rule" => T("rule") + " " + Value![5..],
         "ai" => Value![3..].Replace("claude-", "", StringComparison.Ordinal),
-        "person" => Value!.Length > 7 ? Value[7..].Trim() : "person",
+        "person" => Value!.Length > 7 ? Value[7..].Trim() : T("person"),
+        "policy" => T("policy"),
         _ => Value!,
     };
+
+    /// <summary>For a rule, what the code means; otherwise the full value.</summary>
+    private string? Tooltip => Kind == "rule" ? Format.Rule(Value![5..]) : Value;
 }

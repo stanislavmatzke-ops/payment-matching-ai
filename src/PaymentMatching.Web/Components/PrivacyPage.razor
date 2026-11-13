@@ -1,46 +1,33 @@
-<Shell Title="Privacy">
-    <h1>Privacy</h1>
-    <p>This is a demo application. All invoices and payments in it are synthetic.</p>
-    <h2>What we keep</h2>
+<Shell Title="@T("Privacy")">
+    <h1>@T("Privacy")</h1>
+    <p>@T("This is a demo application. All invoices and payments in it are synthetic.")</p>
+    <h2>@T("What we keep")</h2>
     <ul>
-        <li>
-            From your sign-in with Microsoft or Google: the provider, your account id at that provider (subject),
-            your name and e-mail address. Nothing else; no access tokens are stored.
-        </li>
-        <li>Your sandbox: generated data and the decisions you or the application make in it.</li>
+        <li>@T("From your sign-in with Microsoft or Google: the provider, your account id at that provider (subject), your name and e-mail address. Nothing else; no access tokens are stored.")</li>
+        <li>@T("Your sandbox: generated data and the decisions you or the application make in it.")</li>
     </ul>
-    <h2>Who sees it</h2>
-    <p>
-        Nobody else who signs in sees your sandbox. The operator of this application sees a list of accounts:
-        your name, e-mail address, whether you signed in with Microsoft or Google, when your sandbox was created
-        and last used, and how many payments you confirmed, rejected or matched by hand. The operator does not
-        look into your sandbox's payments and invoices through this list.
-    </p>
-    <h2>Cookies</h2>
-    <p>
-        Only cookies needed to sign you in and to protect your forms: the sign-in session cookie, short-lived
-        cookies used during the sign-in redirect, and an anti-forgery cookie. No analytics, no advertising.
-    </p>
-    <h2>Deletion</h2>
-    <p>A sandbox that nobody used for 30 days is deleted with everything in it, including your name and e-mail.</p>
+    <h2>@T("Who sees it")</h2>
+    <p>@T("Nobody else who signs in sees your sandbox. The operator of this application sees a list of accounts: your name, e-mail address, whether you signed in with Microsoft or Google, when your sandbox was created and last used, and how many payments you confirmed, rejected or matched by hand. The operator does not look into your sandbox's payments and invoices through this list.")</p>
+    <h2>@T("Cookies")</h2>
+    <p>@T("Only cookies needed to sign you in, to protect your forms and to remember your language: the sign-in session cookie, short-lived cookies used during the sign-in redirect, an anti-forgery cookie and, if you switch it, the language. No analytics, no advertising.")</p>
+    <h2>@T("Deletion")</h2>
+    <p>@T("A sandbox that nobody used for 30 days is deleted with everything in it, including your name and e-mail.")</p>
     <h2>AI</h2>
-    <p>You never send text to an AI model. A scheduled job processes only generated data.</p>
-    <h2>Who runs this application</h2>
+    <p>@T("You never send text to an AI model. A scheduled job processes only generated data.")</p>
+    <h2>@T("Who runs this application")</h2>
     @if (Operator.Length > 0 || Contact.Length > 0)
     {
-        <p>The data controller is @(Operator.Length > 0 ? Operator : "the operator of this application").</p>
+        <p>@T("The data controller is {0}.", Operator.Length > 0 ? Operator : T("the operator of this application"))</p>
         @if (Contact.Length > 0)
         {
             <p>
-                Contact: <a href="mailto:@Contact">@Contact</a>. Write to this address to see what is kept about you
-                or to have your account and sandbox deleted right away; otherwise they are deleted after 30 days
-                without use.
+                @T("Contact:") <a href="mailto:@Contact">@Contact</a>. @T("Write to this address to see what is kept about you or to have your account and sandbox deleted right away; otherwise they are deleted after 30 days without use.")
             </p>
         }
     }
     else
     {
-        <p class="muted">The operator's contact is not configured (<code>Operator:Name</code>, <code>Operator:Email</code>).</p>
+        <p class="muted">@T("The operator's contact is not configured") (<code>Operator:Name</code>, <code>Operator:Email</code>).</p>
     }
 </Shell>
 

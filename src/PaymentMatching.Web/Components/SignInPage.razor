@@ -1,52 +1,51 @@
-<Shell Title="Sign in">
+<Shell Title="@T("Sign in")">
     <section class="hero">
         <div class="hero-text">
-            <span class="eyebrow"><Icon Name="ai" />From legacy rules to AI, safely</span>
-            <h1>Bank payments matched to invoices, with AI where it helps and a person where it matters.</h1>
+            <span class="eyebrow"><Icon Name="ai" />@T("From legacy rules to AI, safely")</span>
+            <h1>@T("Bank payments matched to invoices, with AI where it helps and a person where it matters.")</h1>
             <p class="lead">
-                A working reference app on synthetic data (fictional Demo Bank). Rules settle the easy cases, a model
-                reads the messy ones, code checks every answer, and anything uncertain goes to you.
+                @T("A working reference app on synthetic data (fictional Demo Bank). Rules settle the easy cases, a model reads the messy ones, code checks every answer, and anything uncertain goes to you.")
             </p>
             <div class="signin-card">
-                <h2>Get your own sandbox</h2>
-                <p class="muted small">A fictional company with invoices and bank payments, already matched by rules and AI.</p>
+                <h2>@T("Get your own sandbox")</h2>
+                <p class="muted small">@T("A fictional company with invoices and bank payments, already matched by rules and AI.")</p>
                 @if (SandboxesFull)
                 {
-                    <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
+                    <p class="notice"><strong>@T("Today's new sandboxes are taken.")</strong> @T("Please try again tomorrow.")</p>
                 }
                 @foreach (var provider in Providers)
                 {
-                    <a class="provider-button" href="/login/@provider"><ProviderLogo Provider="@provider" />Continue with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a>
+                    <a class="provider-button" href="/login/@provider"><ProviderLogo Provider="@provider" />@T("Continue with {0}", provider == Authentication.Microsoft ? "Microsoft" : "Google")</a>
                 }
                 @if (DevLogin)
                 {
                     <form method="get" action="/dev-login" class="dev-login">
-                        <label>Development sign-in as <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
-                        <button class="secondary">Sign in</button>
+                        <label>@T("Development sign-in as") <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
+                        <button class="secondary">@T("Sign in")</button>
                     </form>
                 }
                 @if (Providers.Count == 0 && !DevLogin)
                 {
-                    <p class="muted">No sign-in method is configured. See README: "Sign-in (local)".</p>
+                    <p class="muted">@T("No sign-in method is configured. See README: \"Sign-in (local)\".")</p>
                 }
                 @if (DemoAvailable)
                 {
-                    <div class="or"><span>or</span></div>
-                    <a class="provider-button" href="/demo"><Icon Name="eye" />Try the demo without signing in</a>
-                    <p class="muted small center">A shared demo company, read-only, no account needed.</p>
+                    <div class="or"><span>@T("or")</span></div>
+                    <a class="provider-button" href="/demo"><Icon Name="eye" />@T("Try the demo without signing in")</a>
+                    <p class="muted small center">@T("A shared demo company, read-only, no account needed.")</p>
                 }
                 <p class="muted small center">
-                    Sign in with a Microsoft or Google account. Nobody else sees your sandbox; it is deleted after
-                    30 days without use. We keep only your name and e-mail (<a href="/privacy">privacy</a>).
+                    @T("Sign in with a Microsoft or Google account. Nobody else sees your sandbox; it is deleted after 30 days without use. We keep only your name and e-mail")
+                    (<a href="/privacy">@T("privacy")</a>).
                 </p>
             </div>
         </div>
         <ol class="flow">
-            <li><span class="flow-icon"><Icon Name="bank" Size="20" /></span><div><strong>Bank statement</strong><span>untrusted text from the payer</span></div></li>
-            <li><span class="flow-icon"><Icon Name="rule" Size="20" /></span><div><strong>Rules</strong><span>ported from the legacy system, settle most payments</span></div></li>
-            <li><span class="flow-icon ai"><Icon Name="ai" Size="20" /></span><div><strong>AI model</strong><span>reads what the rules cannot; small model first</span></div></li>
-            <li><span class="flow-icon"><Icon Name="shield" Size="20" /></span><div><strong>Validation by code</strong><span>a model's answer is never trusted on its own</span></div></li>
-            <li><span class="flow-icon warn"><Icon Name="person" Size="20" /></span><div><strong>You</strong><span>confirm, reject or match what is uncertain</span></div></li>
+            <li><span class="flow-icon"><Icon Name="bank" Size="20" /></span><div><strong>@T("Bank statement")</strong><span>@T("untrusted text from the payer")</span></div></li>
+            <li><span class="flow-icon"><Icon Name="rule" Size="20" /></span><div><strong>@T("Rules")</strong><span>@T("ported from the legacy system, settle most payments")</span></div></li>
+            <li><span class="flow-icon ai"><Icon Name="ai" Size="20" /></span><div><strong>@T("AI model")</strong><span>@T("reads what the rules cannot; small model first")</span></div></li>
+            <li><span class="flow-icon"><Icon Name="shield" Size="20" /></span><div><strong>@T("Validation by code")</strong><span>@T("a model's answer is never trusted on its own")</span></div></li>
+            <li><span class="flow-icon warn"><Icon Name="person" Size="20" /></span><div><strong>@T("You")</strong><span>@T("confirm, reject or match what is uncertain")</span></div></li>
         </ol>
     </section>
 </Shell>

@@ -71,12 +71,14 @@ public static class UiEndpoints
         });
 
         app.MapGet("/privacy", (IConfiguration config) => Html.Page<PrivacyPage>(new { Operator = config["Operator:Name"] ?? "", Contact = config["Operator:Email"] ?? "" }));
+        app.MapGet("/how", () => Html.Page<HowPage>(new { }));
 
-        app.MapGet("/payments", (HttpContext http, PaymentsDbContext db, string? state) => SignedInAsync(http, db, (page, sandbox) =>
+        // Search, filters, sort and page come from the query string; PaymentQuery keeps only known values.
+        app.MapGet("/payments", (HttpContext http, PaymentsDbContext db) => SignedInAsync(http, db, (page, sandbox) =>
         {
-            var filter = state is not null && PaymentState.All.Contains(state) ? state : null;
-            var items = SandboxQueries.Items(sandbox).Where(p => filter is null || p.State == filter).ToList();
-            return Html.Page<PaymentsPage>(new { Page = page, Items = items, Filter = filter });
+            var q = http.Request.Query;
+            var query = PaymentQuery.From(q["state"], q["by"], q["q"], q["sort"], q["dir"], int.TryParse(q["page"], out var n) ? n : null);
+            return Html.Page<PaymentsPage>(new { Page = page, List = query.Apply(SandboxQueries.Items(sandbox)) });
         }));
 
         app.MapGet("/queue", (HttpContext http, PaymentsDbContext db) => SignedInAsync(http, db, (page, sandbox) =>
@@ -92,30 +94,11 @@ public static class UiEndpoints
                 : Results.NotFound()));
 
         app.MapGet("/payments/{id}/match", (HttpContext http, PaymentsDbContext db, ReviewActions actions, string id, string[]? invoice, string? result) =>
-            SignedInAsync(http, db, async (page, sandbox) =>
-            {
-                if (!Input.IsId(id) || sandbox.Payment(id) is null || !Input.AreIds(invoice))
-                {
-                    return Results.NotFound();
-                }
+            PickInvoicesAsync(http, db, actions, id, invoice, result, undo: false));
 
-                if (!sandbox.IsActionable(id))
-                {
-                    return Results.Redirect($"/payments/{id}");
-                }
-
-                var selected = invoice?.Distinct(StringComparer.Ordinal).ToList() ?? [];
-                var preview = selected.Count == 0 ? null : await actions.PreviewAsync(id, selected, http.RequestAborted);
-                return Html.Page<MatchPage>(new
-                {
-                    Page = page,
-                    Payment = SandboxQueries.Items(sandbox).Single(p => p.Id == id),
-                    Invoices = SandboxQueries.OpenInvoices(sandbox),
-                    Selected = selected,
-                    Preview = preview,
-                    Result = Input.Outcome(result),
-                });
-            }));
+        // Undo a match the AI made on its own (ADR 0012 amendment): the same picker, the AI's invoices count as open.
+        app.MapGet("/payments/{id}/undo", (HttpContext http, PaymentsDbContext db, ReviewActions actions, string id, string[]? invoice, string? result) =>
+            PickInvoicesAsync(http, db, actions, id, invoice, result, undo: true));
 
         // The person's writes. Signed in only, anti-forgery token required, rate limited per person.
         var writes = app.MapGroup("/payments/{id}")
@@ -156,6 +139,24 @@ public static class UiEndpoints
             return AfterAction(id, result);
         });
 
+        writes.MapPost("/undo", async (string id, [FromForm] MatchForm form, ReviewActions actions, HttpContext http) =>
+        {
+            if (!Input.IsId(id) || !Input.AreIds(form.Invoice) || !Input.AreChecks(form.Ack))
+            {
+                return Results.BadRequest();
+            }
+
+            var invoices = form.Invoice ?? [];
+            var result = await actions.UndoAiMatchAsync(id, invoices, form.Ack ?? [], http.RequestAborted);
+            if (result.Outcome is ReviewOutcome.Blocked or ReviewOutcome.NeedsAcknowledgement or ReviewOutcome.InvalidInvoices)
+            {
+                var query = string.Concat(invoices.Select(n => $"invoice={Uri.EscapeDataString(n)}&"));
+                return Results.Redirect($"/payments/{id}/undo?{query}result={result.Outcome}");
+            }
+
+            return AfterAction(id, result);
+        });
+
         app.MapPost("/logout", async (HttpContext http) =>
             {
                 await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -164,6 +165,34 @@ public static class UiEndpoints
             .WithMetadata(new RequireAntiforgeryTokenAttribute())
             .AddEndpointFilter(RequireValidAntiforgeryAsync);
     }
+
+    private static Task<IResult> PickInvoicesAsync(HttpContext http, PaymentsDbContext db, ReviewActions actions, string id, string[]? invoice, string? result, bool undo) =>
+        SignedInAsync(http, db, async (page, sandbox) =>
+        {
+            if (!Input.IsId(id) || sandbox.Payment(id) is null || !Input.AreIds(invoice))
+            {
+                return Results.NotFound();
+            }
+
+            if (!(undo ? sandbox.CanUndoAi(id) : sandbox.IsActionable(id)))
+            {
+                return Results.Redirect($"/payments/{id}");
+            }
+
+            var selected = invoice?.Distinct(StringComparer.Ordinal).ToList() ?? [];
+            var preview = selected.Count == 0 ? null : await actions.PreviewAsync(id, selected, http.RequestAborted, undo);
+            return Html.Page<MatchPage>(new
+            {
+                Page = page,
+                Payment = SandboxQueries.Items(sandbox).Single(p => p.Id == id),
+                Invoices = SandboxQueries.OpenInvoices(sandbox, undo ? id : null),
+                Selected = selected,
+                Preview = preview,
+                Result = Input.Outcome(result),
+                Undo = undo,
+                Current = undo ? sandbox.Decision(id)!.Decision.InvoiceNumbers : [],
+            });
+        });
 
     private static IResult AfterAction(string id, ReviewResult result) => result.Outcome == ReviewOutcome.NotFound
         ? Results.NotFound()

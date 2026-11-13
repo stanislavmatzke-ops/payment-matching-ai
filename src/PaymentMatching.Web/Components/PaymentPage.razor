@@ -1,16 +1,16 @@
-<Shell Title="@($"Payment {Detail.Payment.Id}")" Page="Page" Demo="Demo" Active="@(Demo ? null : "payments")">
+<Shell Title="@T("Payment {0}", Detail.Payment.Id)" Page="Page" Demo="Demo" Active="@(Demo ? null : "payments")">
     @if (Demo)
     {
-        <p class="crumbs"><a href="/demo">← Demo sandbox</a> · <span class="muted">read-only: sign in to decide payments in your own sandbox</span></p>
+        <p class="crumbs"><a href="/demo">← @T("Demo sandbox")</a> · <span class="muted">@T("read-only: sign in to decide payments in your own sandbox")</span></p>
     }
     else
     {
-        <p class="crumbs"><a href="/queue">← Queue</a> · <a href="/payments">All payments</a></p>
+        <p class="crumbs"><a href="/queue">← @T("Queue")</a> · <a href="/payments">@T("All payments")</a></p>
     }
     <div class="page-head">
         <div>
-            <h1>Payment @Detail.Payment.Id</h1>
-            <p class="muted">Booked @Format.Date(Detail.Payment.BookingDate)</p>
+            <h1>@T("Payment {0}", Detail.Payment.Id)</h1>
+            <p class="muted">@T("Booked {0}", Format.Date(Detail.Payment.BookingDate))</p>
         </div>
         <div class="head-right">
             <span class="amount big">@Format.Amount(Detail.Payment.Amount, Detail.Payment.Currency)</span>
@@ -22,14 +22,27 @@
     <div class="detail-grid">
         <div class="detail-main">
             <section class="card">
-                <h2 class="card-title"><Icon Name="bank" />Bank statement line</h2>
+                <h2 class="card-title"><Icon Name="bank" />@T("Bank statement line")</h2>
                 <PaymentFacts Item="Detail.Payment" />
             </section>
 
             <section class="card decided">
-                <h2 class="card-title"><Icon Name="check" />Who decided</h2>
+                <h2 class="card-title"><Icon Name="check" />@T("Who decided")</h2>
                 @if (Detail.Decision is { } d)
                 {
+                    @if (d.Layer == AuditRecord.AiLayer)
+                    {
+                        <div class="ai-banner">
+                            <Icon Name="ai" Size="20" />
+                            <div>
+                                <strong>@T("Decided with AI")</strong>
+                                <p>
+                                    @T("The rules could not settle this payment")@(d.RuleCode is null ? "" : $" ({Format.Rule(d.RuleCode)})").
+                                    @T("The model {0} read it and {1}; code checked the answer before anything was saved.", Model(d.DecidedBy), AiDid(d))
+                                </p>
+                            </div>
+                        </div>
+                    }
                     <div class="decider">
                         <DecidedByChip Value="@d.DecidedBy" />
                         <span>@Format.Status(d.Status)</span>
@@ -37,38 +50,45 @@
                     @if (d.Confidence is { } confidence)
                     {
                         <div class="meter-row">
-                            <span>Confidence</span>
+                            <span>@T("Confidence")</span>
                             <strong>@confidence.ToString("0.00", CultureInfo.InvariantCulture)</strong>
                         </div>
-                        <Meter Value="confidence" Marker="MatchingOptions.Default.AutoMatchConfidence" Label="Confidence" Class="@(confidence >= MatchingOptions.Default.AutoMatchConfidence ? "good" : "low")" />
+                        <Meter Value="confidence" Marker="MatchingOptions.Default.AutoMatchConfidence" Label="@T("Confidence")" Class="@(confidence >= MatchingOptions.Default.AutoMatchConfidence ? "good" : "low")" />
                         <p class="muted small">
-                            The line marks @MatchingOptions.Default.AutoMatchConfidence.ToString("0.00", CultureInfo.InvariantCulture): below it, or when a check fails, the payment comes to a person.
+                            @T("The line marks {0}: below it, or when a check fails, the payment comes to a person.", MatchingOptions.Default.AutoMatchConfidence.ToString("0.00", CultureInfo.InvariantCulture))
                         </p>
                     }
                     <dl class="facts">
-                        <dt>Pipeline</dt><dd>@d.DecidedBy (@d.Layer layer)</dd>
+                        <dt>@T("Layer")</dt><dd>@LayerText(d.Layer)</dd>
                         @if (d.RuleCode is not null)
                         {
-                            <dt>Rule</dt><dd><code>@d.RuleCode</code></dd>
+                            <dt>@T("Rule")</dt><dd>@Format.Rule(d.RuleCode) <code class="muted small">@d.RuleCode</code></dd>
                         }
                         @if (d.PromptVersion is not null)
                         {
-                            <dt>Prompt</dt><dd><code>@d.PromptVersion</code></dd>
+                            <dt>@T("Prompt")</dt><dd><code>@d.PromptVersion</code></dd>
                         }
                         @if (d.InvoiceNumbers.Count > 0)
                         {
-                            <dt>@(d.Status == PaymentStatus.AutoMatched ? "Matched to" : "Proposed")</dt><dd><strong>@string.Join(", ", d.InvoiceNumbers)</strong></dd>
+                            <dt>@(d.Status == PaymentStatus.AutoMatched ? T("Matched to") : T("Proposed"))</dt><dd><strong>@string.Join(", ", d.InvoiceNumbers)</strong></dd>
                         }
                         @if (d.ValidationFailures.Count > 0)
                         {
-                            <dt>Validation</dt><dd>@string.Join(", ", d.ValidationFailures)</dd>
+                            <dt>@T("Validation")</dt><dd>@string.Join(", ", d.ValidationFailures)</dd>
                         }
                     </dl>
                     <blockquote class="reasoning untrusted">@d.Reason</blockquote>
+                    <p class="muted small"><a href="/how">@T("How decisions are made")</a></p>
+                    @if (Detail.CanUndoAi && !Demo)
+                    {
+                        <div class="actions">
+                            <a class="button danger-outline" href="/payments/@Detail.Payment.Id/undo"><Icon Name="ai" />@T("Not right – undo the AI match…")</a>
+                        </div>
+                    }
                 }
                 else
                 {
-                    <p class="muted"><Icon Name="clock" /> Not processed yet: this payment needs the AI layer and waits for the scheduled daily run.</p>
+                    <p class="muted"><Icon Name="clock" /> @T("Not processed yet: this payment needs the AI layer and waits for the scheduled daily run.")</p>
                 }
                 @if (Detail.Review is { } r)
                 {
@@ -79,11 +99,11 @@
                     <dl class="facts">
                         @if (r.InvoiceNumbers.Count > 0)
                         {
-                            <dt>Invoices</dt><dd>@string.Join(", ", r.InvoiceNumbers)</dd>
+                            <dt>@T("Invoices")</dt><dd>@string.Join(", ", r.InvoiceNumbers)</dd>
                         }
                         @if (r.Acknowledged.Count > 0)
                         {
-                            <dt>Accepted warnings</dt><dd>@string.Join(", ", r.Acknowledged)</dd>
+                            <dt>@T("Accepted warnings")</dt><dd>@string.Join(", ", r.Acknowledged)</dd>
                         }
                     </dl>
                 }
@@ -92,16 +112,16 @@
             @if (Detail.Invoices.Count > 0)
             {
                 <section class="card">
-                    <h2 class="card-title"><Icon Name="list" />Invoices</h2>
+                    <h2 class="card-title"><Icon Name="list" />@T("Invoices")</h2>
                     <div class="table-wrap">
                         <table class="data compact">
-                            <thead><tr><th>Invoice</th><th>Kind</th><th>VS</th><th>Customer</th><th>Due</th><th class="num">Amount</th><th>State</th></tr></thead>
+                            <thead><tr><th>@T("Invoice")</th><th>@T("Kind")</th><th>VS</th><th>@T("Customer")</th><th>@T("Due")</th><th class="num">@T("Amount")</th><th>@T("State")</th></tr></thead>
                             <tbody>
                                 @foreach (var invoice in Detail.Invoices)
                                 {
                                     <tr>
                                         <td><strong>@invoice.Number</strong></td>
-                                        <td>@(invoice.Kind == "Advance" ? "advance" : "invoice")</td>
+                                        <td>@(invoice.Kind == "Advance" ? T("advance") : T("invoice"))</td>
                                         <td>@invoice.VariableSymbol</td>
                                         <td>@invoice.CustomerName <span class="muted">(@invoice.CustomerId)</span></td>
                                         <td>@Format.Date(invoice.DueDate)</td>
@@ -109,15 +129,15 @@
                                         <td>
                                             @if (invoice.MatchedToPayment is null)
                                             {
-                                                <span class="muted">open</span>
+                                                <span class="muted">@T("open")</span>
                                             }
                                             else if (invoice.MatchedToPayment == Detail.Payment.Id)
                                             {
-                                                <span>matched to this payment</span>
+                                                <span>@T("matched to this payment")</span>
                                             }
                                             else
                                             {
-                                                <span>matched to @invoice.MatchedToPayment</span>
+                                                <span>@T("matched to {0}", invoice.MatchedToPayment)</span>
                                             }
                                         </td>
                                     </tr>
@@ -129,20 +149,20 @@
                         @foreach (var c in Detail.Comparisons)
                         {
                             <li>
-                                Payment @Format.Amount(Detail.Payment.Amount, Detail.Payment.Currency) against
+                                @T("Payment {0} against", Format.Amount(Detail.Payment.Amount, Detail.Payment.Currency))
                                 <strong>@string.Join(" + ", c.InvoiceNumbers)</strong> (@Format.Amount(c.Total, c.Currency)):
                                 @if (c.Difference is not { } difference)
                                 {
-                                    <span class="muted">different currency, compared at the exchange rate by the checks</span>
+                                    <span class="muted">@T("different currency, compared at the exchange rate by the checks")</span>
                                 }
                                 else if (difference == 0)
                                 {
-                                    <strong class="ok-text">exact amount</strong>
+                                    <strong class="ok-text">@T("exact amount")</strong>
                                 }
                                 else
                                 {
                                     <strong class="warn-text">@(difference > 0 ? "+" : "−")@Format.Amount(Math.Abs(difference), Detail.Payment.Currency)</strong>
-                                    <span class="muted">@(difference > 0 ? "paid more than invoiced" : "paid less than invoiced")</span>
+                                    <span class="muted">@(difference > 0 ? T("paid more than invoiced") : T("paid less than invoiced"))</span>
                                 }
                             </li>
                         }
@@ -153,32 +173,32 @@
             @if (Detail.Actionable)
             {
                 <section class="card decide">
-                    <h2 class="card-title"><Icon Name="person" />Your decision</h2>
+                    <h2 class="card-title"><Icon Name="person" />@T("Your decision")</h2>
                     @if (Detail.Queue.Count == 0)
                     {
-                        <p class="muted">Nobody proposed a match. Match it manually or reject it.</p>
+                        <p class="muted">@T("Nobody proposed a match. Match it manually or reject it.")</p>
                     }
                     @foreach (var proposal in Detail.Queue)
                     {
                         var warnings = proposal.Checks.Where(c => !ProposalChecks.Blocking.Contains(c)).ToList();
                         var blocked = proposal.Checks.Any(ProposalChecks.Blocking.Contains);
                         <div class="proposal">
-                            <h3>Proposal: @string.Join(" + ", proposal.InvoiceNumbers)</h3>
+                            <h3>@T("Proposal: {0}", string.Join(" + ", proposal.InvoiceNumbers))</h3>
                             <ul class="sources">
                                 @foreach (var source in proposal.Sources)
                                 {
                                     <li>
                                         <DecidedByChip Value="@source.ProposedBy" />
-                                        <span class="muted">Proposed by <strong>@source.ProposedBy</strong></span>
+                                        <span class="muted">@T("Proposed by") <strong>@source.ProposedBy</strong></span>
                                         @if (source.Confidence is { } c)
                                         {
-                                            <span class="muted">, confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                                            <span class="muted">, @T("confidence") @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
                                         }
                                         @if (source.PromptVersion is not null)
                                         {
-                                            <span class="muted">, prompt @source.PromptVersion</span>
+                                            <span class="muted">, @T("prompt") @source.PromptVersion</span>
                                         }
-                                        <div class="untrusted reason">@(source.ByAgent ? "Agent's reason (untrusted): " : "Reasoning: ")@source.Reason</div>
+                                        <div class="untrusted reason">@(source.ByAgent ? T("Agent's reason (untrusted): ") : T("Reasoning: "))@source.Reason</div>
                                     </li>
                                 }
                             </ul>
@@ -189,16 +209,16 @@
                                     <AntiforgeryField Field="Page!.Form" />
                                     <input type="hidden" name="proposal" value="@proposal.Id">
                                     <AcknowledgeFields Warnings="warnings" />
-                                    <button class="primary"><Icon Name="check" />Confirm</button>
+                                    <button class="primary"><Icon Name="check" />@T("Confirm")</button>
                                 </form>
                             }
                         </div>
                     }
                     <div class="actions">
-                        <a class="button secondary" href="/payments/@Detail.Payment.Id/match">Match manually…</a>
+                        <a class="button secondary" href="/payments/@Detail.Payment.Id/match">@T("Match manually…")</a>
                         <form method="post" action="/payments/@Detail.Payment.Id/reject" class="inline">
                             <AntiforgeryField Field="Page!.Form" />
-                            <button class="danger-outline">Reject (do not match)</button>
+                            <button class="danger-outline">@T("Reject (do not match)")</button>
                         </form>
                     </div>
                 </section>
@@ -206,7 +226,7 @@
         </div>
 
         <aside class="card timeline-card">
-            <h2 class="card-title"><Icon Name="clock" />Audit trail</h2>
+            <h2 class="card-title"><Icon Name="clock" />@T("Audit trail")</h2>
             <ol class="timeline">
                 @foreach (var e in Detail.Timeline)
                 {
@@ -217,7 +237,7 @@
                             <div>@e.Summary</div>
                             @if (e.InvoiceNumbers.Count > 0)
                             {
-                                <div class="muted small">Invoices: @string.Join(", ", e.InvoiceNumbers).</div>
+                                <div class="muted small">@T("Invoices: {0}.", string.Join(", ", e.InvoiceNumbers))</div>
                             }
                             @if (e.Details.Count > 0)
                             {
@@ -250,10 +270,26 @@
     [Parameter]
     public ReviewOutcome? Result { get; set; }
 
+    private static string Model(string decidedBy) => decidedBy.StartsWith("ai:", StringComparison.Ordinal) ? decidedBy[3..] : decidedBy;
+
+    private static string AiDid(PaymentDecisionView d) => d.Status switch
+    {
+        PaymentStatus.AutoMatched => T("matched it to {0} on its own", string.Join(" + ", d.InvoiceNumbers)),
+        PaymentStatus.HumanReview when d.InvoiceNumbers.Count > 0 => T("proposed {0} to a person", string.Join(" + ", d.InvoiceNumbers)),
+        _ => T("found no invoice it could stand behind"),
+    };
+
+    private static string LayerText(string layer) => layer switch
+    {
+        AuditRecord.RuleLayer => T("rules (ported from the legacy system)"),
+        AuditRecord.AiLayer => T("AI model, checked by code"),
+        _ => T("policy (no model needed)"),
+    };
+
     private static string TimelineIcon(TimelineEvent e) => e.Kind switch
     {
         TimelineKind.Received => "bank",
-        TimelineKind.ModelCall => e.Summary.StartsWith("Answer reused", StringComparison.Ordinal) ? "cache" : "ai",
+        TimelineKind.ModelCall => e.Icon,
         TimelineKind.Proposed => "agent",
         TimelineKind.Reviewed => "person",
         _ => e.Actor.StartsWith("rule:", StringComparison.Ordinal) ? "rule" : e.Actor.StartsWith("ai:", StringComparison.Ordinal) ? "ai" : "shield",

@@ -1,65 +1,93 @@
-<Shell Title="Dashboard" Page="Page" Active="dashboard">
+<Shell Title="@T("Dashboard")" Page="Page" Active="dashboard">
     <div class="page-head">
         <div>
-            <h1>Your sandbox</h1>
-            <p class="muted">Signed in as @Me.Name (@Me.Email) via @Me.Provider. Sandbox created @Format.Time(Me.SandboxCreatedAt).</p>
+            <h1>@T("Your sandbox")</h1>
+            <p class="muted">@T("Signed in as {0} ({1}) via {2}. Sandbox created {3}.", Me.Name, Me.Email, Me.Provider, Format.Time(Me.SandboxCreatedAt))</p>
         </div>
         @if (Board.NeedsReview > 0)
         {
-            <a class="button" href="/queue"><Icon Name="queue" />Open the queue (@Board.NeedsReview)</a>
+            <a class="button" href="/queue"><Icon Name="queue" />@T("Open the queue ({0})", Board.NeedsReview)</a>
         }
     </div>
 
     <section class="hero-grid">
         <div class="card ring-card">
-            <Ring Value="Board.AutomationRate" Text="@Format.Percent(Board.AutomationRate)" Label="Automation rate" Size="132" />
+            <Ring Value="Board.AutomationRate" Text="@Format.Percent(Board.AutomationRate)" Label="@T("Automation rate")" Size="132" />
             <div>
-                <h2 class="card-title">Automation</h2>
-                <p>@Board.AutoMatched of @Board.Processed processed payments matched without a person.</p>
-                <p class="muted small">The automation rate counts processed payments only. Rules first, then a model, and every answer is checked by code; anything uncertain comes to you.</p>
+                <h2 class="card-title">@T("Automation")</h2>
+                <p>@T("{0} of {1} processed payments matched without a person.", Board.AutoMatched, Board.Processed)</p>
+                <p class="muted small">@T("The automation rate counts processed payments only. Rules first, then a model, and every answer is checked by code; anything uncertain comes to you.")</p>
             </div>
         </div>
         <div class="kpis">
-            <a class="kpi kpi-link" href="/queue"><span class="kpi-icon warn"><Icon Name="queue" Size="18" /></span><span class="kpi-value">@Board.NeedsReview</span><span class="kpi-label">waiting for a person</span></a>
-            <div class="kpi"><span class="kpi-icon"><Icon Name="person" Size="18" /></span><span class="kpi-value">@Board.HumanInterventions</span><span class="kpi-label">decisions by a person</span></div>
-            <div class="kpi"><span class="kpi-icon danger"><Icon Name="shield" Size="18" /></span><span class="kpi-value">@Board.InjectionsCaught</span><span class="kpi-label">prompt injection attempts caught</span></div>
-            <div class="kpi"><span class="kpi-icon ai"><Icon Name="ai" Size="18" /></span><span class="kpi-value">@Format.Usd(Board.AiCostUsd)</span><span class="kpi-label">AI cost (@Board.AiCalls calls)</span></div>
-            <div class="kpi"><span class="kpi-icon"><Icon Name="chart" Size="18" /></span><span class="kpi-value">@(Board.AiCostPer1000Payments is { } per ? Format.Usd(per) : "–")</span><span class="kpi-label">AI cost per 1 000 payments</span></div>
-            <div class="kpi"><span class="kpi-icon ai"><Icon Name="cache" Size="18" /></span><span class="kpi-value">@Board.CachedAnswers</span><span class="kpi-label">answers reused from the cache</span></div>
+            <a class="kpi kpi-link" href="/queue"><span class="kpi-icon warn"><Icon Name="queue" Size="18" /></span><span class="kpi-value">@Board.NeedsReview</span><span class="kpi-label">@T("waiting for a person")</span></a>
+            <div class="kpi"><span class="kpi-icon"><Icon Name="person" Size="18" /></span><span class="kpi-value">@Board.HumanInterventions</span><span class="kpi-label">@T("decisions by a person")</span></div>
+            <a class="kpi kpi-link" href="/payments?by=ai"><span class="kpi-icon ai"><Icon Name="ai" Size="18" /></span><span class="kpi-value">@Board.AiDecided</span><span class="kpi-label">@T("decided by AI ({0} model calls, {1} from cache)", Board.AiCalls, Board.CachedAnswers)</span></a>
+            <div class="kpi"><span class="kpi-icon danger"><Icon Name="shield" Size="18" /></span><span class="kpi-value">@Board.InjectionsCaught</span><span class="kpi-label">@T("prompt injection attempts caught")</span></div>
+            <div class="kpi"><span class="kpi-icon ai"><Icon Name="chart" Size="18" /></span><span class="kpi-value">@Format.Usd(Board.AiCostUsd)</span><span class="kpi-label">@T("AI cost in this sandbox")</span></div>
+            <div class="kpi"><span class="kpi-icon"><Icon Name="chart" Size="18" /></span><span class="kpi-value">@(Board.AiCostPer1000Payments is { } per ? Format.Usd(per) : "–")</span><span class="kpi-label">@T("AI cost per 1 000 payments")</span></div>
+        </div>
+    </section>
+
+    <section class="two-col">
+        <AiAddedCard Board="Board" />
+        <div class="card">
+            <h2 class="card-title"><Icon Name="list" />@T("Payments")</h2>
+            <div class="state-rows">
+                @foreach (var (state, count) in States)
+                {
+                    <a class="state-row" href="/payments?state=@state">
+                        <StateBadge State="@state" />
+                        <Meter Value="@(Board.Payments == 0 ? 0 : (double)count / Board.Payments)" Label="@Format.State(state)" Class="@("m-" + state)" />
+                        <strong class="num">@count</strong>
+                    </a>
+                }
+            </div>
+            <p class="muted small">@T("{0} payments in total.", Board.Payments)</p>
+            @if (Board.WaitingForAi > 0)
+            {
+                <p class="muted small">
+                    @T("Payments that need the AI layer wait for the scheduled daily run. You never start a model yourself, so nothing you type can reach one.")
+                </p>
+            }
         </div>
     </section>
 
     <section class="two-col">
         <div class="card">
-            <h2 class="card-title"><Icon Name="ai" />AI budget</h2>
+            <h2 class="card-title"><Icon Name="ai" />@T("AI budget")</h2>
             <div class="meter-row">
-                <span>Model calls in your sandbox today</span>
+                <span>@T("Model calls in your sandbox today")</span>
                 <strong>@Budget.SandboxCallsToday / @Budget.SandboxCallsPerDay</strong>
             </div>
-            <Meter Value="@(Budget.SandboxCallsPerDay == 0 ? 1 : (double)Budget.SandboxCallsToday / Budget.SandboxCallsPerDay)" Label="Model calls today" Class="@(Budget.SandboxCallsToday >= Budget.SandboxCallsPerDay ? "full" : null)" />
+            <Meter Value="@(Budget.SandboxCallsPerDay == 0 ? 1 : (double)Budget.SandboxCallsToday / Budget.SandboxCallsPerDay)" Label="@T("Model calls today")" Class="@(Budget.SandboxCallsToday >= Budget.SandboxCallsPerDay ? "full" : null)" />
             <dl class="facts compact">
-                <dt>App-wide AI budget</dt>
+                <dt>@T("App-wide AI budget")</dt>
                 <dd><span class="pill @(Budget.App == BudgetLimit.None ? "pill-matched" : "pill-needs_review")"><span class="dot"></span>@Format.Budget(Budget.App)</span></dd>
-                <dt>Answers reused from the cache (no call, no cost)</dt>
+                <dt>@T("Answers reused from the cache (no call, no cost)")</dt>
                 <dd>@Board.CachedAnswers</dd>
                 @if (Board.AiBudgetUsedUp > 0)
                 {
-                    <dt><span class="flag warn">AI budget used up</span></dt>
-                    <dd>@Board.AiBudgetUsedUp waiting for you</dd>
+                    <dt><span class="flag warn">@T("AI budget used up")</span></dt>
+                    <dd>@T("{0} waiting for you", Board.AiBudgetUsedUp)</dd>
                 }
             </dl>
             <p class="muted small">
-                The daily run asks a model at most @Budget.SandboxCallsPerDay times per sandbox@(Budget.SmallModelOnly ? ", small model only" : ""); more AI payments wait for the next run.
-                The same case in another sandbox reuses the stored answer, still checked by code here.
+                @T("The daily run asks a model at most {0} times per sandbox; more AI payments wait for the next run.", Budget.SandboxCallsPerDay)
+                @if (Budget.SmallModelOnly)
+                {
+                    @T("Small model only.")
+                }
+                @T("The same case in another sandbox reuses the stored answer, still checked by code here.")
             </p>
         </div>
         <div class="card">
-            <h2 class="card-title"><Icon Name="chart" />AI cost per day</h2>
-            <BarChart Bars="CostBars" Label="AI cost per day" Empty="No model calls in this sandbox yet." />
+            <h2 class="card-title"><Icon Name="chart" />@T("AI cost per day")</h2>
+            <BarChart Bars="CostBars" Label="@T("AI cost per day")" Empty="@T("No model calls in this sandbox yet.")" />
             @if (Board.CostByDay.Count > 0)
             {
                 <table class="data compact">
-                    <thead><tr><th>Day</th><th>Calls</th><th>Cost</th></tr></thead>
+                    <thead><tr><th>@T("Day")</th><th>@T("Calls")</th><th>@T("Cost")</th></tr></thead>
                     <tbody>
                         @foreach (var day in Board.CostByDay.TakeLast(7))
                         {
@@ -71,51 +99,27 @@
         </div>
     </section>
 
-    <section class="two-col">
-        <div class="card">
-            <h2 class="card-title"><Icon Name="list" />Payments</h2>
-            <div class="state-rows">
-                @foreach (var (state, count) in States)
-                {
-                    <a class="state-row" href="/payments?state=@state">
-                        <StateBadge State="@state" />
-                        <Meter Value="@(Board.Payments == 0 ? 0 : (double)count / Board.Payments)" Label="@Format.State(state)" Class="@("m-" + state)" />
-                        <strong class="num">@count</strong>
-                    </a>
-                }
-            </div>
-            <p class="muted small">@Board.Payments payments in total.</p>
-            @if (Board.WaitingForAi > 0)
-            {
-                <p class="muted small">
-                    Payments that need the AI layer wait for the scheduled daily run. You never start a model yourself,
-                    so nothing you type can reach one.
-                </p>
-            }
-        </div>
-        <div class="card">
-            <h2 class="card-title"><Icon Name="check" />Live precision</h2>
-            <p class="muted small">
-                Of the proposals you decided, how many you accepted (confirmed, or matched to the same invoices).
-                This is feedback from use, not ground truth: the evals run on a reviewed gold set.
-            </p>
-            @if (Board.LivePrecision.Count == 0)
-            {
-                <p class="muted">No decided proposals yet.</p>
-            }
-            else
-            {
-                <table class="data compact">
-                    <thead><tr><th>Proposed by</th><th>Decided</th><th>Accepted</th><th>Rate</th><th></th></tr></thead>
-                    <tbody>
-                        @foreach (var row in Board.LivePrecision)
-                        {
-                            <tr><td>@row.Source</td><td class="num">@row.Decided</td><td class="num">@row.Accepted</td><td class="num">@Format.Percent(row.Rate)</td><td class="meter-cell"><Meter Value="@(row.Rate ?? 0)" Label="@row.Source" /></td></tr>
-                        }
-                    </tbody>
-                </table>
-            }
-        </div>
+    <section class="card">
+        <h2 class="card-title"><Icon Name="check" />@T("Live precision")</h2>
+        <p class="muted small">
+            @T("Of the proposals you decided, how many you accepted (confirmed, or matched to the same invoices). This is feedback from use, not ground truth: the evals run on a reviewed gold set.")
+        </p>
+        @if (Board.LivePrecision.Count == 0)
+        {
+            <p class="muted">@T("No decided proposals yet.")</p>
+        }
+        else
+        {
+            <table class="data compact">
+                <thead><tr><th>@T("Proposed by")</th><th>@T("Decided")</th><th>@T("Accepted")</th><th>@T("Rate")</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var row in Board.LivePrecision)
+                    {
+                        <tr><td>@row.Source</td><td class="num">@row.Decided</td><td class="num">@row.Accepted</td><td class="num">@Format.Percent(row.Rate)</td><td class="meter-cell"><Meter Value="@(row.Rate ?? 0)" Label="@row.Source" /></td></tr>
+                    }
+                </tbody>
+            </table>
+        }
     </section>
 </Shell>
 

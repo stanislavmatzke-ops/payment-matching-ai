@@ -1,0 +1,55 @@
+@* Public legend: the layers, who decides, and what every rule code means. *@
+<Shell Title="@T("How decisions are made")" Page="Page">
+    <div class="page-head">
+        <div>
+            <h1>@T("How decisions are made")</h1>
+            <p class="muted">@T("Every payment goes through the same steps. A wrong match is worse than no match, so anything uncertain ends with a person.")</p>
+        </div>
+    </div>
+
+    <section class="two-col">
+        <div class="card">
+            <h2 class="card-title"><Icon Name="list" />@T("The steps")</h2>
+            <ol class="flow plain">
+                <li><span class="flow-icon"><Icon Name="bank" Size="20" /></span><div><strong>@T("Bank statement")</strong><span>@T("Payer, variable symbol (VS) and message are written by the payer: untrusted text, never instructions.")</span></div></li>
+                <li><span class="flow-icon"><Icon Name="rule" Size="20" /></span><div><strong>@T("Rules")</strong><span>@T("Ported from the legacy system. They settle exact matches and say why when they cannot (the codes below).")</span></div></li>
+                <li><span class="flow-icon ai"><Icon Name="ai" Size="20" /></span><div><strong>@T("AI model")</strong><span>@T("Only for payments the rules could not settle. It reads the text and proposes invoices from a list code prepared; a small model first, a larger one only when that can change the outcome.")</span></div></li>
+                <li><span class="flow-icon"><Icon Name="shield" Size="20" /></span><div><strong>@T("Validation by code")</strong><span>@T("The invoice exists and is open, it belongs to one customer, the amount fits, the payment names it, nothing else fits as well, no instructions in the text.")</span></div></li>
+                <li><span class="flow-icon warn"><Icon Name="person" Size="20" /></span><div><strong>@T("You")</strong><span>@T("Confirm, reject or match by hand what is uncertain, and undo an AI match that is wrong.")</span></div></li>
+            </ol>
+        </div>
+        <div class="card">
+            <h2 class="card-title"><Icon Name="check" />@T("Who decided")</h2>
+            <dl class="facts">
+                <dt><DecidedByChip Value="rule:FIELD/EXACT" /></dt><dd>@T("A rule matched it (the code says which, see below).")</dd>
+                <dt><DecidedByChip Value="ai:claude-haiku-5-5" /></dt><dd>@T("The AI model decided it, after the rules could not; code checked its answer.")</dd>
+                <dt><DecidedByChip Value="policy" /></dt><dd>@T("Decided by policy without a model, e.g. instructions to an AI in the text, or no invoice of the customer at all.")</dd>
+                <dt><DecidedByChip Value="person: you" /></dt><dd>@T("You decided it.")</dd>
+                <dt><DecidedByChip Value="agent:mcp" /></dt><dd>@T("An AI agent proposed it through the MCP server; only a person can confirm it.")</dd>
+            </dl>
+            <p class="muted small">@T("Confidence is the model's own estimate from 0 to 1. Only answers of at least {0} that pass every check are matched without you.", MatchingOptions.Default.AutoMatchConfidence.ToString("0.00", CultureInfo.InvariantCulture))</p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="card-title"><Icon Name="rule" />@T("Rule codes")</h2>
+        <p class="muted small">@T("The first part says where the reference was found: FIELD = the VS field, MSG = the message, - = nowhere. The second says what happened.")</p>
+        <div class="table-wrap">
+            <table class="data compact legend">
+                <thead><tr><th>@T("Code")</th><th>@T("Meaning")</th></tr></thead>
+                <tbody>
+                    @foreach (var (ruleCode, _) in Format.RuleLegend)
+                    {
+                        <tr><td><code>@ruleCode</code></td><td>@Format.Rule(ruleCode)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</Shell>
+
+@code {
+    /// <summary>The signed-in person, if any (the page is public).</summary>
+    [Parameter]
+    public PageContext? Page { get; set; }
+}

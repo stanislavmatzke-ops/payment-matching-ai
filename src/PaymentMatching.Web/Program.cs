@@ -35,7 +35,7 @@ builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantCon
 builder.Services.AddScoped<PaymentsDbContext>();
 builder.Services.AddSingleton(new SandboxOptions
 {
-    StarterPayments = config.GetValue("Sandboxes:StarterPayments", 20),
+    StarterPayments = config.GetValue("Sandboxes:StarterPayments", 40),
     MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 5),
 });
 // A new sandbox takes the AI decisions for the week's starter set from the response cache the daily job
@@ -52,6 +52,10 @@ builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<Payment
 builder.Services.AddPaymentsTelemetry("payments-web", config, tracing => tracing.AddAspNetCoreInstrumentation(o =>
     o.Filter = http => !Path.HasExtension(http.Request.Path.Value)));
 builder.Services.AddRazorComponents();
+builder.Services.AddHttpContextAccessor();
+// Czech letters as text, not &#x...; entities (HTML encoding of markup characters stays on).
+builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o =>
+    o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));
 builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.Name = "__Host-pm-af";
@@ -94,6 +98,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.Use(SecurityHeaders.AddAsync);
 app.UseStaticFiles();
+
+// English by default; Czech when the language cookie says so (set by /lang/{code}). Never from the URL of a page.
+app.UseRequestLocalization(Languages.Options());
 app.UseRateLimiter();
 app.UseAuthentication();
 
@@ -142,6 +149,7 @@ if (devLogin)
 
 app.MapUi(providers, devLogin);
 app.MapOperations();
+app.MapLanguages();
 
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/me", (PaymentsDbContext db, HttpContext http) => SandboxQueries.MeAsync(db, http.RequestAborted));

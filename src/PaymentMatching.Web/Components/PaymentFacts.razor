@@ -2,22 +2,21 @@
 @if (Item.InjectionSuspected)
 {
     <p class="notice danger">
-        <Icon Name="alert" /> The text of this payment looks like instructions to an AI. It is treated as data only; a match needs
-        your explicit acknowledgement.
+        <Icon Name="alert" /> @T("The text of this payment looks like instructions to an AI. It is treated as data only; a match needs your explicit acknowledgement.")
     </p>
 }
 <div class="bank-quote">
-    <span class="from-bank"><Icon Name="bank" Size="12" />from bank · written by the payer</span>
+    <span class="from-bank"><Icon Name="bank" Size="12" />@T("from bank · written by the payer")</span>
     <dl class="facts">
-        <dt>Payer</dt><dd class="untrusted">@Item.CounterpartyName</dd>
+        <dt>@T("Payer")</dt><dd class="untrusted">@Item.CounterpartyName</dd>
         <dt>VS</dt><dd class="untrusted mono">@Item.VariableSymbol</dd>
-        <dt>Message</dt><dd class="untrusted">@Item.Message</dd>
+        <dt>@T("Message")</dt><dd class="untrusted">@Item.Message</dd>
     </dl>
 </div>
 <dl class="facts">
-    <dt>Payment</dt><dd>@Item.Id, booked @Format.Date(Item.BookingDate)</dd>
-    <dt>Amount</dt><dd>@Format.Amount(Item.Amount, Item.Currency)</dd>
-    <dt>State</dt><dd><StateBadge State="@Item.State" /></dd>
+    <dt>@T("Payment")</dt><dd>@T("{0}, booked {1}", Item.Id, Format.Date(Item.BookingDate))</dd>
+    <dt>@T("Amount")</dt><dd>@Format.Amount(Item.Amount, Item.Currency)</dd>
+    <dt>@T("State")</dt><dd><StateBadge State="@Item.State" /></dd>
 </dl>
 <FlagList Item="Item" />
 

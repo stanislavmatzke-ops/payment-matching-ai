@@ -1,37 +1,31 @@
 @* The public read-only demo (SPEC 9b): a shared sandbox processed by the daily job. No forms, no actions. *@
-<Shell Title="Demo" Demo="true">
+<Shell Title="@T("Demo")" Demo="true">
     <div class="page-head">
         <div>
-            <h1>Demo sandbox (read-only)</h1>
+            <h1>@T("Demo sandbox (read-only)")</h1>
             <p class="muted">
-                A fictional company with invoices and bank payments (synthetic data, Demo Bank). Every morning a
-                scheduled job adds a few new payments and runs rules → AI → validation by code over them.
-                <a href="/">Sign in</a> to get your own sandbox, where you confirm, reject or match payments yourself.
+                @T("A fictional company with invoices and bank payments (synthetic data, Demo Bank). Every morning a scheduled job adds a few new payments and runs rules → AI → validation by code over them.")
+                <a href="/">@T("Sign in")</a> @T("to get your own sandbox, where you confirm, reject or match payments yourself.")
             </p>
         </div>
     </div>
 
     <section class="hero-grid">
         <div class="card ring-card">
-            <Ring Value="Board.AutomationRate" Text="@Format.Percent(Board.AutomationRate)" Label="Automation rate" Size="132" />
+            <Ring Value="Board.AutomationRate" Text="@Format.Percent(Board.AutomationRate)" Label="@T("Automation rate")" Size="132" />
             <div>
-                <h2 class="card-title">Automation</h2>
-                <p>@Board.AutoMatched of @Board.Processed processed payments matched without a person.</p>
-                <p class="muted small">Open any payment to see who decided it and the full audit trail.</p>
+                <h2 class="card-title">@T("Automation")</h2>
+                <p>@T("{0} of {1} processed payments matched without a person.", Board.AutoMatched, Board.Processed)</p>
+                <p class="muted small">@T("Open any payment to see who decided it and the full audit trail.")</p>
             </div>
         </div>
-        <div class="kpis">
-            <div class="kpi"><span class="kpi-icon warn"><Icon Name="queue" Size="18" /></span><span class="kpi-value">@Board.NeedsReview</span><span class="kpi-label">waiting for a person</span></div>
-            <div class="kpi"><span class="kpi-icon danger"><Icon Name="shield" Size="18" /></span><span class="kpi-value">@Board.InjectionsCaught</span><span class="kpi-label">prompt injection attempts caught</span></div>
-            <div class="kpi"><span class="kpi-icon ai"><Icon Name="ai" Size="18" /></span><span class="kpi-value">@Format.Usd(Board.AiCostUsd)</span><span class="kpi-label">AI cost (@Board.AiCalls calls, @Board.CachedAnswers from cache)</span></div>
-            <div class="kpi"><span class="kpi-icon"><Icon Name="clock" Size="18" /></span><span class="kpi-value">@Board.WaitingForAi</span><span class="kpi-label">waiting for the next AI run</span></div>
-        </div>
+        <AiAddedCard Board="Board" Demo="true" />
     </section>
 
     <section class="card">
-        <h2 class="card-title"><Icon Name="list" />Payments</h2>
-        <p class="muted small">Payer, VS and message are written by the payer and shown as plain text.</p>
-        <PaymentTable Items="Items" LinkBase="/demo/payments" Empty="No payments yet: the daily run fills the demo." />
+        <h2 class="card-title"><Icon Name="list" />@T("Payments")</h2>
+        <p class="muted small">@T("Payer, VS and message are written by the payer and shown as plain text.")</p>
+        <PaymentTable Items="Items" LinkBase="/demo/payments" Empty="@T("No payments yet: the daily run fills the demo.")" />
     </section>
 </Shell>
 

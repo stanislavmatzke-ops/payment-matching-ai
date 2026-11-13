@@ -8,7 +8,11 @@ else
     <table class="data">
         <thead>
             <tr>
-                <th>Payment</th><th>Booked</th><th>Amount</th><th>Payer</th><th>VS</th><th>Message</th><th>State</th><th>Decided by</th><th>Flags</th>
+                <th>@Header("id", T("Payment"))</th>
+                <th>@Header("date", T("Booked"))</th>
+                <th>@Header("amount", T("Amount"))</th>
+                <th>@Header("payer", T("Payer"))</th>
+                <th>VS</th><th>@T("Message")</th><th>@T("State")</th><th>@T("Decided by")</th><th>@T("Flags")</th>
             </tr>
         </thead>
         <tbody>
@@ -26,8 +30,25 @@ else
     public IReadOnlyList<PaymentListItem> Items { get; set; } = [];
 
     [Parameter]
-    public string Empty { get; set; } = "No payments.";
+    public string Empty { get; set; } = "";
 
     [Parameter]
     public string LinkBase { get; set; } = "/payments";
+
+    /// <summary>With a query the headers sort the list (the payments page); without one they are plain text.</summary>
+    [Parameter]
+    public PaymentQuery? Query { get; set; }
+
+    private RenderFragment Header(string column, string label) => __builder =>
+    {
+        if (Query is null)
+        {
+            <text>@label</text>
+        }
+        else
+        {
+            var arrow = Query.Sort != column ? "" : Query.Descending ? " ↓" : " ↑";
+            <a class="sort" href="@Query.SortUrl(column)">@label@arrow</a>
+        }
+    };
 }

@@ -1,9 +1,9 @@
 @* The person's queue as cards: the payment, what the pipeline or an agent proposes, and one way in to decide. *@
-<Shell Title="Queue" Page="Page" Active="queue">
+<Shell Title="@T("Queue")" Page="Page" Active="queue">
     <div class="page-head">
         <div>
-            <h1>Waiting for you</h1>
-            <p class="muted">Payments the pipeline would not match on its own. A wrong match is worse than none, so these are yours.</p>
+            <h1>@T("Waiting for you")</h1>
+            <p class="muted">@T("Payments the pipeline would not match on its own. A wrong match is worse than none, so these are yours.")</p>
         </div>
         <span class="big-count">@Items.Count</span>
     </div>
@@ -12,8 +12,8 @@
     {
         <div class="empty">
             <Icon Name="check" Size="40" />
-            <p><strong>Nothing waits for you.</strong></p>
-            <p class="muted">New payments arrive with the daily run.</p>
+            <p><strong>@T("Nothing waits for you.")</strong></p>
+            <p class="muted">@T("New payments arrive with the daily run.")</p>
         </div>
     }
     else
@@ -32,9 +32,9 @@
                         <span class="amount">@Format.Amount(p.Amount, p.Currency)</span>
                     </div>
                     <div class="bank-quote">
-                        <span class="from-bank"><Icon Name="bank" Size="12" />from bank</span>
+                        <span class="from-bank"><Icon Name="bank" Size="12" />@T("from bank")</span>
                         <div class="untrusted"><strong>@p.CounterpartyName</strong></div>
-                        <div class="untrusted">@(string.IsNullOrEmpty(p.VariableSymbol) ? "no VS" : "VS " + p.VariableSymbol) · @p.Message</div>
+                        <div class="untrusted">@(string.IsNullOrEmpty(p.VariableSymbol) ? T("no VS") : "VS " + p.VariableSymbol) · @p.Message</div>
                     </div>
                     <FlagList Item="p" />
                     @if (proposal is not null)
@@ -42,22 +42,22 @@
                         var source = proposal.Sources[0];
                         <div class="proposal-line">
                             <DecidedByChip Value="@source.ProposedBy" />
-                            proposes <strong>@string.Join(" + ", proposal.InvoiceNumbers)</strong>
+                            @T("proposes") <strong>@string.Join(" + ", proposal.InvoiceNumbers)</strong>
                             @if (source.Confidence is { } c)
                             {
-                                <span class="muted"> · confidence @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                                <span class="muted"> · @T("confidence") @c.ToString("0.00", CultureInfo.InvariantCulture)</span>
                             }
                         </div>
                         @if (proposal.Checks.Count > 0)
                         {
-                            <p class="muted small"><Icon Name="alert" Size="12" /> @proposal.Checks.Count check(s) to look at before confirming</p>
+                            <p class="muted small"><Icon Name="alert" Size="12" /> @T("{0} check(s) to look at before confirming", proposal.Checks.Count)</p>
                         }
                     }
                     else
                     {
-                        <div class="proposal-line muted"><DecidedByChip Value="@p.DecidedBy" /> no proposal: match manually or reject</div>
+                        <div class="proposal-line muted"><DecidedByChip Value="@p.DecidedBy" /> @T("no proposal: match manually or reject")</div>
                     }
-                    <a class="button" href="/payments/@p.Id">Review and decide <Icon Name="arrow" /></a>
+                    <a class="button" href="/payments/@p.Id">@T("Review and decide") <Icon Name="arrow" /></a>
                 </article>
             }
         </div>

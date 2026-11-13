@@ -1,24 +1,72 @@
-<Shell Title="@Title" Page="Page" Active="payments">
-    <div class="page-head"><h1>@Title</h1></div>
-    @if (ShowFilter)
-    {
-        <form method="get" action="/payments" class="filter">
-            <label>
-                State
-                <select name="state">
-                    <option value="">all</option>
-                    @foreach (var state in PaymentState.All)
-                    {
-                        <option value="@state" selected="@(state == Filter)">@Format.State(state)</option>
-                    }
-                </select>
-            </label>
-            <button>Filter</button>
-        </form>
-    }
+@* All payments of the sandbox: search, filters, sort and pages on the server (links and a GET form, no script). *@
+<Shell Title="@T("Payments")" Page="Page" Active="payments">
+    <div class="page-head">
+        <div>
+            <h1>@T("Payments")</h1>
+            <p class="muted">@T("{0} of {1} payments", List.Matching, List.Total)</p>
+        </div>
+    </div>
+    <form method="get" action="/payments" class="filter">
+        <label>
+            @T("Search")
+            <input type="search" name="q" value="@List.Query.Search" maxlength="@PaymentQuery.MaxSearch" placeholder="@T("Payer, VS, message, amount or id")">
+        </label>
+        <label>
+            @T("State")
+            <select name="state">
+                <option value="">@T("all")</option>
+                @foreach (var state in PaymentState.All)
+                {
+                    <option value="@state" selected="@(state == List.Query.State)">@Format.State(state)</option>
+                }
+            </select>
+        </label>
+        <label>
+            @T("Decided by")
+            <select name="by">
+                <option value="">@T("anyone")</option>
+                @foreach (var by in PaymentQuery.Deciders)
+                {
+                    <option value="@by" selected="@(by == List.Query.By)">@Format.Decider(by)</option>
+                }
+            </select>
+        </label>
+        <input type="hidden" name="sort" value="@List.Query.Sort">
+        <input type="hidden" name="dir" value="@(List.Query.Descending ? "desc" : "asc")">
+        <button>@T("Show")</button>
+        @if (List.Query.State is not null || List.Query.By is not null || List.Query.Search is not null)
+        {
+            <a class="button secondary" href="/payments">@T("Clear")</a>
+        }
+    </form>
     <section class="card">
-        <p class="muted small">Payer, VS and message are written by the payer and shown as plain text.</p>
-        <PaymentTable Items="Items" Empty="@Empty" />
+        <p class="muted small">@T("Payer, VS and message are written by the payer and shown as plain text.")</p>
+        <PaymentTable Items="List.Items" Query="List.Query" Empty="@T("No payments match.")" />
+        @if (List.Pages > 1)
+        {
+            <nav class="pager" aria-label="@T("Pages")">
+                @if (List.Page > 1)
+                {
+                    <a href="@List.Query.Url(page: List.Page - 1)">← @T("Previous")</a>
+                }
+                @for (var p = 1; p <= List.Pages; p++)
+                {
+                    var number = p;
+                    if (number == List.Page)
+                    {
+                        <span class="current" aria-current="page">@number</span>
+                    }
+                    else
+                    {
+                        <a href="@List.Query.Url(page: number)">@number</a>
+                    }
+                }
+                @if (List.Page < List.Pages)
+                {
+                    <a href="@List.Query.Url(page: List.Page + 1)">@T("Next") →</a>
+                }
+            </nav>
+        }
     </section>
 </Shell>
 
@@ -27,17 +75,5 @@
     public PageContext Page { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public IReadOnlyList<PaymentListItem> Items { get; set; } = [];
-
-    [Parameter]
-    public string Title { get; set; } = "Payments";
-
-    [Parameter]
-    public string? Filter { get; set; }
-
-    [Parameter]
-    public bool ShowFilter { get; set; } = true;
-
-    [Parameter]
-    public string Empty { get; set; } = "No payments.";
+    public PaymentListPage List { get; set; } = default!;
 }

@@ -1,62 +1,78 @@
 @* The page frame. Static server rendering only: no scripts, no inline styles (the CSP forbids both). *@
+@inject IConfiguration Config
+@inject IHttpContextAccessor Http
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@Text.Language">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>@Title – Payment matching</title>
+    <title>@Title – @T("Payment matching")</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/app.css">
 </head>
 <body>
     <header class="topbar">
         <div class="topbar-inner">
-            <a class="brand" href="@(Demo ? "/demo" : "/")"><Icon Name="logo" Size="22" Class="brand-mark" /><span>Payment matching</span><span class="brand-tag">AI</span></a>
+            <a class="brand" href="@(Demo ? "/demo" : "/")"><Icon Name="logo" Size="22" Class="brand-mark" /><span>@T("Payment matching")</span><span class="brand-tag">AI</span></a>
             @if (Demo)
             {
                 <nav class="nav">
-                    <a href="/demo" class="active"><Icon Name="eye" />Demo</a>
+                    <a href="/demo" class="active"><Icon Name="eye" />@T("Demo")</a>
                 </nav>
-                <a class="button small" href="/">Sign in for your own sandbox</a>
+                <LanguageSwitch ReturnTo="@ReturnTo" />
+                <a class="button small" href="/">@T("Sign in for your own sandbox")</a>
             }
             else if (Page is not null)
             {
                 <nav class="nav">
-                    <a href="/" class="@(Active == "dashboard" ? "active" : null)"><Icon Name="chart" />Dashboard</a>
+                    <a href="/" class="@(Active == "dashboard" ? "active" : null)"><Icon Name="chart" />@T("Dashboard")</a>
                     <a href="/queue" class="@(Active == "queue" ? "active" : null)">
-                        <Icon Name="queue" />Queue
+                        <Icon Name="queue" />@T("Queue")
                         @if (Page.Waiting > 0)
                         {
                             <span class="count">@Page.Waiting</span>
                         }
                     </a>
-                    <a href="/payments" class="@(Active == "payments" ? "active" : null)"><Icon Name="list" />Payments</a>
+                    <a href="/payments" class="@(Active == "payments" ? "active" : null)"><Icon Name="list" />@T("Payments")</a>
                     @if (Page.IsAdmin)
                     {
                         <a href="/admin" class="@(Active == "admin" ? "active" : null)"><Icon Name="shield" />Admin</a>
                     }
                 </nav>
                 <form method="post" action="/logout" class="user">
+                    <LanguageSwitch ReturnTo="@ReturnTo" />
                     <AntiforgeryField Field="Page.Form" />
                     <span class="avatar" aria-hidden="true">@Initial</span>
                     <span class="user-name">@Page.UserName</span>
-                    <button class="ghost small">Sign out</button>
+                    <button class="ghost small">@T("Sign out")</button>
                 </form>
+            }
+            else
+            {
+                <span class="user"><LanguageSwitch ReturnTo="@ReturnTo" /></span>
             }
         </div>
     </header>
     @if (Demo)
     {
         <div class="ribbon">
-            <Icon Name="eye" /> <strong>Read-only demo.</strong> A shared sandbox, processed every morning by the scheduled job. Nothing here can be changed.
+            <Icon Name="eye" /> <strong>@T("Read-only demo.")</strong> @T("A shared sandbox, processed every morning by the scheduled job. Nothing here can be changed.")
         </div>
     }
     <main>
         @ChildContent
     </main>
     <footer>
-        <span><Icon Name="shield" /> Synthetic data only (fictional Demo Bank). Visitors never start a model.</span>
-        <a href="/privacy">Privacy</a>
+        <span><Icon Name="shield" /> @T("Synthetic data only (fictional Demo Bank). Visitors never start a model.")</span>
+        <span class="footer-links">
+            @if (AboutUrl is { Length: > 0 } about)
+            {
+                <a href="@about">@T("About this project")</a>
+            }
+            <a href="/how">@T("How decisions are made")</a>
+            <a href="/privacy">@T("Privacy")</a>
+        </span>
     </footer>
 </body>
 </html>
@@ -81,4 +97,10 @@
     public RenderFragment? ChildContent { get; set; }
 
     private string Initial => Page?.UserName is { Length: > 0 } name ? char.ToUpperInvariant(name[0]).ToString() : "?";
+
+    /// <summary>Links:About – the operator's page about this project (absolute https only).</summary>
+    private string? AboutUrl => Config["Links:About"] is { } url && url.StartsWith("https://", StringComparison.Ordinal) ? url : null;
+
+    /// <summary>This page, so switching the language comes back to it.</summary>
+    private string ReturnTo => Http.HttpContext is { } http ? http.Request.Path + http.Request.QueryString : "/";
 }

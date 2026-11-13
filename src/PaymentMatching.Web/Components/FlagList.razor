@@ -4,7 +4,7 @@
     <div class="flags">
         @if (Item.InjectionSuspected)
         {
-            <span class="flag danger"><Icon Name="alert" Size="12" />prompt injection?</span>
+            <span class="flag danger"><Icon Name="alert" Size="12" />@T("prompt injection?")</span>
         }
         @foreach (var flag in Item.Flags.Where(f => f != Flags.PromptInjection))
         {

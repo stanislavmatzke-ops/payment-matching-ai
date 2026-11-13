@@ -1,47 +1,47 @@
 @* Admin overview (ADR 0013, amended in ADR 0014): aggregates across sandboxes and the list of accounts (name, e-mail, dates, counts). No payments, invoices, statement text or tenant ids. *@
 <Shell Title="Admin" Page="Page" Active="admin">
-    <div class="page-head"><div><h1>Operations overview</h1><p class="muted">Aggregates across all sandboxes and the accounts that use them. No payments, invoices or sandbox contents.</p></div></div>
+    <div class="page-head"><div><h1>@T("Operations overview")</h1><p class="muted">@T("Aggregates across all sandboxes and the accounts that use them. No payments, invoices or sandbox contents.")</p></div></div>
     <section class="two-col">
 
     <div class="card">
-    <h2 class="card-title">AI budget</h2>
+    <h2 class="card-title">@T("AI budget")</h2>
     <table class="data compact">
-        <tr><th scope="row">State</th><td>@Format.Budget(View.App)</td></tr>
-        <tr><th scope="row">Model calls today</th><td class="num">@View.Today.AiCalls / @View.Budget.CallsPerDay (@View.CallsLeftToday left)</td></tr>
-        <tr><th scope="row">Cost today</th><td class="num">@Format.Usd(View.Today.AiCostUsd)</td></tr>
-        <tr><th scope="row">Model calls this month</th><td class="num">@View.Month.AiCalls</td></tr>
-        <tr><th scope="row">Cost this month</th><td class="num">@Format.Usd(View.Month.AiCostUsd) of @Format.Usd(View.Budget.MonthlyUsd) (@Format.Usd(View.MonthLeftUsd) left)</td></tr>
-        <tr><th scope="row">Cache hit rate this month</th><td class="num">@Format.Percent(View.Month.CacheHitRate) (@View.Month.CacheHits answers reused)</td></tr>
-        <tr><th scope="row">Per sandbox and day</th><td class="num">@View.Budget.CallsPerSandboxPerDay calls@(View.Budget.SmallModelOnly ? ", small model only" : "")</td></tr>
+        <tr><th scope="row">@T("State")</th><td>@Format.Budget(View.App)</td></tr>
+        <tr><th scope="row">@T("Model calls today")</th><td class="num">@View.Today.AiCalls / @View.Budget.CallsPerDay (@T("{0} left", View.CallsLeftToday))</td></tr>
+        <tr><th scope="row">@T("Cost today")</th><td class="num">@Format.Usd(View.Today.AiCostUsd)</td></tr>
+        <tr><th scope="row">@T("Model calls this month")</th><td class="num">@View.Month.AiCalls</td></tr>
+        <tr><th scope="row">@T("Cost this month")</th><td class="num">@T("{0} of {1} ({2} left)", Format.Usd(View.Month.AiCostUsd), Format.Usd(View.Budget.MonthlyUsd), Format.Usd(View.MonthLeftUsd))</td></tr>
+        <tr><th scope="row">@T("Cache hit rate this month")</th><td class="num">@Format.Percent(View.Month.CacheHitRate) (@T("{0} answers reused", View.Month.CacheHits))</td></tr>
+        <tr><th scope="row">@T("Per sandbox and day")</th><td class="num">@T("{0} calls", View.Budget.CallsPerSandboxPerDay)@(View.Budget.SmallModelOnly ? T(", small model only") : "")</td></tr>
     </table>
     </div>
 
     <div class="card">
-    <h2 class="card-title">Sandboxes</h2>
+    <h2 class="card-title">@T("Sandboxes")</h2>
     <table class="data compact">
-        <tr><th scope="row">All (without the demo)</th><td class="num">@View.Sandboxes.Total</td></tr>
-        <tr><th scope="row">Active in the last 7 days</th><td class="num">@View.Sandboxes.ActiveLast7Days</td></tr>
-        <tr><th scope="row">New in the last 24 hours</th><td class="num">@View.Sandboxes.CreatedLast24Hours</td></tr>
-        <tr><th scope="row">New in the last 7 days</th><td class="num">@View.Sandboxes.CreatedLast7Days</td></tr>
-        <tr><th scope="row">Sign-ins turned away today (waiting list)</th><td class="num">@View.Today.SignInsTurnedAway</td></tr>
-        <tr><th scope="row">Demo sandbox</th><td>@(View.Sandboxes.DemoExists ? "exists" : "not created yet")</td></tr>
+        <tr><th scope="row">@T("All (without the demo)")</th><td class="num">@View.Sandboxes.Total</td></tr>
+        <tr><th scope="row">@T("Active in the last 7 days")</th><td class="num">@View.Sandboxes.ActiveLast7Days</td></tr>
+        <tr><th scope="row">@T("New in the last 24 hours")</th><td class="num">@View.Sandboxes.CreatedLast24Hours</td></tr>
+        <tr><th scope="row">@T("New in the last 7 days")</th><td class="num">@View.Sandboxes.CreatedLast7Days</td></tr>
+        <tr><th scope="row">@T("Sign-ins turned away today (waiting list)")</th><td class="num">@View.Today.SignInsTurnedAway</td></tr>
+        <tr><th scope="row">@T("Demo sandbox")</th><td>@(View.Sandboxes.DemoExists ? T("exists") : T("not created yet"))</td></tr>
     </table>
     </div>
 
     </section>
 
     <div class="card">
-    <h2 class="card-title">Accounts</h2>
-    <p class="muted small">Who signed in and how much they decided. Their sandboxes' payments and invoices are not shown here.</p>
+    <h2 class="card-title">@T("Accounts")</h2>
+    <p class="muted small">@T("Who signed in and how much they decided. Their sandboxes' payments and invoices are not shown here.")</p>
     @if (View.Accounts.Count == 0)
     {
-        <p class="muted">Nobody has signed in yet.</p>
+        <p class="muted">@T("Nobody has signed in yet.")</p>
     }
     else
     {
         <div class="table-wrap">
         <table class="data compact">
-            <thead><tr><th>Name</th><th>E-mail</th><th>Signed in with</th><th>Sandbox created</th><th>Last active</th><th class="num">Confirmed</th><th class="num">Rejected</th><th class="num">Matched by hand</th><th>State</th></tr></thead>
+            <thead><tr><th>@T("Name")</th><th>@T("E-mail")</th><th>@T("Signed in with")</th><th>@T("Sandbox created")</th><th>@T("Last active")</th><th class="num">@T("Confirmed")</th><th class="num">@T("Rejected")</th><th class="num">@T("Matched by hand")</th><th>@T("State")</th></tr></thead>
             <tbody>
                 @foreach (var account in View.Accounts)
                 {
@@ -57,11 +57,11 @@
                         <td>
                             @if (account.ActiveWithin(View.Now))
                             {
-                                <span class="ok-text">active</span>
+                                <span class="ok-text">@T("active")</span>
                             }
                             else
                             {
-                                <span class="muted">inactive, deleted in @account.DaysUntilDeletion(View.Now) days</span>
+                                <span class="muted">@T("inactive, deleted in {0} days", account.DaysUntilDeletion(View.Now))</span>
                             }
                         </td>
                     </tr>
@@ -73,9 +73,9 @@
     </div>
 
     <div class="card">
-    <h2 class="card-title">Last 7 days</h2>
+    <h2 class="card-title">@T("Last 7 days")</h2>
     <table class="data compact">
-        <thead><tr><th>Day</th><th>Calls</th><th>Cached</th><th>Cost</th><th>Refilled</th><th>Deleted</th><th>Turned away</th></tr></thead>
+        <thead><tr><th>@T("Day")</th><th>@T("Calls")</th><th>@T("Cached")</th><th>@T("Cost")</th><th>@T("Refilled")</th><th>@T("Deleted")</th><th>@T("Turned away")</th></tr></thead>
         <tbody>
             @foreach (var day in View.LastDays)
             {

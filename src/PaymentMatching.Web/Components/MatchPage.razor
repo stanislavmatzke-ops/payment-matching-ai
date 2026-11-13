@@ -1,24 +1,34 @@
-<Shell Title="@($"Match {Payment.Id} manually")" Page="Page" Active="payments">
-    <p class="crumbs"><a href="/payments/@Payment.Id">← Payment @Payment.Id</a></p>
-    <h1>Match @Payment.Id manually</h1>
+@* Pick invoices for a payment: a manual match from the queue, or (Undo) the right invoices after the AI got it wrong. *@
+<Shell Title="@HeadTitle" Page="Page" Active="payments">
+    <p class="crumbs"><a href="/payments/@Payment.Id">← @T("Payment {0}", Payment.Id)</a></p>
+    <h1>@HeadTitle</h1>
     <ResultNotice Result="Result" />
+    @if (Undo)
+    {
+        <p class="notice">
+            <Icon Name="ai" />
+            <span>
+                @T("The AI matched this payment to {0} on its own. Pick the right invoices instead, or leave the payment unmatched. The AI's decision stays in the audit trail; yours is recorded next to it.", string.Join(" + ", Current))
+            </span>
+        </p>
+    }
     <PaymentFacts Item="Payment" />
 
     @if (Preview is { } preview)
     {
-        <h2>Checks for @string.Join(" + ", Selected)</h2>
-        <p>The same checks as for a proposal from the pipeline or an agent. A wrong match is worse than none.</p>
+        <h2>@T("Checks for {0}", string.Join(" + ", Selected))</h2>
+        <p>@T("The same checks as for a proposal from the pipeline or an agent. A wrong match is worse than none.")</p>
         <CheckList Failures="preview.Failures" />
         @if (preview.Outcome is ReviewOutcome.Done or ReviewOutcome.NeedsAcknowledgement)
         {
-            <form method="post" action="/payments/@Payment.Id/match">
+            <form method="post" action="/payments/@Payment.Id/@Action">
                 <AntiforgeryField Field="Page.Form" />
                 @foreach (var number in Selected)
                 {
                     <input type="hidden" name="invoice" value="@number">
                 }
                 <AcknowledgeFields Warnings="preview.Failures" />
-                <button class="primary">Match to @string.Join(" + ", Selected)</button>
+                <button class="primary">@T("Match to {0}", string.Join(" + ", Selected))</button>
             </form>
         }
         else
@@ -27,22 +37,28 @@
         }
     }
 
-    <h2>Pick invoices (1–@ProposalChecks.MaxInvoices)</h2>
+    <h2>@T("Pick invoices (1–{0})", ProposalChecks.MaxInvoices)</h2>
     @if (Invoices.Count == 0)
     {
-        <p class="muted">No open invoices.</p>
+        <p class="muted">@T("No open invoices.")</p>
     }
     else
     {
-        <form method="get" action="/payments/@Payment.Id/match">
+        <form method="get" action="/payments/@Payment.Id/@Action">
             <div class="table-wrap"><table class="data">
-                <thead><tr><th></th><th>Invoice</th><th>VS</th><th>Customer</th><th>Due</th><th>Amount</th></tr></thead>
+                <thead><tr><th></th><th>@T("Invoice")</th><th>VS</th><th>@T("Customer")</th><th>@T("Due")</th><th>@T("Amount")</th></tr></thead>
                 <tbody>
                     @foreach (var invoice in Invoices)
                     {
                         <tr>
                             <td><input type="checkbox" name="invoice" value="@invoice.Number" id="@($"i-{invoice.Number}")" checked="@Selected.Contains(invoice.Number)"></td>
-                            <td><label for="@($"i-{invoice.Number}")">@invoice.Number</label></td>
+                            <td>
+                                <label for="@($"i-{invoice.Number}")">@invoice.Number</label>
+                                @if (Current.Contains(invoice.Number))
+                                {
+                                    <span class="chip chip-ai">@T("the AI's choice")</span>
+                                }
+                            </td>
                             <td>@invoice.VariableSymbol</td>
                             <td>@invoice.CustomerName (@invoice.CustomerId)</td>
                             <td>@Format.Date(invoice.DueDate)</td>
@@ -51,7 +67,16 @@
                     }
                 </tbody>
             </table></div>
-            <button class="secondary">Check</button>
+            <button class="secondary">@T("Check")</button>
+        </form>
+    }
+
+    @if (Undo)
+    {
+        <h2>@T("Or leave it unmatched")</h2>
+        <form method="post" action="/payments/@Payment.Id/undo">
+            <AntiforgeryField Field="Page.Form" />
+            <button class="danger-outline">@T("Undo the AI match, no invoice")</button>
         </form>
     }
 </Shell>
@@ -74,4 +99,16 @@
 
     [Parameter]
     public ReviewOutcome? Result { get; set; }
+
+    /// <summary>Undo an automatic AI match instead of matching a queued payment.</summary>
+    [Parameter]
+    public bool Undo { get; set; }
+
+    /// <summary>The AI's invoices (undo only).</summary>
+    [Parameter]
+    public IReadOnlyList<string> Current { get; set; } = [];
+
+    private string Action => Undo ? "undo" : "match";
+
+    private string HeadTitle => Undo ? T("Undo the AI match of {0}", Payment.Id) : T("Match {0} manually", Payment.Id);
 }
