@@ -7,7 +7,10 @@ namespace PaymentMatching.Web;
 
 public sealed record SandboxCounts(int Customers, int Invoices, int Payments, int AutoMatched, int HumanReview, int NoMatch, int WaitingForAi);
 
-public sealed record MeView(string Name, string Email, string Provider, Guid TenantId, DateTimeOffset SandboxCreatedAt, SandboxCounts Counts);
+/// <param name="AccountId">
+/// The signed-in account as <c>provider:subject</c>, the form <c>Admin:Accounts</c> expects; shown only to its owner.
+/// </param>
+public sealed record MeView(string Name, string Email, string Provider, string AccountId, Guid TenantId, DateTimeOffset SandboxCreatedAt, SandboxCounts Counts);
 
 /// <summary>
 /// One payment. Bank statement text (<see cref="CounterpartyName"/>, <see cref="VariableSymbol"/>,
@@ -119,7 +122,7 @@ public static class SandboxQueries
             Count(Outcome.HumanReview),
             Count(Outcome.NoMatch),
             payments - outcomes.Sum(o => o.Count));
-        return new MeView(user.Name, user.Email, user.Provider, user.TenantId, tenant.CreatedAt, counts);
+        return new MeView(user.Name, user.Email, user.Provider, $"{user.Provider}:{user.Subject}", user.TenantId, tenant.CreatedAt, counts);
     }
 
     public static async Task<IReadOnlyList<PaymentListItem>> PaymentsAsync(PaymentsDbContext db, CancellationToken cancellationToken)

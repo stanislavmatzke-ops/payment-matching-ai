@@ -45,6 +45,7 @@ public class SignInAndIsolationTests(PostgresFixture postgres)
         var bobMe = await WebApp.MeAsync(bob);
         Assert.NotEqual(aliceMe.TenantId, bobMe.TenantId);
         Assert.Equal(("alice", 20), (aliceMe.Name, aliceMe.Counts.Payments));
+        Assert.Equal("dev:alice", aliceMe.AccountId);
         Assert.Equal(0, aliceMe.Counts.Payments - aliceMe.Counts.AutoMatched - aliceMe.Counts.HumanReview - aliceMe.Counts.NoMatch - aliceMe.Counts.WaitingForAi);
 
         // Both sandboxes use the same payment ids (P0001...): the API must show each person their own row.
