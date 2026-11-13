@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-off: creates the database `payments` and its own login role `payments_app` (owner of that database
 # only, no admin rights) on an existing PostgreSQL Flexible Server, and stores the app's connection string
-# as the Key Vault secret `db-connection` (ADR 0016). Safe to run again: it only resets the role's password.
+# as the Key Vault secret `db-connection` (ADR 0016). Safe to run again; RESET_PASSWORD=1 rotates the password.
 #
 # Needs: az login (read the admin connection string, change the server firewall, write the secret), Docker
 # (psql from postgres:17-alpine). Nothing secret is printed or written to the repository; a temporary file
@@ -51,23 +51,47 @@ echo "Temporary firewall rule $rule for this machine on $server"
 az postgres flexible-server firewall-rule create --resource-group "$server_rg" --server-name "$server" \
   --name "$rule" --start-ip-address "$ip" --end-ip-address "$ip" --output none
 
-APP_PASSWORD="$(openssl rand -hex 24)"
-export APP_PASSWORD
+psql_admin() {
+  docker run --rm -i -e PGUSER -e PGPASSWORD -e PGHOST -e PGDATABASE -e PGSSLMODE -e APP_PASSWORD \
+    postgres:17-alpine psql --no-psqlrc --quiet -v ON_ERROR_STOP=1 "$@"
+}
+
+# A new role gets a password; an existing one keeps it unless RESET_PASSWORD=1. (A reset changes the Key
+# Vault secret, and running revisions keep the old value until a new revision starts.)
+exists="$(psql_admin -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$role'" < /dev/null)"
+reset=false
+if [[ -z "$exists" || "${RESET_PASSWORD:-0}" == 1 ]]; then
+  reset=true
+  APP_PASSWORD="$(openssl rand -hex 24)"
+fi
+export APP_PASSWORD="${APP_PASSWORD:-}"
 
 echo "Creating role $role and database $database (if missing)"
-docker run --rm -i -e PGUSER -e PGPASSWORD -e PGHOST -e PGDATABASE -e PGSSLMODE -e APP_PASSWORD \
-  postgres:17-alpine psql --no-psqlrc --quiet -v ON_ERROR_STOP=1 <<SQL
-\getenv app_password APP_PASSWORD
+psql_admin -v reset="$reset" <<SQL
 SELECT 'CREATE ROLE $role LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$role') \gexec
+\if :reset
+\getenv app_password APP_PASSWORD
 ALTER ROLE $role PASSWORD :'app_password';
+\endif
 -- PostgreSQL 16: the admin may give a database to a role only when it can SET ROLE to it.
 GRANT $role TO CURRENT_USER WITH SET TRUE;
 SELECT 'CREATE DATABASE $database OWNER $role' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$database') \gexec
 REVOKE CONNECT, TEMPORARY ON DATABASE $database FROM PUBLIC;
 SQL
 
-conn="Host=$host;Port=5432;Database=$database;Username=$role;Password=$APP_PASSWORD;Ssl Mode=Require"
-printf '%s' "$conn" > "$tmp/db-connection"
-unset conn APP_PASSWORD
-az keyvault secret set --vault-name "$target_vault" --name db-connection --file "$tmp/db-connection" --output none
-echo "Stored $target_vault/db-connection. Firewall rule $rule is removed on exit."
+# Azure Flexible Server creates the schema public of a new database owned by azure_pg_admin, so the database
+# owner could not create tables in it (found on the first deployment). Give the schema to the app's role.
+PGDATABASE="$database" psql_admin <<SQL
+ALTER SCHEMA public OWNER TO $role;
+SQL
+
+if [[ "$reset" == true ]]; then
+  conn="Host=$host;Port=5432;Database=$database;Username=$role;Password=$APP_PASSWORD;Ssl Mode=Require"
+  printf '%s' "$conn" > "$tmp/db-connection"
+  unset conn APP_PASSWORD
+  az keyvault secret set --vault-name "$target_vault" --name db-connection --file "$tmp/db-connection" --output none
+  echo "Stored $target_vault/db-connection. Running apps read it in a new revision (az containerapp update --revision-suffix ...)."
+else
+  echo "Role $role exists; password and $target_vault/db-connection unchanged (RESET_PASSWORD=1 to rotate)."
+fi
+echo "Firewall rule $rule is removed on exit."

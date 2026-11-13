@@ -9,8 +9,8 @@ param aiMonthlyUsd = '0.50'
 
 // Step by step (README "Deploy to Azure"): shared pieces first, then the apps once db-connection exists,
 // then the job once anthropic-api-key exists.
-param deployApps = false
-param jobEnabled = false
+param deployApps = true
+param jobEnabled = true
 
 param microsoftClientId = ''
 param googleClientId = ''
