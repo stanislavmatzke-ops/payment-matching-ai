@@ -89,6 +89,67 @@
                 }
             </section>
 
+            @if (Detail.Invoices.Count > 0)
+            {
+                <section class="card">
+                    <h2 class="card-title"><Icon Name="list" />Invoices</h2>
+                    <div class="table-wrap">
+                        <table class="data compact">
+                            <thead><tr><th>Invoice</th><th>Kind</th><th>VS</th><th>Customer</th><th>Due</th><th class="num">Amount</th><th>State</th></tr></thead>
+                            <tbody>
+                                @foreach (var invoice in Detail.Invoices)
+                                {
+                                    <tr>
+                                        <td><strong>@invoice.Number</strong></td>
+                                        <td>@(invoice.Kind == "Advance" ? "advance" : "invoice")</td>
+                                        <td>@invoice.VariableSymbol</td>
+                                        <td>@invoice.CustomerName <span class="muted">(@invoice.CustomerId)</span></td>
+                                        <td>@Format.Date(invoice.DueDate)</td>
+                                        <td class="num">@Format.Amount(invoice.Amount, invoice.Currency)</td>
+                                        <td>
+                                            @if (invoice.MatchedToPayment is null)
+                                            {
+                                                <span class="muted">open</span>
+                                            }
+                                            else if (invoice.MatchedToPayment == Detail.Payment.Id)
+                                            {
+                                                <span>matched to this payment</span>
+                                            }
+                                            else
+                                            {
+                                                <span>matched to @invoice.MatchedToPayment</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="comparisons">
+                        @foreach (var c in Detail.Comparisons)
+                        {
+                            <li>
+                                Payment @Format.Amount(Detail.Payment.Amount, Detail.Payment.Currency) against
+                                <strong>@string.Join(" + ", c.InvoiceNumbers)</strong> (@Format.Amount(c.Total, c.Currency)):
+                                @if (c.Difference is not { } difference)
+                                {
+                                    <span class="muted">different currency, compared at the exchange rate by the checks</span>
+                                }
+                                else if (difference == 0)
+                                {
+                                    <strong class="ok-text">exact amount</strong>
+                                }
+                                else
+                                {
+                                    <strong class="warn-text">@(difference > 0 ? "+" : "−")@Format.Amount(Math.Abs(difference), Detail.Payment.Currency)</strong>
+                                    <span class="muted">@(difference > 0 ? "paid more than invoiced" : "paid less than invoiced")</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+
             @if (Detail.Actionable)
             {
                 <section class="card decide">

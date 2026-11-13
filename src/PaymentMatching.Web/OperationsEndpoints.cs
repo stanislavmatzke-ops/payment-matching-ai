@@ -29,9 +29,18 @@ public static class OperationsEndpoints
                 : Results.NotFound());
 
         // Not found, not forbidden, for everyone outside the allow-list: the page does not advertise itself.
-        app.MapGet("/admin", async (HttpContext http, AdminAccounts admins, TenantAdmin tenants, UsageLedger ledger, AiBudgetOptions budget, TimeProvider time) =>
-            admins.Contains(http.User)
-                ? Html.Page<AdminPage>(new { View = await Operations.AdminAsync(tenants, ledger, budget, time.GetUtcNow(), http.RequestAborted) })
-                : Results.NotFound());
+        app.MapGet("/admin", async (HttpContext http, AdminAccounts admins, TenantAdmin tenants, UsageLedger ledger, AiBudgetOptions budget, TimeProvider time, PaymentsDbContext db) =>
+        {
+            if (!admins.Contains(http.User))
+            {
+                return Results.NotFound();
+            }
+
+            // The admin's own sandbox only gives the navigation its name and queue badge.
+            var name = await db.Users.AsNoTracking().Select(u => u.Name).FirstOrDefaultAsync(http.RequestAborted) ?? "";
+            var sandbox = await SandboxState.LoadAsync(db, null, http.RequestAborted);
+            var page = PageContext.For(http, name) with { Waiting = SandboxQueries.Queue(sandbox).Count };
+            return Html.Page<AdminPage>(new { View = await Operations.AdminAsync(tenants, ledger, budget, time.GetUtcNow(), http.RequestAborted), Page = page });
+        });
     }
 }

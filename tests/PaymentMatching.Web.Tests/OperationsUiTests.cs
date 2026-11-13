@@ -36,7 +36,7 @@ public class OperationsUiTests(PostgresFixture postgres)
 
         Assert.Contains("Demo sandbox (read-only)", list, StringComparison.Ordinal);
         Assert.Contains($"href=\"/demo/payments/{paymentId}\"", list, StringComparison.Ordinal);
-        Assert.Contains("look at the demo sandbox", await visitor.GetStringAsync("/", Ct), StringComparison.Ordinal);
+        Assert.Contains("Try the demo without signing in", await visitor.GetStringAsync("/", Ct), StringComparison.Ordinal);
         foreach (var page in new[] { list, detail })
         {
             Assert.DoesNotContain("<form", page, StringComparison.Ordinal);
@@ -128,7 +128,8 @@ public class OperationsUiTests(PostgresFixture postgres)
         Assert.Contains("Operations overview", page, StringComparison.Ordinal);
         Assert.Contains("75.0 %", page, StringComparison.Ordinal);
         Assert.Contains("<td class=\"num\">2</td>", page, StringComparison.Ordinal);
-        foreach (var personal in new[] { "alice", "boss", aliceMe.Email, aliceMe.TenantId.ToString(), "P0001", "2026-1001" })
+        // The admin's own name is in their navigation; nobody else's data may be on the page.
+        foreach (var personal in new[] { "alice", aliceMe.Email, aliceMe.TenantId.ToString(), "P0001", "2026-1001" })
         {
             Assert.DoesNotContain(personal, page, StringComparison.OrdinalIgnoreCase);
         }

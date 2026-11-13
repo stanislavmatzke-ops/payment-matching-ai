@@ -1,5 +1,5 @@
 @* Admin overview (ADR 0013): aggregates across sandboxes only. No ids, names, e-mails or payments. *@
-<Shell Title="Admin">
+<Shell Title="Admin" Page="Page" Active="admin">
     <div class="page-head"><div><h1>Operations overview</h1><p class="muted">Aggregates across all sandboxes. No ids, names, e-mails or payments.</p></div></div>
     <section class="two-col">
 
@@ -55,4 +55,8 @@
 @code {
     [Parameter, EditorRequired]
     public AdminView View { get; set; } = default!;
+
+    /// <summary>The admin's own navigation (sign-out, back to their sandbox).</summary>
+    [Parameter]
+    public PageContext? Page { get; set; }
 }

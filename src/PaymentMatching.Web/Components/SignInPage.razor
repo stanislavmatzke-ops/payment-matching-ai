@@ -7,35 +7,39 @@
                 A working reference app on synthetic data (fictional Demo Bank). Rules settle the easy cases, a model
                 reads the messy ones, code checks every answer, and anything uncertain goes to you.
             </p>
-            <div class="hero-actions">
-                @if (DemoAvailable)
+            <div class="signin-card">
+                <h2>Get your own sandbox</h2>
+                <p class="muted small">A fictional company with invoices and bank payments, already matched by rules and AI.</p>
+                @if (SandboxesFull)
                 {
-                    <a class="button big" href="/demo"><Icon Name="eye" />Take a look at the demo sandbox</a>
+                    <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
                 }
                 @foreach (var provider in Providers)
                 {
-                    <a class="button big secondary" href="/login/@provider">Sign in with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a>
+                    <a class="provider-button" href="/login/@provider"><ProviderLogo Provider="@provider" />Continue with @(provider == Authentication.Microsoft ? "Microsoft" : "Google")</a>
                 }
+                @if (DevLogin)
+                {
+                    <form method="get" action="/dev-login" class="dev-login">
+                        <label>Development sign-in as <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
+                        <button class="secondary">Sign in</button>
+                    </form>
+                }
+                @if (Providers.Count == 0 && !DevLogin)
+                {
+                    <p class="muted">No sign-in method is configured. See README: "Sign-in (local)".</p>
+                }
+                @if (DemoAvailable)
+                {
+                    <div class="or"><span>or</span></div>
+                    <a class="provider-button" href="/demo"><Icon Name="eye" />Try the demo without signing in</a>
+                    <p class="muted small center">A shared demo company, read-only, no account needed.</p>
+                }
+                <p class="muted small center">
+                    Sign in with a Microsoft or Google account. Nobody else sees your sandbox; it is deleted after
+                    30 days without use. We keep only your name and e-mail (<a href="/privacy">privacy</a>).
+                </p>
             </div>
-            @if (DevLogin)
-            {
-                <form method="get" action="/dev-login" class="dev-login">
-                    <label>Development sign-in as <input name="name" value="alice" pattern="[A-Za-z0-9]{1,32}" required></label>
-                    <button class="secondary">Sign in</button>
-                </form>
-            }
-            @if (SandboxesFull)
-            {
-                <p class="notice"><strong>Today's new sandboxes are taken.</strong> Please try again tomorrow.</p>
-            }
-            @if (Providers.Count == 0 && !DevLogin)
-            {
-                <p class="muted">No sign-in method is configured. See README: "Sign-in (local)".</p>
-            }
-            <p class="muted small">
-                Sign in to get your own sandbox: a fictional company with invoices and bank payments. Nobody else sees
-                your sandbox; it is deleted after 30 days without use.@(DemoAvailable ? " The demo is read-only and needs no sign-in." : "")
-            </p>
         </div>
         <ol class="flow">
             <li><span class="flow-icon"><Icon Name="bank" Size="20" /></span><div><strong>Bank statement</strong><span>untrusted text from the payer</span></div></li>

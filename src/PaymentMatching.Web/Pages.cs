@@ -16,10 +16,16 @@ public sealed record PageContext(string UserName, FormToken Form)
     /// <summary>Payments waiting for the person (badge in the navigation).</summary>
     public int Waiting { get; init; }
 
+    /// <summary>The account is on the <c>Admin:Accounts</c> list: the navigation shows the admin overview.</summary>
+    public bool IsAdmin { get; init; }
+
     public static PageContext For(HttpContext http, string userName)
     {
         var tokens = http.RequestServices.GetRequiredService<IAntiforgery>().GetAndStoreTokens(http);
-        return new PageContext(userName, new FormToken(tokens.FormFieldName, tokens.RequestToken!));
+        return new PageContext(userName, new FormToken(tokens.FormFieldName, tokens.RequestToken!))
+        {
+            IsAdmin = http.RequestServices.GetRequiredService<AdminAccounts>().Contains(http.User),
+        };
     }
 }
 

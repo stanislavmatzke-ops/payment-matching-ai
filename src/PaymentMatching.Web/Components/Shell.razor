@@ -31,6 +31,10 @@
                         }
                     </a>
                     <a href="/payments" class="@(Active == "payments" ? "active" : null)"><Icon Name="list" />Payments</a>
+                    @if (Page.IsAdmin)
+                    {
+                        <a href="/admin" class="@(Active == "admin" ? "active" : null)"><Icon Name="shield" />Admin</a>
+                    }
                 </nav>
                 <form method="post" action="/logout" class="user">
                     <AntiforgeryField Field="Page.Form" />
@@ -69,7 +73,7 @@
     [Parameter]
     public bool Demo { get; set; }
 
-    /// <summary>Highlighted navigation item: dashboard, queue or payments.</summary>
+    /// <summary>Highlighted navigation item: dashboard, queue, payments or admin.</summary>
     [Parameter]
     public string? Active { get; set; }
 

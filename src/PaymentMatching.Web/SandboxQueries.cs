@@ -63,7 +63,17 @@ public sealed record PaymentDetailView(
     ReviewView? Review,
     bool Actionable,
     IReadOnlyList<QueueProposal> Queue,
-    IReadOnlyList<TimelineEvent> Timeline);
+    IReadOnlyList<TimelineEvent> Timeline,
+    IReadOnlyList<InvoiceFacts> Invoices,
+    IReadOnlyList<InvoiceComparison> Comparisons);
+
+/// <summary>An invoice that a decision, review or proposal names, with what a person compares against the payment.</summary>
+/// <param name="MatchedToPayment">The payment it is matched to in this sandbox; null while open.</param>
+public sealed record InvoiceFacts(
+    string Number, string Kind, string VariableSymbol, string CustomerId, string CustomerName, DateOnly DueDate, decimal Amount, string Currency, string? MatchedToPayment);
+
+/// <summary>A named set of invoices against the payment: payment minus their sum (null when the currencies differ).</summary>
+public sealed record InvoiceComparison(IReadOnlyList<string> InvoiceNumbers, decimal Total, string Currency, decimal? Difference);
 
 public sealed record InvoiceOption(string Number, string VariableSymbol, string CustomerId, string CustomerName, DateOnly DueDate, decimal Amount, string Currency);
 
@@ -161,14 +171,61 @@ public static class SandboxQueries
         var review = state.Review(id) is { } r
             ? new ReviewView(r.Action, r.InvoiceNumbers, r.ProposalId, personName, r.At, r.Checks, r.Acknowledged)
             : null;
+        var agentProposals = state.AgentProposals(id);
+        var queue = state.ProposalsFor(payment);
+        var (invoices, comparisons) = Invoices(
+            state,
+            payment,
+            new[] { record?.Decision.InvoiceNumbers, review?.InvoiceNumbers }
+                .Concat(queue.Select(q => q.InvoiceNumbers))
+                .Concat(agentProposals.Select(p => p.InvoiceNumbers)));
         return new PaymentDetailView(
             Item(state, payment),
             decision,
-            state.AgentProposals(id),
+            agentProposals,
             review,
             state.IsActionable(id),
-            state.ProposalsFor(payment),
-            Timeline(state, payment, review));
+            queue,
+            Timeline(state, payment, review),
+            invoices,
+            comparisons);
+    }
+
+    /// <summary>
+    /// The invoices the decision, the review and the proposals name – only those of this sandbox, through its
+    /// filtered data – and each named set against the payment amount.
+    /// </summary>
+    private static (IReadOnlyList<InvoiceFacts>, IReadOnlyList<InvoiceComparison>) Invoices(
+        SandboxState state, BankPayment payment, IEnumerable<IReadOnlyList<string>?> namedSets)
+    {
+        var sets = namedSets
+            .Where(s => s is { Count: > 0 })
+            .Select(s => s!.Where(state.Data.InvoiceByNumber.ContainsKey).ToList())
+            .Where(s => s.Count > 0)
+            .DistinctBy(s => string.Join('\n', s))
+            .ToList();
+        var invoices = sets.SelectMany(s => s).Distinct(StringComparer.Ordinal)
+            .Select(n => state.Data.InvoiceByNumber[n])
+            .Select(i => new InvoiceFacts(
+                i.Number,
+                i.Kind,
+                i.VariableSymbol,
+                i.CustomerId,
+                state.Data.CustomerById.TryGetValue(i.CustomerId, out var c) ? c.Name : "",
+                i.DueDate,
+                i.Amount,
+                i.Currency,
+                state.MatchedInvoices.TryGetValue(i.Number, out var paymentId) ? paymentId : null))
+            .ToList();
+        var comparisons = sets.Select(s =>
+        {
+            var named = s.Select(n => state.Data.InvoiceByNumber[n]).ToList();
+            var currency = named[0].Currency;
+            var sameCurrency = named.All(i => i.Currency == currency) && currency == payment.Currency;
+            var total = named.Sum(i => i.Amount);
+            return new InvoiceComparison(s, total, currency, sameCurrency ? payment.Amount - total : null);
+        }).ToList();
+        return (invoices, comparisons);
     }
 
     /// <summary>Payments a person should look at, oldest first.</summary>
