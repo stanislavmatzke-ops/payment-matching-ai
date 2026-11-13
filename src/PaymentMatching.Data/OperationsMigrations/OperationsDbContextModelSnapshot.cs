@@ -83,6 +83,27 @@ namespace PaymentMatching.Data.OperationsMigrations
 
                     b.ToTable("daily_usage", (string)null);
                 });
+
+            modelBuilder.Entity("PaymentMatching.Data.DataProtectionKeyRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Xml")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("data_protection_keys", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }

@@ -25,6 +25,7 @@ var devLogin = Authentication.DevLoginEnabled(config, builder.Environment);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(PaymentsDb.Options(connectionString));
 builder.Services.AddSingleton(OperationsDb.Options(connectionString));
+builder.Services.AddDatabaseKeyRing(OperationsDb.Options(connectionString));
 builder.Services.AddSingleton<UsageLedger>();
 builder.Services.AddSingleton<TenantAdmin>();
 builder.Services.AddSingleton(AiBudgetOptions.Read(key => config[key]));

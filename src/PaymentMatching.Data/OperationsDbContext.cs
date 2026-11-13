@@ -47,6 +47,19 @@ public sealed class DailyUsageRow
 }
 
 /// <summary>
+/// One key of the web app's ASP.NET Core Data Protection key ring (cookies, antiforgery tokens), as the
+/// framework's XML. Kept in the database so a sign-in survives a restart or a scale-to-zero (ADR 0016).
+/// </summary>
+public sealed class DataProtectionKeyRow
+{
+    public int Id { get; set; }
+
+    public string? Name { get; set; }
+
+    public required string Xml { get; set; }
+}
+
+/// <summary>
 /// Operational tables of the hosted app that belong to no tenant: the response cache and the daily
 /// usage ledger behind the AI budgets. Kept apart from <see cref="PaymentsDbContext"/>, where every
 /// entity is tenant-owned and filtered; nothing here holds a person's data. Its own migrations history.
@@ -57,8 +70,17 @@ public sealed class OperationsDbContext(DbContextOptions<OperationsDbContext> op
 
     public DbSet<DailyUsageRow> DailyUsage => Set<DailyUsageRow>();
 
+    public DbSet<DataProtectionKeyRow> DataProtectionKeys => Set<DataProtectionKeyRow>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<DataProtectionKeyRow>(e =>
+        {
+            e.ToTable("data_protection_keys");
+            e.HasKey(k => k.Id);
+            e.Property(k => k.Name).HasMaxLength(128);
+        });
+
         modelBuilder.Entity<CachedAnswerRow>(e =>
         {
             e.ToTable("ai_response_cache");
