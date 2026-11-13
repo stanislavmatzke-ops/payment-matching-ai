@@ -13,8 +13,8 @@ param aiMonthlyUsd = '0.50'
 param deployApps = true
 param jobEnabled = true
 
-param microsoftClientId = ''
-param googleClientId = ''
+param microsoftClientId = 'f40e1bb1-6256-4bea-8ff0-77c850d31ca6'
+param googleClientId = '904430889483-etg5kl64n17cl77r3kdquund2tkjtum4.apps.googleusercontent.com'
 param adminConfigured = false
 
 param customDomain = 'payments.stanislavmatzke.com'
