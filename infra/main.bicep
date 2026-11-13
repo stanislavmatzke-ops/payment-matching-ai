@@ -60,10 +60,10 @@ param customDomainCertificate string = ''
 var suffix = take(uniqueString(resourceGroup().id), 10)
 var tags = { app: 'payment-matching-ai' }
 
-// Built-in role definitions.
-var keyVaultSecretsUser = '4633458b-17de-408a-b874-0445c86b69e6'
-var keyVaultSecretsOfficer = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
-var contributor = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+// Built-in role definitions (public ids): Key Vault Secrets User, Key Vault Secrets Officer, Contributor.
+var vaultReaderRole = '4633458b-17de-408a-b874-0445c86b69e6'
+var vaultOfficerRole = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
+var contributorRole = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 
 // ---------------------------------------------------------------- identities
 
@@ -91,9 +91,9 @@ resource githubFederation 'Microsoft.ManagedIdentity/userAssignedIdentities/fede
 }
 
 resource deployerContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, deployer.id, contributor)
+  name: guid(resourceGroup().id, deployer.id, contributorRole)
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', contributor)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', contributorRole)
     principalId: deployer.properties.principalId
     principalType: 'ServicePrincipal'
   }
@@ -116,20 +116,20 @@ resource vault 'Microsoft.KeyVault/vaults@2023-07-01' = {
 }
 
 resource runtimeSecretsUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(vault.id, runtime.id, keyVaultSecretsUser)
+  name: guid(vault.id, runtime.id, vaultReaderRole)
   scope: vault
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUser)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vaultReaderRole)
     principalId: runtime.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource operatorSecretsOfficer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(vault.id, operatorPrincipalId, keyVaultSecretsOfficer)
+  name: guid(vault.id, operatorPrincipalId, vaultOfficerRole)
   scope: vault
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsOfficer)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vaultOfficerRole)
     principalId: operatorPrincipalId
     principalType: 'User'
   }

@@ -1,0 +1,5 @@
+# False positives, reviewed. Each line is a gitleaks fingerprint (commit:file:rule:line).
+# Public ids of Azure built-in roles (Key Vault Secrets User / Officer) in the first Bicep commit; the
+# variables were renamed afterwards so the rule no longer matches.
+281d9d1216be7606a158075151b9282de2427583:infra/main.bicep:generic-api-key:64
+281d9d1216be7606a158075151b9282de2427583:infra/main.bicep:generic-api-key:65
