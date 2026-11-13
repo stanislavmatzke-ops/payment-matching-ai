@@ -1,11 +1,6 @@
-using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
-using OpenTelemetry.Trace;
 using PaymentMatching.Data;
-using PaymentMatching.Observability;
 using PaymentMatching.Web;
 
 // The hosted app: sign-in with Microsoft or Google, one sandbox per person (ADR 0011), server-rendered pages
@@ -22,66 +17,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 var devLogin = Authentication.DevLoginEnabled(config, builder.Environment);
 
-builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddSingleton(PaymentsDb.Options(connectionString));
-builder.Services.AddSingleton(OperationsDb.Options(connectionString));
-builder.Services.AddDatabaseKeyRing(OperationsDb.Options(connectionString));
-builder.Services.AddSingleton<UsageLedger>();
-builder.Services.AddSingleton<TenantAdmin>();
-builder.Services.AddSingleton(AiBudgetOptions.Read(key => config[key]));
-builder.Services.AddSingleton(AdminAccounts.From(config));
-builder.Services.AddScoped<TenantContext>();
-builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
-builder.Services.AddScoped<PaymentsDbContext>();
-builder.Services.AddSingleton(new SandboxOptions
-{
-    StarterPayments = config.GetValue("Sandboxes:StarterPayments", 40),
-    MaxNewPerDay = config.GetValue("Sandboxes:MaxNewPerDay", 5),
-});
-// A new sandbox takes the AI decisions for the week's starter set from the response cache the daily job
-// filled ("live" answers in production); never a model call (ADR 0017). "off" disables it.
-var instantAiSource = config["Sandboxes:InstantAiSource"] ?? "live";
-builder.Services.AddSingleton(sp => new SandboxProvisioner(
-    sp.GetRequiredService<Microsoft.EntityFrameworkCore.DbContextOptions<PaymentsDbContext>>(),
-    sp.GetRequiredService<SandboxOptions>(),
-    sp.GetRequiredService<TimeProvider>(),
-    instantAiSource is "off" or ""
-        ? null
-        : new InstantAiOptions(OperationsDb.Options(connectionString), instantAiSource, sp.GetRequiredService<AiBudgetOptions>().SmallModelOnly)));
-builder.Services.AddScoped(sp => new ReviewActions(sp.GetRequiredService<PaymentsDbContext>(), sp.GetRequiredService<TimeProvider>()));
-builder.Services.AddPaymentsTelemetry("payments-web", config, tracing => tracing.AddAspNetCoreInstrumentation(o =>
-    o.Filter = http => !Path.HasExtension(http.Request.Path.Value)));
-builder.Services.AddRazorComponents();
-builder.Services.AddHttpContextAccessor();
-// Czech letters as text, not &#x...; entities (HTML encoding of markup characters stays on).
-builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o =>
-    o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));
-builder.Services.AddAntiforgery(options =>
-{
-    options.Cookie.Name = "__Host-pm-af";
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-    options.FormFieldName = "__af";
-});
-builder.Services.AddPaymentsAuthentication(config);
-builder.Services.AddAuthorization();
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("sign-in", http => RateLimitPartition.GetFixedWindowLimiter(
-        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
-
-    // The public read-only demo: anonymous, so limited per address.
-    options.AddPolicy("demo", http => RateLimitPartition.GetFixedWindowLimiter(
-        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
-
-    // A person's decisions: generous for a human, a wall for a script.
-    options.AddPolicy("actions", http => RateLimitPartition.GetFixedWindowLimiter(
-        Authentication.TenantOf(http.User)?.ToString() ?? "anonymous",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
-});
+builder.Services.AddPaymentsWeb(config, connectionString);
 
 var app = builder.Build();
 
