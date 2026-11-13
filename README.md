@@ -250,6 +250,14 @@ within the budgets). After rotating a secret, start a new revision
 (`az containerapp update -g rg-payments -n ca-payments-web --revision-suffix <x>`); a running revision
 keeps the old value.
 
+## Using the app
+
+English by default, Czech with one click (EN / CS in the header). The dashboard shows what the AI
+added – payments it matched on its own, sent to you with a proposal, injection attempts it stopped –
+and how often people undid its matches. Any AI match can be undone in the payment detail. The payments
+list searches, filters, sorts and pages on the server; `/how` explains every rule code
+([ADR 0018](docs/adr/0018-ui-after-the-first-user-test.md)).
+
 ## What is here so far
 
 | Path | What |

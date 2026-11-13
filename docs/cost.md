@@ -38,11 +38,11 @@ about half of that, same precision, automation 52.0 % instead of 53.3 %.
 | Source | Calls per day | Notes |
 |---|---|---|
 | Shared daily batch | 1–2 | answered once, every other sandbox reuses the cached answer ($0) |
-| Starter set of the week | ~5–8 per week, once | the same starter data for every sandbox created that week; sign-ins reuse the cached answers ($0, ADR 0017) |
+| Starter set of the week (40 payments) | ~10–16 per week, once | the same starter data for every sandbox created that week; sign-ins reuse the cached answers ($0, ADR 0017) |
 | Sandbox where a person matched by hand | occasionally | the prompt differs, so the model is asked again |
 
 Example: any number of active and new sandboxes → about 1–2 calls a day for the batch plus ~5–8 a
-week for the starter set, **~$0.05–0.30 a month** depending on escalations (measured in Azure: a starter
+week for the starter set (40 payments), **~$0.10–0.40 a month** depending on escalations (measured in Azure: a starter
 set with escalations ~$0.015–0.03). New sign-ins add nothing. Without the cache and demand-driven refill
 (the original plan) cost would grow with every user.
 

@@ -65,6 +65,9 @@ param operatorName string = ''
 @description('Contact e-mail shown on /privacy for data requests (Operator:Email).')
 param operatorEmail string = ''
 
+@description('"About this project" link in the footer of every page (Links:About, https only); empty = no link.')
+param aboutUrl string = ''
+
 @description('Custom domain of the web app, e.g. payments.example.com; empty = only the azurecontainerapps.io name.')
 param customDomain string = ''
 
@@ -220,6 +223,7 @@ var webEnv = concat(
     { name: 'Sandboxes__MaxNewPerDay', value: string(maxNewSandboxesPerDay) }
     { name: 'Operator__Name', value: operatorName }
     { name: 'Operator__Email', value: operatorEmail }
+    { name: 'Links__About', value: aboutUrl }
   ],
   empty(microsoftClientId) ? [] : [
     { name: 'Auth__Microsoft__ClientId', value: microsoftClientId }

@@ -25,6 +25,9 @@ param webMinReplicas = 1
 param operatorName = 'Stanislav Matzke'
 param operatorEmail = 'kontakt@stanislavmatzke.com'
 
+// Footer link "About this project"; later the case study.
+param aboutUrl = 'https://stanislavmatzke.com'
+
 param customDomain = 'payments.stanislavmatzke.com'
 param customDomainCertificate = 'mc-cae-payments-payments-stanisl-7480'
 
