@@ -47,6 +47,7 @@ public sealed class PostgresFixture : IAsyncDisposable
         {
             if (_container is null)
             {
+                // Same image as docker-compose.yml and the pre-pull step in .github/workflows/ci.yml.
                 var container = new PostgreSqlBuilder("postgres:17-alpine").Build();
                 await container.StartAsync(cancellationToken);
                 _container = container;

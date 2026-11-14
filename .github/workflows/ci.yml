@@ -28,6 +28,20 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      # Four test projects start PostgreSQL through Testcontainers in parallel and each would pull the image
+      # itself; one broken download from Docker Hub's CDN failed a run (Testcontainers does not retry a pull).
+      # Pull it once, with retries, so the tests find it locally. Same image as tests/Shared/PostgresFixture.cs.
+      - name: Pull the test database image
+        env:
+          IMAGE: postgres:17-alpine
+        run: |
+          for attempt in 1 2 3; do
+            docker pull --quiet "$IMAGE" && exit 0
+            echo "Pull of $IMAGE failed (attempt $attempt), retrying in $((attempt * 10)) s"
+            sleep $((attempt * 10))
+          done
+          exit 1
+
       - name: Test
         run: dotnet test --configuration Release --no-build
 
